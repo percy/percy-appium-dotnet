@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <AssemblyName>Percy</AssemblyName>
+    <LangVersion>8.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <WarningLevel>3</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PackageId>PercyIO.Appium</PackageId>
+    <Description>Percy for Appium WebDriver API .NET Bindings</Description>
+    <PackageTags>appium;percy;visual;testing</PackageTags>
+    <Version>0.0.1</Version>
+    <Company>Perceptual Inc</Company>
+    <Copyright>Copyright Perceptual Inc</Copyright>
+    <Authors>percy-admin</Authors>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageProjectUrl>https://docs.percy.io/docs/appium-dotnet</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/percy/percy-appium-dotnet</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+  </PropertyGroup>
+  <PropertyGroup>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Castle.Core" Version="4.3.1"/>
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0"/>
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.1"/>
+    <PackageReference Include="DotNetSeleniumExtras.WaitHelpers" Version="3.11.0"/>
+    <PackageReference Include="System.Text.Json" Version="7.0.0"/>
+    <PackageReference Include="Appium.WebDriver" Version="[4.0.0,5)"/>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\"/>
+  </ItemGroup>
+</Project>
