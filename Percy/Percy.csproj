@@ -7,7 +7,7 @@
   </PropertyGroup>
   <PropertyGroup>
     <PackageId>PercyIO.Appium</PackageId>
-    <Description>A SDK of Percy for Appium WebDriver API .NET Bindings</Description>
+    <Description>An App Percy SDK for Appium WebDriver API .NET Bindings</Description>
     <PackageTags>appium;percy;visual;testing</PackageTags>
     <Version>0.0.1</Version>
     <Company>Perceptual Inc</Company>
