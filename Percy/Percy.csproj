@@ -4,11 +4,10 @@
     <AssemblyName>Percy</AssemblyName>
     <LangVersion>8.0</LangVersion>
     <Nullable>enable</Nullable>
-    <WarningLevel>3</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
     <PackageId>PercyIO.Appium</PackageId>
-    <Description>Percy for Appium WebDriver API .NET Bindings</Description>
+    <Description>A SDK of Percy for Appium WebDriver API .NET Bindings</Description>
     <PackageTags>appium;percy;visual;testing</PackageTags>
     <Version>0.0.1</Version>
     <Company>Perceptual Inc</Company>
