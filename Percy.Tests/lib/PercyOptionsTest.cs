@@ -111,5 +111,26 @@ namespace Percy.Tests
       //Assert
       Assert.False(AppPercy.ignoreErrors);
     }
+
+    [Fact]
+    public void TestJWPWhenValueTypeIsBool()
+    {
+       // Arrange
+      AppPercy.cache.Clear();
+      var capabilities = new Mock<ICapabilities>();
+      capabilities.Setup(x => x.GetCapability("percyOptions"))
+        .Returns(null);
+      capabilities.Setup(x => x.GetCapability("percy.ignoreErrors"))
+        .Returns(false);
+      capabilities.Setup(x => x.GetCapability("percy.enabled"))
+        .Returns(false);
+      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities())
+        .Returns(capabilities.Object);
+      //Act
+      percyOptions = new PercyOptions(_androidPercyAppiumDriver.Object);
+      percyOptions.SetPercyIgnoreErrors();
+      //Assert
+      Assert.False(AppPercy.ignoreErrors);
+    }
   }
 }

@@ -35,14 +35,14 @@ namespace PercyIO.Appium
     internal void SetPercyIgnoreErrors()
     {
       var percyOptionsW3CProtocol = getPercyOptions();
-      var percyIgnoreErrorsJsonProtocol = (string)percyAppiumDriver.GetCapabilities().GetCapability("percy.ignoreErrors");
+      var percyIgnoreErrorsJsonProtocol = percyAppiumDriver.GetCapabilities().GetCapability("percy.ignoreErrors");
 
       if (percyOptionsW3CProtocol == null && percyIgnoreErrorsJsonProtocol == null)
       {
         AppPercy.Log("Percy options not provided in capabilitiies, ignoring errors by default", "debug");
         return;
       }
-      else if ((percyIgnoreErrorsJsonProtocol != null && percyIgnoreErrorsJsonProtocol == "False")
+      else if ((percyIgnoreErrorsJsonProtocol?.ToString() == "False")
               || (percyOptionsW3CProtocol?["ignoreErrors"]?.ToString() == "False"))
       {
         AppPercy.ignoreErrors = false;
