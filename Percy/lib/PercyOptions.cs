@@ -50,13 +50,13 @@ namespace PercyIO.Appium
       return;
     }
 
-    internal Dictionary<string, string> getPercyOptions()
+    internal Dictionary<string, object> getPercyOptions()
     {
       if (AppPercy.cache.Get("percyOptions_" + sessionId) == null)
       {
         AppPercy.cache.Store("percyOptions_" + sessionId, percyAppiumDriver.GetCapabilities().GetCapability("percyOptions"));
       }
-      return (Dictionary<string, string>)AppPercy.cache.Get("percyOptions_" + sessionId);
+      return (Dictionary<string, object>)AppPercy.cache.Get("percyOptions_" + sessionId);
     }
   }
 }
