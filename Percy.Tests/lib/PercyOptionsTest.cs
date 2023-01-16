@@ -12,9 +12,9 @@ namespace Percy.Tests
     private PercyOptions percyOptions;
     private Mock<IPercyAppiumDriver> _androidPercyAppiumDriver = new Mock<IPercyAppiumDriver>();
 
-    public Dictionary<string, string> options(string enabled, string ignoreErrors)
+    public Dictionary<string, object> options(string enabled, string ignoreErrors)
     {
-      return new Dictionary<string, string>(){
+      return new Dictionary<string, object>(){
         {"enabled", enabled},
         {"ignoreErrors", ignoreErrors},
       };
@@ -129,8 +129,10 @@ namespace Percy.Tests
       //Act
       percyOptions = new PercyOptions(_androidPercyAppiumDriver.Object);
       percyOptions.SetPercyIgnoreErrors();
+      bool actual = percyOptions.PercyEnabled();
       //Assert
       Assert.False(AppPercy.ignoreErrors);
+      Assert.False(actual);
     }
   }
 }
