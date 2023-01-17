@@ -63,8 +63,6 @@ $ dotnet add package PercyIO.Appium
 This is an example test using the `Percy.Snapshot` method.
 
 ``` csharp
-using PercyIO.Appium;
-
 // ... other test code
 // import
 using PercyIO.Appium;
