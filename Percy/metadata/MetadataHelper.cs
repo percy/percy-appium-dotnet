@@ -48,7 +48,7 @@ namespace PercyIO.Appium
     {
       if (AppPercy.cache.Get("getDevicesJson") == null)
       {
-        var assembly = Assembly.GetEntryAssembly();
+        var assembly = Assembly.GetExecutingAssembly();
         var resourceStream = assembly.GetManifestResourceStream("Percy.resources.devices.json");
         var data = JObject.Parse(new StreamReader(resourceStream).ReadToEnd());
         AppPercy.cache.Store("getDevicesJson", data);
