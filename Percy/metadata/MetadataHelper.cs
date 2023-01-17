@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Reflection;
 using Newtonsoft.Json.Linq;
 
 namespace PercyIO.Appium
@@ -47,7 +48,9 @@ namespace PercyIO.Appium
     {
       if (AppPercy.cache.Get("getDevicesJson") == null)
       {
-        var data = JObject.Parse(File.ReadAllText("./resources/devices.json"));
+        var assembly = Assembly.GetExecutingAssembly();
+        var resourceStream = assembly.GetManifestResourceStream("Percy.resources.devices.json");
+        var data = JObject.Parse(new StreamReader(resourceStream).ReadToEnd());
         AppPercy.cache.Store("getDevicesJson", data);
       }
       return (JObject)AppPercy.cache.Get("getDevicesJson");
