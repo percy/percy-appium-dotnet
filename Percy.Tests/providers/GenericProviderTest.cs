@@ -45,7 +45,7 @@ namespace Percy.Tests
       var metadata = MetadataHelper.Resolve(_androidPercyAppiumDriver.Object, "Samsung Galaxy s22", 0, 0, null, null);
       genericProvider.setMetadata(metadata);
       // Then
-      var tile = genericProvider.GetTag();
+      var tile = genericProvider.GetTag(metadata);
       Assert.Equal(tile.GetValue("name").ToString(), "Samsung Galaxy s22");
       Assert.Equal(tile.GetValue("osName").ToString(), "aNDROID");
       Assert.Equal(tile.GetValue("osVersion").ToString(), "9");

@@ -4,6 +4,8 @@ using Newtonsoft.Json.Linq;
 using Moq;
 using Xunit;
 using PercyIO.Appium;
+using System.Collections.Generic;
+
 namespace Percy.Tests
 {
   public class AppAutomateTest
@@ -232,6 +234,75 @@ namespace Percy.Tests
       var actual = appAutomate.DeviceName(expected, result);
       // Then
       Assert.Equal(actual, expected);
+    }
+
+    [Fact]
+    public void CaptureTiles_ShouldReturnListOfTiles_WhenCalled()
+    {
+      // Arrange
+      var androidPercyAppiumDriver = new Mock<IPercyAppiumDriver>();
+      var viewport = new Dictionary<string, object>(){
+        {"top", 10L}
+      };
+      //var metadata = MetadataHelper.Resolve(_androidPercyAppiumDriver.Object, "Samsung Galaxy s22", 100, 200, null, null);
+      capabilities.Setup(x => x.GetCapability("platformName"))
+        .Returns("Android");
+      capabilities.Setup(x => x.GetCapability("platformVersion"))
+        .Returns("9");
+      capabilities.Setup(x => x.GetCapability("os_version"))
+        .Returns("9");
+      capabilities.Setup(x => x.GetCapability("deviceScreenSize"))
+        .Returns("1280x1420");
+      capabilities.Setup(x => x.GetCapability("orientation"))
+        .Returns("landscape");
+      capabilities.Setup(x => x.GetCapability("viewportRect"))
+        .Returns(viewport);
+      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities())
+        .Returns(capabilities.Object);
+      _androidPercyAppiumDriver.Setup(x => x.ExecuteScript(It.IsAny<string>()))
+        .Returns("{'sha': 'abcd-1234', 'header_height': 50, 'footer_height': 30}");
+
+      var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
+      // Act
+      var metadata = MetadataHelper.Resolve(_androidPercyAppiumDriver.Object, "Samsung Galaxy s22", 100, 200, null, null);
+      appAutomate.setMetadata(metadata);
+      var result = appAutomate.CaptureTiles(2, true, metadata,  "fullpage");
+
+      // Assert
+      Assert.IsType<System.Collections.Generic.List<Tile>>(result);
+      Assert.Equal(1, result.Count);
+      Assert.Equal("abcd", result[0].Sha);
+      Assert.Equal(100, result[0].StatusBarHeight);
+      Assert.Equal(200, result[0].NavBarHeight);
+      Assert.Equal(50, result[0].HeaderHeight);
+      Assert.Equal(30, result[0].FooterHeight);
+    }
+
+    [Fact]
+    public void TestExecutePercyScreenshot() {
+      Environment.SetEnvironmentVariable("PERCY_LOGLEVEL", "debug");
+      var screenshotType = "fullpage";
+      var response = @"{'sha': 'abcd-1234', 'header_height': 50, 'footer_height': 30}";
+      var name = "First";
+      var percyScreenshotUrl = "";
+      var arguments = new JObject();
+      arguments.Add("state", "end");
+      arguments.Add("percyScreenshotUrl", percyScreenshotUrl);
+      arguments.Add("status", "success");
+      arguments.Add("statusMessage", null);
+      arguments.Add("name", name);
+      var reqObject = new JObject();
+      reqObject.Add("action", "percyScreenshot");
+      reqObject.Add("arguments", arguments);
+     _androidPercyAppiumDriver.Setup(x => x.ExecuteScript(It.IsAny<string>()))
+        .Returns(response);
+      // When
+      var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
+      var metadata = MetadataHelper.Resolve(_androidPercyAppiumDriver.Object, "Samsung Galaxy s22", 100, 200, null, null);
+      appAutomate.setMetadata(metadata);
+      var actual = appAutomate.ExecutePercyScreenshot(screenshotType);
+      // Then
+      _androidPercyAppiumDriver.Verify(x => x.ExecuteScript(It.IsAny<string>()), Times.Once);
     }
   }
 }

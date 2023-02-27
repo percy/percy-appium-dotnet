@@ -6,6 +6,7 @@ namespace PercyIO.Appium
 {
   internal class AppAutomate : GenericProvider
   {
+    private Metadata metadata;
     private Boolean markedPercySession = true;
     private IPercyAppiumDriver percyAppiumDriver;
     private string debugUrl;
@@ -57,7 +58,7 @@ namespace PercyIO.Appium
           });
           var resultString = percyAppiumDriver.ExecuteScript("browserstack_executor:" + obj.ToString());
           var result = JObject.Parse(resultString);
-          markedPercySession = (result.GetValue("success").ToString() == "true");
+          markedPercySession = (result.GetValue("success").ToString() == "True");
           return result;
         }
       }
@@ -106,8 +107,58 @@ namespace PercyIO.Appium
       return null;
     }
 
+    internal List<Tile> CaptureTiles(int fullPageScreenshotScreenLengths, bool fullScreen, Metadata metadata, String screenshotType = "fullpage")
+    {
+      var statusBar = metadata.StatBarHeight();
+      var navBar = metadata.NavBarHeight();
+      string reqObject = ExecutePercyScreenshot(screenshotType);
+      var jsonarray = new JArray();
+      try 
+      {
+        jsonarray = JArray.Parse(reqObject);
+      } catch (Exception e)
+      {
+        var error = e.Message;
+        throw new Exception("Error", e);
+      }
+      List<Tile> tiles = new List<Tile>();
+      foreach (JObject jsonobject in jsonarray)
+      {
+          String sha = jsonobject.GetValue("sha").ToString().Split('-')[0];
+          int HeaderHeight = (int) jsonobject.GetValue("header_height");
+          int FooterHeight = (int) jsonobject.GetValue("footer_height");
+          tiles.Add(new Tile(null, statusBar, navBar, HeaderHeight, FooterHeight, fullScreen, sha));
+      }
+      return tiles;
+    }
+
+    internal string ExecutePercyScreenshot(String screenshotType)
+    {
+      var scaleFactor = metadata.GetScaleFactor();
+      JObject arguments = new JObject();
+      JObject args = new JObject();
+      var deviceHeight = metadata.DeviceScreenHeight(); 
+      args.Add("numOfTiles", 10);
+      args.Add("deviceHeight", deviceHeight);
+
+      arguments.Add("state", "screenshot");
+      arguments.Add("percyBuildId", Environment.GetEnvironmentVariable("PERCY_BUILD_ID"));
+      arguments.Add("screenshotType", screenshotType);
+      arguments.Add("scaleFactor", scaleFactor);
+      arguments.Add("options", args);
+
+      JObject reqObject = new JObject();
+      reqObject.Add("action", "percyScreenshot");
+      reqObject.Add("arguments", arguments);
+      Console.WriteLine(reqObject.ToString());
+      Console.Write(percyAppiumDriver.sessionId());
+      var resultString = percyAppiumDriver.ExecuteScript(string.Format("browserstack_executor: {0}", reqObject.ToString())).ToString();
+      JObject result = JObject.Parse(resultString);
+      return result.GetValue("result").ToString();
+    }
+
     public override String Screenshot(String name, String deviceName, int statusBarHeight, int navBarHeight,
-        String orientation, Boolean fullScreen, String? platformVersion = null)
+        String orientation, Boolean fullScreen, String? platformVersion = null, int fullPageScreenshotScreenLengths = -1)
     {
       var result = ExecutePercyScreenshotBegin(name);
       var percyScreenshotUrl = "";
@@ -116,20 +167,43 @@ namespace PercyIO.Appium
       SetDebugUrl(result);
       try
       {
-        percyScreenshotUrl = base.Screenshot(name, device, statusBarHeight, navBarHeight, orientation, fullScreen, new List<string>(
-        result.GetValue("osVersion")?.ToString().Split(new string[] { "\\." }, StringSplitOptions.None))[0]);
+        if(fullPageScreenshotScreenLengths == -1 && Environment.GetEnvironmentVariable("PERCY_SS") != "internal") {
+          percyScreenshotUrl = base.Screenshot(name, device, statusBarHeight, navBarHeight, orientation, fullScreen, new List<string>(
+          result.GetValue("osVersion")?.ToString().Split(new string[] { "\\." }, StringSplitOptions.None))[0]);
+        }
+        else if(fullPageScreenshotScreenLengths >= 1) {
+          this.metadata = MetadataHelper.Resolve(percyAppiumDriver, device, statusBarHeight, navBarHeight, orientation,
+                  new List<string>(result.GetValue("osVersion")?.ToString().Split(new string[] { "\\." }, StringSplitOptions.None))[0]);
+          List<Tile> tiles = CaptureTiles(fullPageScreenshotScreenLengths, true, this.metadata);
+          var tag = GetTag(this.metadata);
+          percyScreenshotUrl =  CliWrapper.PostScreenshot(name, tag, tiles, debugUrl);
+        }
+        else {
+          this.metadata = MetadataHelper.Resolve(percyAppiumDriver, device, statusBarHeight, navBarHeight, orientation,
+                  new List<string>(result.GetValue("osVersion")?.ToString().Split(new string[] { "\\." }, StringSplitOptions.None))[0]);
+          List<Tile> tiles = CaptureTiles(fullPageScreenshotScreenLengths, true, this.metadata, "singlepage");
+          var tag = GetTag(this.metadata);
+          percyScreenshotUrl =  CliWrapper.PostScreenshot(name, tag, tiles, debugUrl);
+        }
       }
       catch (Exception e)
       {
         error = e.Message;
+        Console.WriteLine(error);
       }
       ExecutePercyScreenshotEnd(name, percyScreenshotUrl, error);
+      Console.WriteLine("END");
       return "";
     }
 
     internal String? DeviceName(String deviceName, JObject result)
     {
       return deviceName ?? result?.GetValue("deviceName")?.ToString();
+    }
+
+    internal void setMetadata(Metadata metadata)
+    {
+      this.metadata = metadata;
     }
   }
 }

@@ -86,5 +86,16 @@ namespace PercyIO.Appium
       }
       return (Dictionary<string, object>)AppPercy.cache.Get("viewportRect_" + sessionId);
     }
+
+    internal override int GetScaleFactor()
+    {
+      if (AppPercy.cache.Get("scaleFactor_" + sessionId) == null)
+      {
+        object scaleFactor;
+        driver.GetSessionDetails().TryGetValue("pixelRatio", out scaleFactor);
+        AppPercy.cache.Store("scaleFactor_" + sessionId, scaleFactor);
+      }
+      return (int)(long)AppPercy.cache.Get("scaleFactor_" + sessionId);
+    }
   }
 }

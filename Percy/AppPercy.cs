@@ -39,7 +39,7 @@ namespace PercyIO.Appium
       this.sessionId = percyAppiumDriver.sessionId();
     }
 
-    public void Screenshot(String name, ScreenshotOptions? options = null, Boolean fullScreen = false)
+    public void Screenshot(String name, ScreenshotOptions? options = null, Boolean fullScreen = false, String platformVersion = null,  int fullPageScreenshotScreenLengths = -1)
     {
       if (!isPercyEnabled || !percyOptions.PercyEnabled())
       {
@@ -56,7 +56,9 @@ namespace PercyIO.Appium
           options?.StatusBarHeight ?? -1,
           options?.NavBarHeight ?? -1,
           options?.Orientation,
-          fullScreen
+          fullScreen,
+          platformVersion,
+          fullPageScreenshotScreenLengths
         );
       }
       catch (Exception e)

@@ -76,5 +76,10 @@ namespace PercyIO.Appium
       }
       return (Dictionary<string, object>)AppPercy.cache.Get("viewportRect_" + sessionId);
     }
+
+    internal override int GetScaleFactor()
+    {
+      return 1;
+    }
   }
 }

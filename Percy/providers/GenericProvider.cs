@@ -17,7 +17,7 @@ namespace PercyIO.Appium
       this.percyAppiumDriver = percyAppiumDriver;
     }
 
-    internal JObject GetTag()
+    internal JObject GetTag(Metadata metadata)
     {
       var tag = new JObject();
       tag.Add("name", metadata.DeviceName());
@@ -73,12 +73,12 @@ namespace PercyIO.Appium
     }
 
     public virtual String Screenshot(String name, String deviceName, int statusBarHeight, int navBarHeight,
-        String orientation, Boolean fullScreen, String platformVersion = null)
+        String orientation, Boolean fullScreen, String platformVersion = null, int fullPageScreenshotScreenLengths = -1)
     {
       var tempMetadata = MetadataHelper.Resolve(percyAppiumDriver, deviceName, statusBarHeight, navBarHeight, orientation,
               platformVersion);
       setMetadata(tempMetadata);
-      var tag = GetTag();
+      var tag = GetTag(this.metadata);
       var tiles = CaptureTiles(fullScreen);
       return CliWrapper.PostScreenshot(name, tag, tiles, debugUrl);
     }
