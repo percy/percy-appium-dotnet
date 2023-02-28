@@ -109,5 +109,13 @@ namespace PercyIO.Appium
         return null;
       }
     }
+
+    internal static void setHttpClient(HttpClient client) {
+      _http = client;
+    }
+
+    internal static void resetHttpClient() {
+      _http = new HttpClient();
+    }
   }
 }
