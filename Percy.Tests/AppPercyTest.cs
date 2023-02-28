@@ -38,10 +38,12 @@ namespace Percy.Tests
         .Returns("Android");
       _androidPercyAppiumDriver.Setup(x => x.ExecuteScript(It.IsAny<string>()))
         .Returns(response);
-      AppPercy appPercy = new AppPercy(_androidPercyAppiumDriver.Object);
       CliWrapper.Healthcheck = () => {
         return true;
       };
+
+      AppPercy appPercy = new AppPercy(_androidPercyAppiumDriver.Object);
+
       // Act
       appPercy.Screenshot("abc", null);
       // Assert
@@ -73,10 +75,12 @@ namespace Percy.Tests
         .Returns("iOS");
       _iOSPercyAppiumDriver.Setup(x => x.ExecuteScript(It.IsAny<string>()))
         .Returns(response);
-      AppPercy appPercy = new AppPercy(_iOSPercyAppiumDriver.Object);
       CliWrapper.Healthcheck = () => {
         return true;
       };
+
+      AppPercy appPercy = new AppPercy(_iOSPercyAppiumDriver.Object);
+      
       // Act
       appPercy.Screenshot("abc", null);
       // Assert

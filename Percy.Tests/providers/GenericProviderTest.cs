@@ -5,6 +5,9 @@ using Newtonsoft.Json.Linq;
 using Moq;
 using Xunit;
 using PercyIO.Appium;
+using RichardSzalay.MockHttp;
+using System.Net.Http;
+
 namespace Percy.Tests
 {
   public class GenericProviderTest
@@ -141,9 +144,18 @@ namespace Percy.Tests
       Screenshot screenshot = new Screenshot("c2hvcnRlc3Q=");
       _androidPercyAppiumDriver.Setup(x => x.GetScreenshot())
         .Returns(screenshot);
+
+      var mockHttp = new MockHttpMessageHandler();
+
+      // Setup a respond for the user api (including a wildcard in the URL)
+      mockHttp.When("http://localhost:5338/percy/comparison")
+        .Respond("application/json", "{\"success\": true, \"link\": \""+ expected + "\"}");
+
+      CliWrapper.setHttpClient(new HttpClient(mockHttp));
       GenericProvider genericProvider = new GenericProvider(_androidPercyAppiumDriver.Object);
       string s = genericProvider.Screenshot("test screenshot","Samsung",0,0,"landscape",false);
       Assert.Equal(expected ,s);
+      CliWrapper.resetHttpClient();
     }
 
     [Fact]

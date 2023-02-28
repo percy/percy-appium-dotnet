@@ -6,12 +6,13 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Percy\Percy.csproj"/>
+    <ProjectReference Include="..\Percy\Percy.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Faker.Net" Version="2.0.154"/>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.3.2"/>
-    <PackageReference Include="xunit" Version="2.4.2"/>
+    <PackageReference Include="Faker.Net" Version="2.0.154" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.3.2" />
+    <PackageReference Include="RichardSzalay.MockHttp" Version="6.0.0" />
+    <PackageReference Include="xunit" Version="2.4.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
@@ -20,11 +21,11 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Moq" Version="4.18.4"/>
-    <PackageReference Include="Microsoft.CSharp" Version="4.7.0"/>
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.1"/>
-    <PackageReference Include="DotNetSeleniumExtras.WaitHelpers" Version="3.11.0"/>
-    <PackageReference Include="System.Text.Json" Version="7.0.0"/>
-    <PackageReference Include="Appium.WebDriver" Version="4.0.0"/>
+    <PackageReference Include="Moq" Version="4.18.4" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
+    <PackageReference Include="DotNetSeleniumExtras.WaitHelpers" Version="3.11.0" />
+    <PackageReference Include="System.Text.Json" Version="7.0.0" />
+    <PackageReference Include="Appium.WebDriver" Version="4.0.0" />
   </ItemGroup>
 </Project>
