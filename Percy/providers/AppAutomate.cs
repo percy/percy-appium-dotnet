@@ -168,21 +168,23 @@ namespace PercyIO.Appium
 
     internal string ExecutePercyScreenshot(int? screenLengths)
     {
-      JObject arguments = new JObject();
-      JObject args = new JObject();
-      args.Add("deviceHeight", this.metadata.DeviceScreenHeight());
-      args.Add("numOfTiles", screenLengths);
+      var reqObject = JObject.FromObject(new {
+        action = "percyScreenshot",
+        arguments = new
+        {
+          state = "screenshot",
+          percyBuildId = Environment.GetEnvironmentVariable("PERCY_BUILD_ID"),
+          screenshotType = "fullpage",
+          scaleFactor = this.metadata.ScaleFactor(),
+          options = new {
+            deviceHeight = this.metadata.DeviceScreenHeight(),
+            numOfTiles = screenLengths
+          }
+        }
+      });
 
-      arguments.Add("state", "screenshot");
-      arguments.Add("percyBuildId", Environment.GetEnvironmentVariable("PERCY_BUILD_ID"));
-      arguments.Add("screenshotType", "fullpage");
-      arguments.Add("scaleFactor", this.metadata.ScaleFactor());
-      arguments.Add("options", args);
-
-      JObject reqObject = new JObject();
-      reqObject.Add("action", "percyScreenshot");
-      reqObject.Add("arguments", arguments);
-      var resultString = percyAppiumDriver.ExecuteScript(string.Format("browserstack_executor: {0}", reqObject.ToString())).ToString();
+      var resultString = percyAppiumDriver.ExecuteScript(
+        string.Format("browserstack_executor: {0}", reqObject.ToString())).ToString();
       JObject result = JObject.Parse(resultString);
       return result.GetValue("result").ToString();
     }
