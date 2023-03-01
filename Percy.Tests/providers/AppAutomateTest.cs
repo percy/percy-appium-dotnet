@@ -234,10 +234,10 @@ namespace Percy.Tests
       _androidPercyAppiumDriver.Setup(x => x.ExecuteScript(It.IsAny<string>()))
         .Returns(JsonConvert.SerializeObject(new {
             success = true,
-            result = new List<object> {
+            result = JsonConvert.SerializeObject(new List<object> {
               new { sha = "abcd-1234", header_height = 50, footer_height = 30 },
               new { sha = "abce-1234", header_height = 80, footer_height = 10 }
-            }
+            })
           }
         ));
 
@@ -263,9 +263,9 @@ namespace Percy.Tests
       Environment.SetEnvironmentVariable("PERCY_LOGLEVEL", "debug");
       var response = JsonConvert.SerializeObject(new {
           success = true,
-          result = new List<object> {
+          result = JsonConvert.SerializeObject(new List<object> {
             new { sha = "abcd-1234", header_height = 50, footer_height = 30 }
-          }
+          })
         }
       );
       var capabilities = new Mock<ICapabilities>();
