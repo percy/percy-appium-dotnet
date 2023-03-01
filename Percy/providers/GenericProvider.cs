@@ -8,7 +8,7 @@ namespace PercyIO.Appium
 
   internal class GenericProvider
   {
-    private Metadata metadata;
+    internal Metadata metadata;
     private string debugUrl = null;
     private IPercyAppiumDriver percyAppiumDriver;
 
@@ -29,8 +29,12 @@ namespace PercyIO.Appium
       return tag;
     }
 
-    internal List<Tile> CaptureTiles(Boolean fullScreen)
+    internal virtual List<Tile> CaptureTiles(Boolean fullScreen, bool fullPage, int? screenLengths)
     {
+      if (fullPage) {
+        AppPercy.Log("Full page screeshot is only supported on App Automate." +
+          " Falling back to single page screenshot.");
+      }
       var statusBar = metadata.StatBarHeight();
       var navBar = metadata.NavBarHeight();
       var srcString = CaptureScreenshot(percyAppiumDriver);
@@ -73,19 +77,19 @@ namespace PercyIO.Appium
     }
 
     public virtual String Screenshot(String name, String deviceName, int statusBarHeight, int navBarHeight,
-        String orientation, Boolean fullScreen, String platformVersion = null)
+        String orientation, Boolean fullScreen, bool fullPage, int? screenLengths, String platformVersion = null)
     {
-      var tempMetadata = MetadataHelper.Resolve(percyAppiumDriver, deviceName, statusBarHeight, navBarHeight, orientation,
-              platformVersion);
-      setMetadata(tempMetadata);
+      this.metadata = MetadataHelper.Resolve(
+        percyAppiumDriver,
+        deviceName,
+        statusBarHeight,
+        navBarHeight,
+        orientation,
+        platformVersion
+      );
       var tag = GetTag();
-      var tiles = CaptureTiles(fullScreen);
+      var tiles = CaptureTiles(fullScreen, fullPage, screenLengths);
       return CliWrapper.PostScreenshot(name, tag, tiles, debugUrl);
-    }
-
-    internal void setMetadata(Metadata metadata)
-    {
-      this.metadata = metadata;
     }
   }
 }

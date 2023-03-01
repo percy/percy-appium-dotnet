@@ -10,21 +10,21 @@ namespace PercyIO.Appium
   {
     private object driver;
     private String driverType;
-    private IOSDriver<IOSElement> iosDriver;
-    private AndroidDriver<AndroidElement> androidDriver;
+    private IOSDriver<IOSElement>? iosDriver;
+    private AndroidDriver<AndroidElement>? androidDriver;
 
     internal PercyAppiumDriver(AndroidDriver<AndroidElement> driver)
     {
       this.driver = driver;
       this.driverType = "Android";
-      this.androidDriver = driver as AndroidDriver<AndroidElement>;
+      this.androidDriver = driver;
     }
 
     internal PercyAppiumDriver(IOSDriver<IOSElement> driver)
     {
       this.driver = driver;
       this.driverType = "iOS";
-      this.iosDriver = driver as IOSDriver<IOSElement>;
+      this.iosDriver = driver;
     }
 
     public new String GetType()
@@ -46,14 +46,12 @@ namespace PercyIO.Appium
 
     public ICapabilities GetCapabilities()
     {
-      if (driverType == "iOS")
-      {
-        return iosDriver.Capabilities;
+      var key = "caps_" + sessionId();
+      if (AppPercy.cache.Get(key) != null) {
+        var caps = iosDriver?.Capabilities ?? androidDriver?.Capabilities;
+        AppPercy.cache.Store(key, caps);
       }
-      else
-      {
-        return androidDriver.Capabilities;
-      }
+      return (ICapabilities) AppPercy.cache.Get(key);
     }
 
     public System.Collections.Generic.IDictionary<string, object> GetSessionDetails()

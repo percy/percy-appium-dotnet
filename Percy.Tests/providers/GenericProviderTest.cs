@@ -46,7 +46,7 @@ namespace Percy.Tests
       // When
       var genericProvider = new GenericProvider(_androidPercyAppiumDriver.Object);
       var metadata = MetadataHelper.Resolve(_androidPercyAppiumDriver.Object, "Samsung Galaxy s22", 0, 0, null, null);
-      genericProvider.setMetadata(metadata);
+      genericProvider.metadata = metadata;
       // Then
       var tile = genericProvider.GetTag();
       Assert.Equal(tile.GetValue("name").ToString(), "Samsung Galaxy s22");
@@ -78,9 +78,9 @@ namespace Percy.Tests
         .Returns(screenshot);
       var genericProvider = new GenericProvider(_androidPercyAppiumDriver.Object);
       var metadata = MetadataHelper.Resolve(_androidPercyAppiumDriver.Object, "Samsung Galaxy s22", 100, 200, null, null);
-      genericProvider.setMetadata(metadata);
+      genericProvider.metadata = metadata;
       // When
-      var tile = genericProvider.CaptureTiles(false)[0];
+      var tile = genericProvider.CaptureTiles(false, false, 0)[0];
       // Then
       Assert.True(tile.LocalFilePath.EndsWith(".png"));
       Assert.Equal(Convert.ToInt32(tile.StatusBarHeight), 100);
@@ -110,9 +110,9 @@ namespace Percy.Tests
         .Returns(screenshot);
       var genericProvider = new GenericProvider(_androidPercyAppiumDriver.Object);
       var metadata = MetadataHelper.Resolve(_androidPercyAppiumDriver.Object, "Samsung Galaxy s22", 100, 200, null, null);
-      genericProvider.setMetadata(metadata);
+      genericProvider.metadata = metadata;
       // When
-      var tile = genericProvider.CaptureTiles(true)[0];
+      var tile = genericProvider.CaptureTiles(true, false, 0)[0];
       // Then
       Assert.True(tile.LocalFilePath.EndsWith(".png"));
       Assert.Equal(Convert.ToInt32(tile.StatusBarHeight), 100);
@@ -153,7 +153,7 @@ namespace Percy.Tests
 
       CliWrapper.setHttpClient(new HttpClient(mockHttp));
       GenericProvider genericProvider = new GenericProvider(_androidPercyAppiumDriver.Object);
-      string s = genericProvider.Screenshot("test screenshot","Samsung",0,0,"landscape",false);
+      string s = genericProvider.Screenshot("test screenshot","Samsung",0,0,"landscape",false, false, 0);
       Assert.Equal(expected ,s);
       CliWrapper.resetHttpClient();
     }
@@ -178,9 +178,9 @@ namespace Percy.Tests
         .Returns(screenshot);
       var genericProvider = new GenericProvider(_androidPercyAppiumDriver.Object);
       var metadata = MetadataHelper.Resolve(_androidPercyAppiumDriver.Object, "Samsung Galaxy s22", 100, 200, null, null);
-      genericProvider.setMetadata(metadata);
+      genericProvider.metadata = metadata;
       // When
-      var tile = genericProvider.CaptureTiles(true)[0];
+      var tile = genericProvider.CaptureTiles(true, false, 1)[0];
       // Then
       Assert.True(tile.LocalFilePath.EndsWith(".png"));
       Assert.Equal(Convert.ToInt32(tile.StatusBarHeight), 100);

@@ -92,5 +92,6 @@ namespace PercyIO.Appium
     internal abstract int StatBarHeight();
     internal abstract int NavBarHeight();
     internal abstract string OsName();
+    internal abstract int ScaleFactor();
   }
 }

@@ -77,7 +77,7 @@ namespace Percy.Tests
         .Returns(screenshot);
       // When
       AppAutomate appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
-      string actual = appAutomate.Screenshot("temp", "Samsung", 100, 100, "potrait", false);
+      string actual = appAutomate.Screenshot("temp", "Samsung", 100, 100, "potrait", false, false, 0);
       // Then
       Assert.Equal(actual,"");
     }

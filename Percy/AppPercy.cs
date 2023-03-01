@@ -41,6 +41,10 @@ namespace PercyIO.Appium
 
     public void Screenshot(String name, ScreenshotOptions? options = null, Boolean fullScreen = false)
     {
+      if (options == null) {
+        options = new ScreenshotOptions();
+      }
+      options.FullScreen = fullScreen;
       if (!isPercyEnabled || !percyOptions.PercyEnabled())
       {
         return;
@@ -52,11 +56,13 @@ namespace PercyIO.Appium
         provider = ProviderResolver.ResolveProvider(percyAppiumDriver);
         provider.Screenshot(
           name,
-          options?.DeviceName,
-          options?.StatusBarHeight ?? -1,
-          options?.NavBarHeight ?? -1,
-          options?.Orientation,
-          fullScreen
+          options.DeviceName,
+          options.StatusBarHeight,
+          options.NavBarHeight,
+          options.Orientation,
+          fullScreen,
+          options.FullPage,
+          options.ScreenLengths
         );
       }
       catch (Exception e)
@@ -73,7 +79,6 @@ namespace PercyIO.Appium
     {
       AppPercy.cache.Remove("percyOptions_" + sessionId);
       AppPercy.cache.Remove("viewportRect_" + sessionId);
-      AppPercy.cache.Remove("getDevicesJson");
     }
 
     internal static void Log(String message, String logLevel = "info")
