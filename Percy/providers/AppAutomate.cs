@@ -143,8 +143,8 @@ namespace PercyIO.Appium
         return base.CaptureTiles(fullPage, fullPage, screenLengths);
       }
 
-      var statusBar = metadata.StatBarHeight();
-      var navBar = metadata.NavBarHeight();
+      var statusBar = this.metadata.StatBarHeight();
+      var navBar = this.metadata.NavBarHeight();
       string reqObject = ExecutePercyScreenshot(screenLengths);
       var jsonarray = new JArray();
       try 
