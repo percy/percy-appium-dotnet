@@ -47,7 +47,7 @@ namespace PercyIO.Appium
     public ICapabilities GetCapabilities()
     {
       var key = "caps_" + sessionId();
-      if (AppPercy.cache.Get(key) != null) {
+      if (AppPercy.cache.Get(key) == null) {
         var caps = iosDriver?.Capabilities ?? androidDriver?.Capabilities;
         AppPercy.cache.Store(key, caps);
       }
