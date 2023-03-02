@@ -3,6 +3,7 @@ using System.Reflection;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Appium.Android;
 using OpenQA.Selenium.Appium.iOS;
+using System.Collections.Generic;
 
 namespace PercyIO.Appium
 {
@@ -54,16 +55,15 @@ namespace PercyIO.Appium
       return (ICapabilities) AppPercy.cache.Get(key);
     }
 
-    public System.Collections.Generic.IDictionary<string, object> GetSessionDetails()
+    public IDictionary<string, object> GetSessionDetails()
     {
-      if (driverType == "iOS")
-      {
-        return iosDriver.SessionDetails;
+
+      var key = "session_" + sessionId();
+      if (AppPercy.cache.Get(key) == null) {
+        var sess = iosDriver?.SessionDetails ?? androidDriver?.SessionDetails;
+        AppPercy.cache.Store(key, sess);
       }
-      else
-      {
-        return androidDriver.SessionDetails;
-      }
+      return (IDictionary<string, object>) AppPercy.cache.Get(key);
     }
 
     public String sessionId()

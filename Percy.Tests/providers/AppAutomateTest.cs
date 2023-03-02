@@ -64,6 +64,7 @@ namespace Percy.Tests
       var response = @"{success:'true', osVersion:'11.2', buildHash:'abc', sessionHash:'def'}";
       _androidPercyAppiumDriver.Setup(x => x.ExecuteScript(It.IsAny<string>()))
         .Returns(response);
+      _androidPercyAppiumDriver.Setup(x => x.GetType()).Returns("Android");
       AppPercy.cache.Clear();
       capabilities.Setup(x => x.GetCapability("platformName"))
          .Returns("Android");
@@ -78,8 +79,8 @@ namespace Percy.Tests
       var screenshot = new Screenshot("c2hvcnRlc3Q=");
       _androidPercyAppiumDriver.Setup(x => x.GetScreenshot())
         .Returns(screenshot);
-      // When
       AppAutomate appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
+      // When
       string actual = appAutomate.Screenshot("temp", "Samsung", 100, 100, "potrait", false, false, 0);
       // Then
       Assert.Equal(actual,"");

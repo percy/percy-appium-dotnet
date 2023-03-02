@@ -60,7 +60,7 @@ namespace PercyIO.Appium
           options.StatusBarHeight,
           options.NavBarHeight,
           options.Orientation,
-          fullScreen,
+          options.FullScreen,
           options.FullPage,
           options.ScreenLengths
         );
@@ -79,6 +79,8 @@ namespace PercyIO.Appium
     {
       AppPercy.cache.Remove("percyOptions_" + sessionId);
       AppPercy.cache.Remove("viewportRect_" + sessionId);
+      AppPercy.cache.Remove("session_" + sessionId);
+      AppPercy.cache.Remove("caps_" + sessionId);
     }
 
     internal static void Log(String message, String logLevel = "info")

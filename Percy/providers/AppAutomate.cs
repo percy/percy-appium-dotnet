@@ -131,8 +131,12 @@ namespace PercyIO.Appium
       catch (Exception e)
       {
         error = e.Message;
+        throw e;
       }
-      ExecutePercyScreenshotEnd(name, percyScreenshotUrl, error);
+      finally 
+      {
+        ExecutePercyScreenshotEnd(name, percyScreenshotUrl, error);
+      }
       return "";
     }
 
