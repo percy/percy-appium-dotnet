@@ -143,7 +143,7 @@ namespace PercyIO.Appium
     internal override List<Tile> CaptureTiles(Boolean fullScreen, bool fullPage, int? screenLengths)
     {
       // For single screens just use original approach
-      if (screenLengths < 2) {
+      if (screenLengths == null || screenLengths < 2) {
         return base.CaptureTiles(fullPage, fullPage, screenLengths);
       }
 
