@@ -90,10 +90,12 @@ The screenshot method arguments:
   - `fullScreen ` - It indicates if the app is a full screen
   - `options` - Optional screenshot params:
     Use `ScreenshotOptions` to set following params to override
-      - `deviceName` - Device name on which screenshot is taken
-      - `statusBarHeight` - Height of status bar for the device
-      - `navBarHeight` - Height of navigation bar for the device
-      - `orientation`  - Orientation of the application
+      - `DeviceName` - Device name on which screenshot is taken
+      - `StatusBarHeight` - Height of status bar for the device
+      - `NavBarHeight` - Height of navigation bar for the device
+      - `Orientation` - Orientation of the application
+      - `FullPage`: true/false. [Experimental] only supported on App Automate driver sessions [ needs @percy/cli 1.20.2+ ]
+      - `ScreenLengths`: int [Experimental] max screen lengths for fullPage [ needs @percy/cli 1.20.2+ ]
 
 ### Migrating Config
 
