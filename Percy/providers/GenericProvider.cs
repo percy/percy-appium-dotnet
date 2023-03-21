@@ -1,7 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Newtonsoft.Json.Linq;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Appium;
+using OpenQA.Selenium.Appium.Android;
+using OpenQA.Selenium.Appium.iOS;
 
 namespace PercyIO.Appium
 {
@@ -31,7 +36,8 @@ namespace PercyIO.Appium
 
     internal virtual List<Tile> CaptureTiles(Boolean fullScreen, bool fullPage, int? screenLengths)
     {
-      if (fullPage) {
+      if (fullPage)
+      {
         AppPercy.Log("Full page screeshot is only supported on App Automate." +
           " Falling back to single page screenshot.");
       }
@@ -77,7 +83,9 @@ namespace PercyIO.Appium
     }
 
     public virtual String Screenshot(String name, String deviceName, int statusBarHeight, int navBarHeight,
-        String orientation, Boolean fullScreen, bool fullPage, int? screenLengths, String platformVersion = null)
+        String orientation, Boolean fullScreen, bool fullPage, List<String> xpaths, List<String> ids,
+        List<AppiumWebElement> elements,
+        int? screenLengths, String platformVersion = null)
     {
       this.metadata = MetadataHelper.Resolve(
         percyAppiumDriver,
@@ -88,8 +96,83 @@ namespace PercyIO.Appium
         platformVersion
       );
       var tag = GetTag();
+      var ignoredElementLocation = IgnoredElementsLocation(xpaths, ids, elements);
+      Console.WriteLine(ignoredElementLocation.ToString());
       var tiles = CaptureTiles(fullScreen, fullPage, screenLengths);
-      return CliWrapper.PostScreenshot(name, tag, tiles, debugUrl);
+      return CliWrapper.PostScreenshot(name, tag, tiles, debugUrl, ignoredElementLocation);
+    }
+
+    public JObject IgnoredElementsLocation(List<String> xpaths, List<String> ids,
+        List<AppiumWebElement> elements)
+    {
+      var ignoredElementsArray = new JArray();
+      var allElements = new List<AppiumWebElement>();
+
+
+      foreach (var xpath in xpaths)
+      {
+        var element =  percyAppiumDriver.FindElementByXPath(xpath);
+        
+        var location = element.Location;
+        var size = element.Size;
+        var ignoredRegion = new JObject(
+          new JProperty("selector", "xpaths"),
+          new JProperty("co-ordinates", new JObject(
+              new JProperty("top", location.Y),
+              new JProperty("bottom", location.Y + size.Height),
+              new JProperty("left", location.X),
+              new JProperty("right", location.X + size.Width)
+            )
+          )
+        );
+        ignoredElementsArray.Add(ignoredRegion);
+        
+      }
+
+      foreach (var id in ids)
+      {
+        Console.WriteLine("INSIDE IDS");
+        var element = percyAppiumDriver.FindElementsByAccessibilityId(id);
+
+        Console.WriteLine("Loops");
+        var location = element.Location;
+        var size = element.Size;
+        var ignoredRegion = new JObject(
+          new JProperty("selector", "ids"),
+          new JProperty("co-ordinates", new JObject(
+              new JProperty("top", location.Y),
+              new JProperty("bottom", location.Y + size.Height),
+              new JProperty("left", location.X),
+              new JProperty("right", location.X + size.Width)
+            )
+          )
+        );
+        ignoredElementsArray.Add(ignoredRegion);
+      }
+
+      foreach (var element in elements)
+      {
+        var location = element.Location;
+        var size = element.Size;
+        var ignoredRegion = new JObject(
+          new JProperty("selector", "appiumWebElement"),
+          new JProperty("co-ordinates", new JObject(
+              new JProperty("top", location.Y),
+              new JProperty("bottom", location.Y + size.Height),
+              new JProperty("left", location.X),
+              new JProperty("right", location.X + size.Width)
+            )
+          )
+        );
+        ignoredElementsArray.Add(ignoredRegion);
+        
+      }
+
+      var ignoredElements = new JObject(
+        new JProperty("ignore-element-data", ignoredElementsArray)
+      );
+
+      return ignoredElements;
     }
   }
 }

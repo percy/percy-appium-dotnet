@@ -41,7 +41,8 @@ namespace PercyIO.Appium
 
     public void Screenshot(String name, ScreenshotOptions? options = null, Boolean fullScreen = false)
     {
-      if (options == null) {
+      if (options == null)
+      {
         options = new ScreenshotOptions();
       }
       options.FullScreen = fullScreen;
@@ -62,6 +63,9 @@ namespace PercyIO.Appium
           options.Orientation,
           options.FullScreen,
           options.FullPage,
+          options.Xpaths,
+          options.AccessibilityIds,
+          options.AppiumElements,
           options.ScreenLengths
         );
       }

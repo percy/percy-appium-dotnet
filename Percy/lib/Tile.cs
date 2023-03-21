@@ -42,8 +42,8 @@ namespace PercyIO.Appium
       {
         var tileData = new JObject();
         tileData.Add("filepath", tile.LocalFilePath);
-        tileData.Add("statusBarHeight", tile.StatusBarHeight);
-        tileData.Add("navBarHeight", tile.NavBarHeight);
+        tileData.Add("statusBarHeight", 0);
+        tileData.Add("navBarHeight", 0);
         tileData.Add("headerHeight", tile.HeaderHeight);
         tileData.Add("footerHeight", tile.FooterHeight);
         tileData.Add("fullscreen", tile.FullScreen);

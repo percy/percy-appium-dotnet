@@ -4,6 +4,7 @@ using OpenQA.Selenium;
 using OpenQA.Selenium.Appium.Android;
 using OpenQA.Selenium.Appium.iOS;
 using System.Collections.Generic;
+using OpenQA.Selenium.Appium;
 
 namespace PercyIO.Appium
 {
@@ -48,22 +49,24 @@ namespace PercyIO.Appium
     public ICapabilities GetCapabilities()
     {
       var key = "caps_" + sessionId();
-      if (AppPercy.cache.Get(key) == null) {
+      if (AppPercy.cache.Get(key) == null)
+      {
         var caps = iosDriver?.Capabilities ?? androidDriver?.Capabilities;
         AppPercy.cache.Store(key, caps);
       }
-      return (ICapabilities) AppPercy.cache.Get(key);
+      return (ICapabilities)AppPercy.cache.Get(key);
     }
 
     public IDictionary<string, object> GetSessionDetails()
     {
 
       var key = "session_" + sessionId();
-      if (AppPercy.cache.Get(key) == null) {
+      if (AppPercy.cache.Get(key) == null)
+      {
         var sess = iosDriver?.SessionDetails ?? androidDriver?.SessionDetails;
         AppPercy.cache.Store(key, sess);
       }
-      return (IDictionary<string, object>) AppPercy.cache.Get(key);
+      return (IDictionary<string, object>)AppPercy.cache.Get(key);
     }
 
     public String sessionId()
@@ -93,7 +96,7 @@ namespace PercyIO.Appium
     public string GetHost()
     {
       Type type = driver.GetType();
-      var property = type.GetProperty("CommandExecutor",System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+      var property = type.GetProperty("CommandExecutor", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
       var commandExecutor = property?.GetValue(driver);
       var uri = commandExecutor?.GetType().GetField("URL", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
       var value = uri?.GetValue(commandExecutor);
@@ -109,6 +112,30 @@ namespace PercyIO.Appium
       else
       {
         return androidDriver.GetScreenshot();
+      }
+    }
+
+    public AppiumWebElement FindElementsByAccessibilityId(string id)
+    {
+      if (driverType == "iOS")
+      {
+        return iosDriver.FindElementByAccessibilityId(id);
+      }
+      else
+      {
+        return androidDriver.FindElementByAccessibilityId(id);
+      }
+    }
+
+    public AppiumWebElement FindElementByXPath(string xpath)
+    {
+      if (driverType == "iOS")
+      {
+        return iosDriver.FindElementByXPath(xpath);
+      }
+      else
+      {
+        return androidDriver.FindElementByXPath(xpath);
       }
     }
   }

@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
+using OpenQA.Selenium.Appium;
+using OpenQA.Selenium.Appium.Android;
+using OpenQA.Selenium.Appium.iOS;
 
 namespace PercyIO.Appium
 {
@@ -107,7 +110,8 @@ namespace PercyIO.Appium
     }
 
     public override String Screenshot(String name, String deviceName, int statusBarHeight, int navBarHeight,
-        String orientation, Boolean fullScreen, bool fullPage, int? screenLengths, String? platformVersion = null)
+        String orientation, Boolean fullScreen, bool fullPage, List<String> xpaths, List<String> ids,
+        List<AppiumWebElement> elements, int? screenLengths, String? platformVersion = null)
     {
       var result = ExecutePercyScreenshotBegin(name);
       var percyScreenshotUrl = "";
@@ -124,6 +128,9 @@ namespace PercyIO.Appium
           orientation,
           fullScreen,
           fullPage,
+          xpaths,
+          ids,
+          elements,
           screenLengths,
           new List<string>(result.GetValue("osVersion")?.ToString().Split(new string[] { "\\." }, StringSplitOptions.None))[0]
         );
@@ -133,7 +140,7 @@ namespace PercyIO.Appium
         error = e.Message;
         throw e;
       }
-      finally 
+      finally
       {
         ExecutePercyScreenshotEnd(name, percyScreenshotUrl, error);
       }
@@ -143,7 +150,8 @@ namespace PercyIO.Appium
     internal override List<Tile> CaptureTiles(Boolean fullScreen, bool fullPage, int? screenLengths)
     {
       // For single screens just use original approach
-      if (!fullPage || (screenLengths != null && screenLengths < 2)) {
+      if (!fullPage || (screenLengths != null && screenLengths < 2))
+      {
         return base.CaptureTiles(fullPage, fullPage, screenLengths);
       }
 
@@ -151,10 +159,11 @@ namespace PercyIO.Appium
       var navBar = this.metadata.NavBarHeight();
       string reqObject = ExecutePercyScreenshot(screenLengths);
       var jsonarray = new JArray();
-      try 
+      try
       {
         jsonarray = JArray.Parse(reqObject);
-      } catch (Exception e)
+      }
+      catch (Exception e)
       {
         var error = e.Message;
         throw new Exception("Error", e);
@@ -162,17 +171,18 @@ namespace PercyIO.Appium
       List<Tile> tiles = new List<Tile>();
       foreach (JObject jsonobject in jsonarray)
       {
-          String sha = jsonobject.GetValue("sha").ToString().Split('-')[0];
-          int HeaderHeight = (int) jsonobject.GetValue("header_height");
-          int FooterHeight = (int) jsonobject.GetValue("footer_height");
-          tiles.Add(new Tile(null, statusBar, navBar, HeaderHeight, FooterHeight, fullScreen, sha));
+        String sha = jsonobject.GetValue("sha").ToString().Split('-')[0];
+        int HeaderHeight = (int)jsonobject.GetValue("header_height");
+        int FooterHeight = (int)jsonobject.GetValue("footer_height");
+        tiles.Add(new Tile(null, statusBar, navBar, HeaderHeight, FooterHeight, fullScreen, sha));
       }
       return tiles;
     }
 
     internal string ExecutePercyScreenshot(int? screenLengths)
     {
-      var reqObject = JObject.FromObject(new {
+      var reqObject = JObject.FromObject(new
+      {
         action = "percyScreenshot",
         arguments = new
         {
@@ -180,7 +190,8 @@ namespace PercyIO.Appium
           percyBuildId = Environment.GetEnvironmentVariable("PERCY_BUILD_ID"),
           screenshotType = "fullpage",
           scaleFactor = this.metadata.ScaleFactor(),
-          options = new {
+          options = new
+          {
             deviceHeight = this.metadata.DeviceScreenHeight(),
             numOfTiles = screenLengths
           }
