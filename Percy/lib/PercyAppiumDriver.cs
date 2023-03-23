@@ -52,10 +52,10 @@ namespace PercyIO.Appium
 
     public String Orientation()
     {
-      return iosDriver.Orientation.ToString()
-        ?? androidDriver.Orientation.ToString()
-        ?? appiumAndroidDriver.Orientation.ToString()
-        ?? appiumIosDriver.Orientation.ToString();
+      return iosDriver?.Orientation.ToString()!
+        ?? androidDriver?.Orientation.ToString()!
+        ?? appiumAndroidDriver?.Orientation.ToString()!
+        ?? appiumIosDriver?.Orientation.ToString()!;
     }
 
     public ICapabilities GetCapabilities()
@@ -89,10 +89,10 @@ namespace PercyIO.Appium
 
     public String sessionId()
     {
-      return iosDriver?.SessionId.ToString()
-        ?? androidDriver?.SessionId.ToString()
-        ?? appiumAndroidDriver?.SessionId.ToString()
-        ?? appiumIosDriver?.SessionId.ToString();
+      return iosDriver?.SessionId?.ToString()!
+        ?? androidDriver?.SessionId?.ToString()!
+        ?? appiumAndroidDriver?.SessionId?.ToString()!
+        ?? appiumIosDriver?.SessionId?.ToString()!;
     }
 
     public String ExecuteScript(String script)
@@ -110,15 +110,15 @@ namespace PercyIO.Appium
       var commandExecutor = property?.GetValue(driver);
       var uri = commandExecutor?.GetType().GetField("URL", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
       var value = uri?.GetValue(commandExecutor);
-      return value?.ToString();
+      return value?.ToString()!;
     }
 
     public Screenshot GetScreenshot()
     {
-      return iosDriver?.GetScreenshot()
-        ?? androidDriver?.GetScreenshot()
-        ?? appiumAndroidDriver?.GetScreenshot()
-        ?? appiumIosDriver?.GetScreenshot();
+      return iosDriver?.GetScreenshot()!
+        ?? androidDriver?.GetScreenshot()!
+        ?? appiumAndroidDriver?.GetScreenshot()!
+        ?? appiumIosDriver?.GetScreenshot()!;
 
     }
   }
