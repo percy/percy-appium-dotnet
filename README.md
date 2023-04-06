@@ -15,6 +15,7 @@ Dependencies:
 - [Microsoft.CSharp](https://www.nuget.org/packages/Microsoft.CSharp) Version >= 4.7.0
 - [DotNetSeleniumExtras.WaitHelpers](https://www.nuget.org/packages/DotNetSeleniumExtras.WaitHelpers)
 
+> Note: This package is tested against .netstandard 2.0 should be compatible with and standard that is superset of this.
 
 ## Installation
 
