@@ -57,16 +57,7 @@ namespace PercyIO.Appium
         provider = ProviderResolver.ResolveProvider(percyAppiumDriver);
         provider.Screenshot(
           name,
-          options.DeviceName,
-          options.StatusBarHeight,
-          options.NavBarHeight,
-          options.Orientation,
-          options.FullScreen,
-          options.FullPage,
-          options.Xpaths,
-          options.AccessibilityIds,
-          options.AppiumElements,
-          options.ScreenLengths
+          options
         );
       }
       catch (Exception e)

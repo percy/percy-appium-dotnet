@@ -1,8 +1,6 @@
 using System;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Appium;
-using OpenQA.Selenium.Appium.Android;
-using OpenQA.Selenium.Appium.iOS;
 
 namespace PercyIO.Appium
 {

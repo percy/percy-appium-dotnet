@@ -1,12 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
-using System.Linq;
 using Newtonsoft.Json.Linq;
-using OpenQA.Selenium;
 using OpenQA.Selenium.Appium;
-using OpenQA.Selenium.Appium.Android;
-using OpenQA.Selenium.Appium.iOS;
 
 namespace PercyIO.Appium
 {
@@ -34,9 +31,9 @@ namespace PercyIO.Appium
       return tag;
     }
 
-    internal virtual List<Tile> CaptureTiles(Boolean fullScreen, bool fullPage, int? screenLengths)
+    internal virtual List<Tile> CaptureTiles(ScreenshotOptions options)
     {
-      if (fullPage)
+      if (options.FullPage)
       {
         AppPercy.Log("Full page screeshot is only supported on App Automate." +
           " Falling back to single page screenshot.");
@@ -48,7 +45,7 @@ namespace PercyIO.Appium
       var headerHeight = 0;
       var footerHeight = 0;
       var tiles = new List<Tile>();
-      tiles.Add(new Tile(localFilePath, statusBar, navBar, headerHeight, footerHeight, fullScreen));
+      tiles.Add(new Tile(localFilePath, statusBar, navBar, headerHeight, footerHeight, options.FullScreen));
       return tiles;
     }
 
@@ -82,97 +79,167 @@ namespace PercyIO.Appium
       this.debugUrl = debugUrl;
     }
 
-    public virtual String Screenshot(String name, String deviceName, int statusBarHeight, int navBarHeight,
-        String orientation, Boolean fullScreen, bool fullPage, List<String> xpaths, List<String> ids,
-        List<AppiumWebElement> elements,
-        int? screenLengths, String platformVersion = null)
+    public virtual String Screenshot(String name, ScreenshotOptions options ,String platformVersion = null)
     {
       this.metadata = MetadataHelper.Resolve(
         percyAppiumDriver,
-        deviceName,
-        statusBarHeight,
-        navBarHeight,
-        orientation,
+        options.DeviceName,
+        options.StatusBarHeight,
+        options.NavBarHeight,
+        options.Orientation,
         platformVersion
       );
       var tag = GetTag();
-      var ignoredElementLocation = IgnoredElementsLocation(xpaths, ids, elements);
-      Console.WriteLine(ignoredElementLocation.ToString());
-      var tiles = CaptureTiles(fullScreen, fullPage, screenLengths);
+      var ignoredElementLocation = IgnoredElementsLocation(options);
+      var tiles = CaptureTiles(options);
       return CliWrapper.PostScreenshot(name, tag, tiles, debugUrl, ignoredElementLocation);
     }
 
-    public JObject IgnoredElementsLocation(List<String> xpaths, List<String> ids,
-        List<AppiumWebElement> elements)
+    public JObject IgnoredElementsLocation(ScreenshotOptions options)
     {
       var ignoredElementsArray = new JArray();
-      var allElements = new List<AppiumWebElement>();
+      IgnoreLocationByXpaths(ignoredElementsArray, options.Xpaths);
+      IgnoreLocationByIds(ignoredElementsArray, options.AccessibilityIds);
+      IgnoreLocationByElement(ignoredElementsArray, options.AppiumElements);
+      AddCustomIgnoreLocation(ignoredElementsArray, options.CustomIgnoreRegions);
 
+      var ignoredElementsLocations = JObject.FromObject(new
+      {
+        ignoreElementsData = ignoredElementsArray
+      });
+      
+      return ignoredElementsLocations;
+    }
 
+    public JObject IgnoreElementObject(String selector, Point location, Size size)
+    {
+      return JObject.FromObject(new
+      {
+        selector = selector,
+        co_ordinates = new
+        {
+          top = location.Y,
+          bottom = location.Y + size.Height,
+          left = location.X,
+          right = location.X + size.Width
+        }
+      });     
+    }
+
+    public void IgnoreLocationByXpaths(JArray ignoredElementsArray, List<String> xpaths)
+    {
+      var index = 0;
       foreach (var xpath in xpaths)
       {
-        var element =  percyAppiumDriver.FindElementByXPath(xpath);
-        
-        var location = element.Location;
-        var size = element.Size;
-        var ignoredRegion = new JObject(
-          new JProperty("selector", "xpaths"),
-          new JProperty("co-ordinates", new JObject(
-              new JProperty("top", location.Y),
-              new JProperty("bottom", location.Y + size.Height),
-              new JProperty("left", location.X),
-              new JProperty("right", location.X + size.Width)
-            )
-          )
-        );
-        ignoredElementsArray.Add(ignoredRegion);
-        
+        try
+        {
+          var element =  percyAppiumDriver.FindElementByXPath(xpath);
+          
+          var location = element.Location;
+          var size = element.Size;
+          var selector = string.Format("xpath {0} {1}", index, xpath);
+          var ignoredRegion = IgnoreElementObject(selector, location, size);
+          ignoredElementsArray.Add(ignoredRegion);
+        } catch(Exception e) {
+          AppPercy.Log("Appium Element with xpath:" + xpath + " not found. Ignoring this xpath.");
+          AppPercy.Log(e.ToString());
+        }
+        index++;
       }
+    }
 
+    public void IgnoreLocationByIds(JArray ignoredElementsArray, List<String> ids)
+    {
+      var index = 0;
       foreach (var id in ids)
       {
-        Console.WriteLine("INSIDE IDS");
-        var element = percyAppiumDriver.FindElementsByAccessibilityId(id);
+        try
+        {
+          var element = percyAppiumDriver.FindElementsByAccessibilityId(id);
 
-        Console.WriteLine("Loops");
-        var location = element.Location;
-        var size = element.Size;
-        var ignoredRegion = new JObject(
-          new JProperty("selector", "ids"),
-          new JProperty("co-ordinates", new JObject(
-              new JProperty("top", location.Y),
-              new JProperty("bottom", location.Y + size.Height),
-              new JProperty("left", location.X),
-              new JProperty("right", location.X + size.Width)
-            )
-          )
-        );
-        ignoredElementsArray.Add(ignoredRegion);
+          var location = element.Location;
+          var size = element.Size;
+          var selector = string.Format("id {0} {1}", index, id);
+          var ignoredRegion = IgnoreElementObject(selector, location, size);
+          ignoredElementsArray.Add(ignoredRegion);
+        } catch (Exception e) {
+          AppPercy.Log("Appium Element with id:" + id + " not found. Ignoring this id.");
+          AppPercy.Log(e.ToString());
+        }
+        index++;
       }
+    }
 
+    public void IgnoreLocationByElement(JArray ignoredElementsArray, List<AppiumWebElement> elements)
+    {
+      var index = 0;
       foreach (var element in elements)
       {
-        var location = element.Location;
-        var size = element.Size;
-        var ignoredRegion = new JObject(
-          new JProperty("selector", "appiumWebElement"),
-          new JProperty("co-ordinates", new JObject(
-              new JProperty("top", location.Y),
-              new JProperty("bottom", location.Y + size.Height),
-              new JProperty("left", location.X),
-              new JProperty("right", location.X + size.Width)
-            )
-          )
-        );
-        ignoredElementsArray.Add(ignoredRegion);
-        
+        try
+        {
+          var location = element.Location;
+          var size = element.Size;
+          string type = element.GetAttribute("class");
+          var selector = string.Format("element {0} {1}", index, type);
+            
+          var ignoredRegion = IgnoreElementObject(selector, location, size);
+          ignoredElementsArray.Add(ignoredRegion);
+        } catch (Exception e) {
+          AppPercy.Log("Correct Appium Element not passed");
+          AppPercy.Log(e.ToString(), "debug");
+        }
+        index++;
       }
+    }
 
-      var ignoredElements = new JObject(
-        new JProperty("ignore-element-data", ignoredElementsArray)
-      );
+    public void AddCustomIgnoreLocation(JArray ignoredElementsArray, List<JObject> cusomLocations)
+    {
+      var index = 0;
+      var width = metadata.DeviceScreenWidth();
+      var height = metadata.DeviceScreenHeight();
+      foreach (var customLocation in cusomLocations)
+      {
+        try
+        {
+          var top =  customLocation.GetValue("top");
+          if (ValidateIgnoreLocation(customLocation)) {
+            var selector = "custom ignore region " + index;
+            var ignoredRegion = JObject.FromObject(new
+            {
+              selector = selector,
+              co_ordinates = customLocation
+            });
+            ignoredElementsArray.Add(ignoredRegion);
+          }
+          else
+            AppPercy.Log("Values passed in custom ignored region at index:- "+ index+ " is not valid");
+        } catch (Exception e)
+        {
+          AppPercy.Log("Custom Ignore Region object not valid at index:- "+ index);
+          AppPercy.Log(e.ToString(), "debug");
+        }
+        index++;
+      }
+    }
 
-      return ignoredElements;
+    public Boolean ValidateIgnoreLocation(JObject customLocation)
+    {
+      var width = metadata.DeviceScreenWidth();
+      var height = metadata.DeviceScreenHeight();
+      var top = customLocation.GetValue("top").ToObject<int>();
+      var bottom = customLocation.GetValue("bottom").ToObject<int>();
+      var left  = customLocation.GetValue("left").ToObject<int>();
+      var right = customLocation.GetValue("right").ToObject<int>();
+
+      if (top >= bottom || left >= right)
+        return false;
+
+      if (top < 0 || bottom < 0 || left < 0 || right < 0)
+        return false;
+      
+      if (top >= height || bottom >= height || left >= width || right >= width)
+        return false;
+      return true;
     }
   }
 }

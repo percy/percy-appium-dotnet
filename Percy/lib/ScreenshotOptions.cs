@@ -2,8 +2,7 @@
 using System;
 using System.Collections.Generic;
 using OpenQA.Selenium.Appium;
-using OpenQA.Selenium.Appium.Android;
-using OpenQA.Selenium.Appium.iOS;
+using Newtonsoft.Json.Linq;
 
 namespace PercyIO.Appium
 {
@@ -20,5 +19,8 @@ namespace PercyIO.Appium
     public List<String> Xpaths { get; set; } = new List<string>();
     public List<String> AccessibilityIds { get; set; } = new List<string>();
     public List<AppiumWebElement> AppiumElements { get; set; } = new List<AppiumWebElement>();
+    public List<JObject> CustomIgnoreRegions { get; set; } = new List<JObject>();
+    public String? ScrollableXpath { get; set; } = null;
+    public String? ScrollableId { get; set; } = null;
   }
 }
