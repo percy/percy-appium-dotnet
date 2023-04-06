@@ -95,6 +95,43 @@ namespace Percy.Tests
     }
 
     [Fact]
+    public void TestScreenshot_WhenPercyScreenshotBeginReturnsNull()
+    {
+      // Given
+      _androidPercyAppiumDriver.Setup(x => x.ExecuteScript(It.IsAny<string>()))
+        .Throws(new Exception());
+      _androidPercyAppiumDriver.Setup(x => x.GetType()).Returns("Android");
+      AppPercy.cache.Clear();
+      capabilities.Setup(x => x.GetCapability("platformName"))
+         .Returns("Android");
+      capabilities.Setup(x => x.GetCapability("platformVersion"))
+        .Returns("9");
+      capabilities.Setup(x => x.GetCapability("deviceScreenSize"))
+        .Returns("1280x1420");
+      capabilities.Setup(x => x.GetCapability("orientation"))
+        .Returns("landscape");
+      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities())
+        .Returns(capabilities.Object);
+      var screenshot = new Screenshot("c2hvcnRlc3Q=");
+      _androidPercyAppiumDriver.Setup(x => x.GetScreenshot())
+        .Returns(screenshot);
+      ScreenshotOptions options = new ScreenshotOptions();
+      options.DeviceName = "Samsung";
+      options.StatusBarHeight = 100;
+      options.NavBarHeight = 100;
+      options.Orientation = "potrait";
+      options.FullScreen = false;
+      options.FullPage = false;
+      options.ScreenLengths = 0;
+
+      AppAutomate appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
+      // When
+      string actual = appAutomate.Screenshot("temp", options);
+      // Then
+      Assert.Equal(actual,"");
+    }
+
+    [Fact]
     public void TestExecutePercyScreenshotBegin()
     {
       // Given

@@ -1,4 +1,5 @@
 ﻿using System;
+using OpenQA.Selenium.Appium;
 using OpenQA.Selenium.Appium.Android;
 using OpenQA.Selenium.Appium.iOS;
 
@@ -21,6 +22,18 @@ namespace PercyIO.Appium
     }
 
     public AppPercy(IOSDriver<IOSElement> driver)
+    {
+      this.percyAppiumDriver = new PercyAppiumDriver(driver);
+      setValues(this.percyAppiumDriver);
+    }
+
+    public AppPercy(AndroidDriver<AppiumWebElement> driver)
+    {
+      this.percyAppiumDriver = new PercyAppiumDriver(driver);
+      setValues(this.percyAppiumDriver);
+    }
+
+    public AppPercy(IOSDriver<AppiumWebElement> driver)
     {
       this.percyAppiumDriver = new PercyAppiumDriver(driver);
       setValues(this.percyAppiumDriver);

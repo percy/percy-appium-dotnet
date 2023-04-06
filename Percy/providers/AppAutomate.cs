@@ -28,6 +28,8 @@ namespace PercyIO.Appium
 
     internal void SetDebugUrl(JObject result)
     {
+      if (result == null) return;
+
       var buildHash = result.GetValue("buildHash").ToString();
       var sessionHash = result.GetValue("sessionHash").ToString();
       this.debugUrl = "https://app-automate.browserstack.com/dashboard/v2/builds/" + buildHash + "/sessions/" + sessionHash;
@@ -118,7 +120,7 @@ namespace PercyIO.Appium
         percyScreenshotUrl = base.Screenshot(
           name,
           options,
-          new List<string>(result.GetValue("osVersion")?.ToString().Split(new string[] { "\\." }, StringSplitOptions.None))[0]
+          OsVersion(result)
         );
       }
       catch (Exception e)
@@ -195,6 +197,13 @@ namespace PercyIO.Appium
     internal String? DeviceName(String deviceName, JObject result)
     {
       return deviceName ?? result?.GetValue("deviceName")?.ToString();
+    }
+
+    internal String? OsVersion(JObject result)
+    {
+      if (result == null) return null;
+
+      return new List<string>(result.GetValue("osVersion")?.ToString().Split(new string[] { "\\." }, StringSplitOptions.None))[0];
     }
   }
 }

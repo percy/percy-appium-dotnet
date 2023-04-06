@@ -13,12 +13,28 @@ namespace PercyIO.Appium
     private String driverType;
     private IOSDriver<IOSElement>? iosDriver;
     private AndroidDriver<AndroidElement>? androidDriver;
+    private AndroidDriver<AppiumWebElement>? appiumAndroidDriver;
+    private IOSDriver<AppiumWebElement>? appiumIosDriver;
 
     internal PercyAppiumDriver(AndroidDriver<AndroidElement> driver)
     {
       this.driver = driver;
       this.driverType = "Android";
       this.androidDriver = driver;
+    }
+
+    internal PercyAppiumDriver(IOSDriver<AppiumWebElement> driver)
+    {
+      this.driver = driver;
+      this.driverType = "iOS";
+      this.appiumIosDriver = driver;
+    }
+
+    internal PercyAppiumDriver(AndroidDriver<AppiumWebElement> driver)
+    {
+      this.driver = driver;
+      this.driverType = "Android";
+      this.appiumAndroidDriver = driver;
     }
 
     internal PercyAppiumDriver(IOSDriver<IOSElement> driver)
@@ -35,14 +51,10 @@ namespace PercyIO.Appium
 
     public String Orientation()
     {
-      if (driverType == "iOS")
-      {
-        return iosDriver.Orientation.ToString();
-      }
-      else
-      {
-        return androidDriver.Orientation.ToString();
-      }
+      return iosDriver?.Orientation.ToString()!
+        ?? androidDriver?.Orientation.ToString()!
+        ?? appiumAndroidDriver?.Orientation.ToString()!
+        ?? appiumIosDriver?.Orientation.ToString()!;
     }
 
     public ICapabilities GetCapabilities()
@@ -50,7 +62,10 @@ namespace PercyIO.Appium
       var key = "caps_" + sessionId();
       if (AppPercy.cache.Get(key) == null)
       {
-        var caps = iosDriver?.Capabilities ?? androidDriver?.Capabilities;
+        var caps = iosDriver?.Capabilities
+          ?? androidDriver?.Capabilities
+          ?? appiumAndroidDriver?.Capabilities
+          ?? appiumIosDriver?.Capabilities;
         AppPercy.cache.Store(key, caps);
       }
       return (ICapabilities)AppPercy.cache.Get(key);
@@ -62,7 +77,10 @@ namespace PercyIO.Appium
       var key = "session_" + sessionId();
       if (AppPercy.cache.Get(key) == null)
       {
-        var sess = iosDriver?.SessionDetails ?? androidDriver?.SessionDetails;
+        var sess = iosDriver?.SessionDetails 
+          ?? androidDriver?.SessionDetails
+          ?? appiumAndroidDriver?.SessionDetails
+          ?? appiumIosDriver?.SessionDetails;
         AppPercy.cache.Store(key, sess);
       }
       return (IDictionary<string, object>)AppPercy.cache.Get(key);
@@ -70,26 +88,18 @@ namespace PercyIO.Appium
 
     public String sessionId()
     {
-      if (driverType == "iOS")
-      {
-        return iosDriver.SessionId.ToString();
-      }
-      else
-      {
-        return androidDriver.SessionId.ToString();
-      }
+      return iosDriver?.SessionId?.ToString()!
+        ?? androidDriver?.SessionId?.ToString()!
+        ?? appiumAndroidDriver?.SessionId?.ToString()!
+        ?? appiumIosDriver?.SessionId?.ToString()!;
     }
 
     public String ExecuteScript(String script)
     {
-      if (driverType == "iOS")
-      {
-        return iosDriver.ExecuteScript(script).ToString()!;
-      }
-      else
-      {
-        return androidDriver.ExecuteScript(script).ToString()!;
-      }
+      return iosDriver?.ExecuteScript(script).ToString()!
+        ?? androidDriver?.ExecuteScript(script).ToString()!
+        ?? appiumAndroidDriver?.ExecuteScript(script).ToString()!
+        ?? appiumIosDriver?.ExecuteScript(script).ToString()!;
     }
 
     public string GetHost()
@@ -99,30 +109,29 @@ namespace PercyIO.Appium
       var commandExecutor = property?.GetValue(driver);
       var uri = commandExecutor?.GetType().GetField("URL", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
       var value = uri?.GetValue(commandExecutor);
-      return value?.ToString();
+      return value?.ToString()!;
     }
 
     public Screenshot GetScreenshot()
     {
-      if (driverType == "iOS")
-      {
-        return iosDriver.GetScreenshot();
-      }
-      else
-      {
-        return androidDriver.GetScreenshot();
-      }
+      return iosDriver?.GetScreenshot()!
+        ?? androidDriver?.GetScreenshot()!
+        ?? appiumAndroidDriver?.GetScreenshot()!
+        ?? appiumIosDriver?.GetScreenshot()!;
+
     }
 
     public AppiumWebElement FindElementsByAccessibilityId(string id)
     {
       if (driverType == "iOS")
       {
-        return iosDriver.FindElementByAccessibilityId(id);
+        return iosDriver?.FindElementByAccessibilityId(id)!
+          ?? appiumIosDriver?.FindElementByAccessibilityId(id)!;
       }
       else
       {
-        return androidDriver.FindElementByAccessibilityId(id);
+        return androidDriver?.FindElementByAccessibilityId(id)!
+          ?? appiumAndroidDriver?.FindElementByAccessibilityId(id)!;
       }
     }
 
@@ -130,11 +139,13 @@ namespace PercyIO.Appium
     {
       if (driverType == "iOS")
       {
-        return iosDriver.FindElementByXPath(xpath);
+        return iosDriver?.FindElementByXPath(xpath)!
+         ?? appiumIosDriver?.FindElementByXPath(xpath)!;
       }
       else
       {
-        return androidDriver.FindElementByXPath(xpath);
+        return androidDriver?.FindElementByXPath(xpath)!
+          ?? appiumAndroidDriver?.FindElementByXPath(xpath)!;
       }
     }
   }
