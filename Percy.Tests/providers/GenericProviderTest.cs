@@ -79,8 +79,12 @@ namespace Percy.Tests
       var genericProvider = new GenericProvider(_androidPercyAppiumDriver.Object);
       var metadata = MetadataHelper.Resolve(_androidPercyAppiumDriver.Object, "Samsung Galaxy s22", 100, 200, null, null);
       genericProvider.metadata = metadata;
+      ScreenshotOptions options = new ScreenshotOptions();
+      options.FullScreen = false;
+      options.FullPage = false;
+      options.ScreenLengths = 0;
       // When
-      var tile = genericProvider.CaptureTiles(false, false, 0)[0];
+      var tile = genericProvider.CaptureTiles(options)[0];
       // Then
       Assert.True(tile.LocalFilePath.EndsWith(".png"));
       Assert.Equal(Convert.ToInt32(tile.StatusBarHeight), 100);
@@ -111,8 +115,12 @@ namespace Percy.Tests
       var genericProvider = new GenericProvider(_androidPercyAppiumDriver.Object);
       var metadata = MetadataHelper.Resolve(_androidPercyAppiumDriver.Object, "Samsung Galaxy s22", 100, 200, null, null);
       genericProvider.metadata = metadata;
+      ScreenshotOptions options = new ScreenshotOptions();
+      options.FullScreen = true;
+      options.FullPage = false;
+      options.ScreenLengths = 0;
       // When
-      var tile = genericProvider.CaptureTiles(true, false, 0)[0];
+      var tile = genericProvider.CaptureTiles(options)[0];
       // Then
       Assert.True(tile.LocalFilePath.EndsWith(".png"));
       Assert.Equal(Convert.ToInt32(tile.StatusBarHeight), 100);
@@ -144,6 +152,14 @@ namespace Percy.Tests
       Screenshot screenshot = new Screenshot("c2hvcnRlc3Q=");
       _androidPercyAppiumDriver.Setup(x => x.GetScreenshot())
         .Returns(screenshot);
+      ScreenshotOptions options = new ScreenshotOptions();
+      options.DeviceName = "Samsung";
+      options.StatusBarHeight = 0;
+      options.NavBarHeight = 0;
+      options.Orientation = "landscape";
+      options.FullScreen = false;
+      options.FullPage = false;
+      options.ScreenLengths = 0;
 
       var mockHttp = new MockHttpMessageHandler();
 
@@ -153,7 +169,7 @@ namespace Percy.Tests
 
       CliWrapper.setHttpClient(new HttpClient(mockHttp));
       GenericProvider genericProvider = new GenericProvider(_androidPercyAppiumDriver.Object);
-      string s = genericProvider.Screenshot("test screenshot","Samsung",0,0,"landscape",false, false, 0);
+      string s = genericProvider.Screenshot("test screenshot", options);
       Assert.Equal(expected ,s);
       CliWrapper.resetHttpClient();
     }
@@ -179,8 +195,12 @@ namespace Percy.Tests
       var genericProvider = new GenericProvider(_androidPercyAppiumDriver.Object);
       var metadata = MetadataHelper.Resolve(_androidPercyAppiumDriver.Object, "Samsung Galaxy s22", 100, 200, null, null);
       genericProvider.metadata = metadata;
+      ScreenshotOptions options = new ScreenshotOptions();
+      options.FullScreen = true;
+      options.FullPage = false;
+      options.ScreenLengths = 1;
       // When
-      var tile = genericProvider.CaptureTiles(true, false, 1)[0];
+      var tile = genericProvider.CaptureTiles(options)[0];
       // Then
       Assert.True(tile.LocalFilePath.EndsWith(".png"));
       Assert.Equal(Convert.ToInt32(tile.StatusBarHeight), 100);

@@ -80,8 +80,16 @@ namespace Percy.Tests
       _androidPercyAppiumDriver.Setup(x => x.GetScreenshot())
         .Returns(screenshot);
       AppAutomate appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
+      ScreenshotOptions options = new ScreenshotOptions();
+      options.DeviceName = "Samsung";
+      options.StatusBarHeight = 100;
+      options.NavBarHeight = 100;
+      options.Orientation = "potrait";
+      options.FullScreen = false;
+      options.FullPage = false;
+      options.ScreenLengths = 0;
       // When
-      string actual = appAutomate.Screenshot("temp", "Samsung", 100, 100, "potrait", false, false, 0);
+      string actual = appAutomate.Screenshot("temp", options);
       // Then
       Assert.Equal(actual,"");
     }
@@ -245,9 +253,12 @@ namespace Percy.Tests
       var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
       var metadata = new AndroidMetadata(_androidPercyAppiumDriver.Object, "Samsung Galaxy s22", 100, 200, null, null);
       appAutomate.metadata = metadata;
-      
+      ScreenshotOptions options = new ScreenshotOptions();
+      options.FullScreen = false;
+      options.FullPage = true;
+      options.ScreenLengths = 2;
       // Act
-      var result = appAutomate.CaptureTiles(false, true, 2);
+      var result = appAutomate.CaptureTiles(options);
 
       // Assert
       Assert.IsType<System.Collections.Generic.List<Tile>>(result);
@@ -275,11 +286,15 @@ namespace Percy.Tests
       _androidPercyAppiumDriver.Setup(x => x.GetCapabilities())
         .Returns(capabilities.Object);
       _androidPercyAppiumDriver.Setup(x => x.ExecuteScript(It.IsAny<string>())).Returns(response);
+
+      ScreenshotOptions options = new ScreenshotOptions();
+      options.ScreenLengths = 2;
+      options.ScrollableXpath = "xapth/dummy/scrollable";
       // When
       var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
       var metadata =  new AndroidMetadata(_androidPercyAppiumDriver.Object, "Samsung Galaxy s22", 100, 200, null, null);
       appAutomate.metadata = metadata;
-      var actual = appAutomate.ExecutePercyScreenshot(1);
+      var actual = appAutomate.ExecutePercyScreenshot(options);
       // Then
       _androidPercyAppiumDriver.Verify(x => x.ExecuteScript(It.IsAny<string>()), Times.Once);
       Assert.Contains("abcd-1234", actual);
