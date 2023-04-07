@@ -123,30 +123,18 @@ namespace PercyIO.Appium
 
     public AppiumWebElement FindElementsByAccessibilityId(string id)
     {
-      if (driverType == "iOS")
-      {
-        return iosDriver?.FindElementByAccessibilityId(id)!
-          ?? appiumIosDriver?.FindElementByAccessibilityId(id)!;
-      }
-      else
-      {
-        return androidDriver?.FindElementByAccessibilityId(id)!
-          ?? appiumAndroidDriver?.FindElementByAccessibilityId(id)!;
-      }
+      return iosDriver?.FindElementByAccessibilityId(id)!
+        ?? appiumIosDriver?.FindElementByAccessibilityId(id)!
+        ?? androidDriver?.FindElementByAccessibilityId(id)!
+        ?? appiumAndroidDriver?.FindElementByAccessibilityId(id)!;
     }
 
     public AppiumWebElement FindElementByXPath(string xpath)
     {
-      if (driverType == "iOS")
-      {
-        return iosDriver?.FindElementByXPath(xpath)!
-         ?? appiumIosDriver?.FindElementByXPath(xpath)!;
-      }
-      else
-      {
-        return androidDriver?.FindElementByXPath(xpath)!
-          ?? appiumAndroidDriver?.FindElementByXPath(xpath)!;
-      }
+      return iosDriver?.FindElementByXPath(xpath)!
+        ?? appiumIosDriver?.FindElementByXPath(xpath)!
+        ?? androidDriver?.FindElementByXPath(xpath)!
+        ?? appiumAndroidDriver?.FindElementByXPath(xpath)!;
     }
   }
 }

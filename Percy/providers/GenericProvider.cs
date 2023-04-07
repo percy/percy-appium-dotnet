@@ -98,10 +98,10 @@ namespace PercyIO.Appium
     public JObject IgnoredElementsLocation(ScreenshotOptions options)
     {
       var ignoredElementsArray = new JArray();
-      IgnoreLocationByXpaths(ignoredElementsArray, options.Xpaths);
-      IgnoreLocationByIds(ignoredElementsArray, options.AccessibilityIds);
-      IgnoreLocationByElement(ignoredElementsArray, options.AppiumElements);
-      AddCustomIgnoreLocation(ignoredElementsArray, options.CustomIgnoreRegions);
+      IgnoreRegionsByXpaths(ignoredElementsArray, options.IgnoreRegionXpaths);
+      IgnoreRegionsByIds(ignoredElementsArray, options.IgnoreRegionAccessibilityIds);
+      IgnoreRegionsByElement(ignoredElementsArray, options.IgnoreRegionAppiumElements);
+      AddCustomIgnoreRegion(ignoredElementsArray, options.CustomIgnoreRegions);
 
       var ignoredElementsLocations = JObject.FromObject(new
       {
@@ -113,22 +113,22 @@ namespace PercyIO.Appium
 
     public JObject IgnoreElementObject(String selector, Point location, Size size)
     {
+      var scaleFactor = metadata.ScaleFactor();
       return JObject.FromObject(new
       {
         selector = selector,
         co_ordinates = new
         {
-          top = location.Y,
-          bottom = location.Y + size.Height,
-          left = location.X,
-          right = location.X + size.Width
+          top = location.Y * scaleFactor,
+          bottom = ( location.Y + size.Height ) * scaleFactor,
+          left = location.X * scaleFactor,
+          right = ( location.X + size.Width ) *  scaleFactor
         }
       });     
     }
 
-    public void IgnoreLocationByXpaths(JArray ignoredElementsArray, List<String> xpaths)
+    public void IgnoreRegionsByXpaths(JArray ignoredElementsArray, List<String> xpaths)
     {
-      var index = 0;
       foreach (var xpath in xpaths)
       {
         try
@@ -137,20 +137,18 @@ namespace PercyIO.Appium
           
           var location = element.Location;
           var size = element.Size;
-          var selector = string.Format("xpath {0} {1}", index, xpath);
+          var selector = string.Format("xpath: {0}", xpath);
           var ignoredRegion = IgnoreElementObject(selector, location, size);
           ignoredElementsArray.Add(ignoredRegion);
         } catch(Exception e) {
           AppPercy.Log("Appium Element with xpath:" + xpath + " not found. Ignoring this xpath.");
           AppPercy.Log(e.ToString());
         }
-        index++;
       }
     }
 
-    public void IgnoreLocationByIds(JArray ignoredElementsArray, List<String> ids)
+    public void IgnoreRegionsByIds(JArray ignoredElementsArray, List<String> ids)
     {
-      var index = 0;
       foreach (var id in ids)
       {
         try
@@ -159,55 +157,52 @@ namespace PercyIO.Appium
 
           var location = element.Location;
           var size = element.Size;
-          var selector = string.Format("id {0} {1}", index, id);
+          var selector = string.Format("id: {0}", id);
           var ignoredRegion = IgnoreElementObject(selector, location, size);
           ignoredElementsArray.Add(ignoredRegion);
         } catch (Exception e) {
           AppPercy.Log("Appium Element with id:" + id + " not found. Ignoring this id.");
           AppPercy.Log(e.ToString());
         }
-        index++;
       }
     }
 
-    public void IgnoreLocationByElement(JArray ignoredElementsArray, List<AppiumWebElement> elements)
+    public void IgnoreRegionsByElement(JArray ignoredElementsArray, List<AppiumWebElement> elements)
     {
-      var index = 0;
-      foreach (var element in elements)
+      for (var index = 0; index < elements.Count; index++)
       {
         try
         {
-          var location = element.Location;
-          var size = element.Size;
-          string type = element.GetAttribute("class");
-          var selector = string.Format("element {0} {1}", index, type);
+          var location = elements[index].Location;
+          var size = elements[index].Size;
+          string type = elements[index].GetAttribute("class");
+          var selector = string.Format("element: {0} {1}", index, type);
             
           var ignoredRegion = IgnoreElementObject(selector, location, size);
           ignoredElementsArray.Add(ignoredRegion);
         } catch (Exception e) {
-          AppPercy.Log("Correct Appium Element not passed");
+          AppPercy.Log("Correct Appium Element not passed at index " + index + ".");
           AppPercy.Log(e.ToString(), "debug");
         }
-        index++;
       }
     }
 
-    public void AddCustomIgnoreLocation(JArray ignoredElementsArray, List<JObject> cusomLocations)
+    public void AddCustomIgnoreRegion(JArray ignoredElementsArray, List<IgnoreRegion> customLocations)
     {
-      var index = 0;
       var width = metadata.DeviceScreenWidth();
       var height = metadata.DeviceScreenHeight();
-      foreach (var customLocation in cusomLocations)
+      for (var index = 0; index < customLocations.Count; index++)
       {
         try
         {
-          var top =  customLocation.GetValue("top");
-          if (ValidateIgnoreLocation(customLocation)) {
+          if (ValidateIgnoreLocation(customLocations[index])) {
             var selector = "custom ignore region " + index;
             var ignoredRegion = JObject.FromObject(new
             {
               selector = selector,
-              co_ordinates = customLocation
+              co_ordinates = JObject.FromObject(
+                customLocations[index]
+              )
             });
             ignoredElementsArray.Add(ignoredRegion);
           }
@@ -222,14 +217,14 @@ namespace PercyIO.Appium
       }
     }
 
-    public Boolean ValidateIgnoreLocation(JObject customLocation)
+    public Boolean ValidateIgnoreLocation(IgnoreRegion customLocation)
     {
       var width = metadata.DeviceScreenWidth();
       var height = metadata.DeviceScreenHeight();
-      var top = customLocation.GetValue("top").ToObject<int>();
-      var bottom = customLocation.GetValue("bottom").ToObject<int>();
-      var left  = customLocation.GetValue("left").ToObject<int>();
-      var right = customLocation.GetValue("right").ToObject<int>();
+      var top = customLocation.Top;
+      var bottom = customLocation.Bottom;
+      var left  = customLocation.Left;
+      var right = customLocation.Right;
 
       if (top >= bottom || left >= right)
         return false;

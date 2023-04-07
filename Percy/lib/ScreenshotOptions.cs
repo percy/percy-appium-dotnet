@@ -16,10 +16,10 @@ namespace PercyIO.Appium
     public bool FullScreen { get; set; } = false;
     public bool FullPage { get; set; } = false;
     public int? ScreenLengths { get; set; }
-    public List<String> Xpaths { get; set; } = new List<string>();
-    public List<String> AccessibilityIds { get; set; } = new List<string>();
-    public List<AppiumWebElement> AppiumElements { get; set; } = new List<AppiumWebElement>();
-    public List<JObject> CustomIgnoreRegions { get; set; } = new List<JObject>();
+    public List<String> IgnoreRegionXpaths { get; set; } = new List<string>();
+    public List<String> IgnoreRegionAccessibilityIds { get; set; } = new List<string>();
+    public List<AppiumWebElement> IgnoreRegionAppiumElements { get; set; } = new List<AppiumWebElement>();
+    public List<IgnoreRegion> CustomIgnoreRegions { get; set; } = new List<IgnoreRegion>();
     public String? ScrollableXpath { get; set; } = null;
     public String? ScrollableId { get; set; } = null;
   }

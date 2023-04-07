@@ -33,9 +33,9 @@ namespace Percy.Tests
       Assert.Equal(screenshotOptions.ScrollableXpath, "some/xpath");
       screenshotOptions.ScrollableId = "someId";
       Assert.Equal(screenshotOptions.ScrollableId, "someId");
-      Assert.Equal(screenshotOptions.AccessibilityIds.Count, 0);
-      Assert.Equal(screenshotOptions.Xpaths.Count, 0);
-      Assert.Equal(screenshotOptions.AppiumElements.Count, 0);
+      Assert.Equal(screenshotOptions.IgnoreRegionAccessibilityIds.Count, 0);
+      Assert.Equal(screenshotOptions.IgnoreRegionXpaths.Count, 0);
+      Assert.Equal(screenshotOptions.IgnoreRegionXpaths.Count, 0);
       Assert.Equal(screenshotOptions.CustomIgnoreRegions.Count, 0);
     }
   }
