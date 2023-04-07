@@ -91,7 +91,7 @@ namespace Percy.Tests
       // When
       string actual = appAutomate.Screenshot("temp", options);
       // Then
-      Assert.Equal(actual,"");
+      Assert.Equal(actual, "");
     }
 
     [Fact]
@@ -128,7 +128,7 @@ namespace Percy.Tests
       // When
       string actual = appAutomate.Screenshot("temp", options);
       // Then
-      Assert.Equal(actual,"");
+      Assert.Equal(actual, "");
     }
 
     [Fact]
@@ -224,7 +224,7 @@ namespace Percy.Tests
         .Returns(response);
       // When
       var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
-       string actual = appAutomate.ExecutePercyScreenshotEnd(name, percyScreenshotUrl, "some error").GetValue("success").ToString();
+      string actual = appAutomate.ExecutePercyScreenshotEnd(name, percyScreenshotUrl, "some error").GetValue("success").ToString();
       // Then
       Assert.Equal(actual, "false");
       _androidPercyAppiumDriver.Verify(x => x.ExecuteScript("browserstack_executor:" + reqObject.ToString()), Times.Once);
@@ -278,13 +278,14 @@ namespace Percy.Tests
       _androidPercyAppiumDriver.Setup(x => x.GetCapabilities())
         .Returns(capabilities.Object);
       _androidPercyAppiumDriver.Setup(x => x.ExecuteScript(It.IsAny<string>()))
-        .Returns(JsonConvert.SerializeObject(new {
-            success = true,
-            result = JsonConvert.SerializeObject(new List<object> {
+        .Returns(JsonConvert.SerializeObject(new
+        {
+          success = true,
+          result = JsonConvert.SerializeObject(new List<object> {
               new { sha = "abcd-1234", header_height = 50, footer_height = 30 },
               new { sha = "abce-1234", header_height = 80, footer_height = 10 }
             })
-          }
+        }
         ));
 
       var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
@@ -308,14 +309,16 @@ namespace Percy.Tests
     }
 
     [Fact]
-    public void TestExecutePercyScreenshot() {
+    public void TestExecutePercyScreenshot()
+    {
       Environment.SetEnvironmentVariable("PERCY_LOGLEVEL", "debug");
-      var response = JsonConvert.SerializeObject(new {
-          success = true,
-          result = JsonConvert.SerializeObject(new List<object> {
+      var response = JsonConvert.SerializeObject(new
+      {
+        success = true,
+        result = JsonConvert.SerializeObject(new List<object> {
             new { sha = "abcd-1234", header_height = 50, footer_height = 30 }
           })
-        }
+      }
       );
       var capabilities = new Mock<ICapabilities>();
       capabilities.Setup(x => x.GetCapability("deviceScreenSize"))
@@ -329,7 +332,7 @@ namespace Percy.Tests
       options.ScrollableXpath = "xapth/dummy/scrollable";
       // When
       var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
-      var metadata =  new AndroidMetadata(_androidPercyAppiumDriver.Object, "Samsung Galaxy s22", 100, 200, null, null);
+      var metadata = new AndroidMetadata(_androidPercyAppiumDriver.Object, "Samsung Galaxy s22", 100, 200, null, null);
       appAutomate.metadata = metadata;
       var actual = appAutomate.ExecutePercyScreenshot(options);
       // Then

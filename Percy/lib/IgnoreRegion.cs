@@ -8,6 +8,7 @@ namespace PercyIO.Appium
     private int _bottom;
     private int _left;
     private int _right;
+
     public int Top
     {
       get
@@ -16,7 +17,7 @@ namespace PercyIO.Appium
       }
       set
       {
-        if ( value < 0 )
+        if (value < 0)
           throw new ArgumentException("Only Positive integer is allowed!");
         _top = value;
       }
@@ -30,7 +31,7 @@ namespace PercyIO.Appium
       }
       set
       {
-        if ( value < 0 )
+        if (value < 0)
           throw new ArgumentException("Only Positive integer is allowed!");
         _bottom = value;
       }
@@ -44,7 +45,7 @@ namespace PercyIO.Appium
       }
       set
       {
-        if ( value < 0 )
+        if (value < 0)
           throw new ArgumentException("Only Positive integer is allowed!");
         _left = value;
       }
@@ -58,10 +59,20 @@ namespace PercyIO.Appium
       }
       set
       {
-        if ( value < 0 )
+        if (value < 0)
           throw new ArgumentException("Only Positive integer is allowed!");
         _right = value;
       }
+    }
+
+    public Boolean IsValid(int height, int width)
+    {
+      if (_top >= _bottom || _left >= _right)
+        return false;
+
+      if (_top >= height || _bottom >= height || _left >= width || _right >= width)
+        return false;
+      return true;
     }
   }
 }

@@ -171,12 +171,12 @@ namespace Percy.Tests
 
       // Setup a respond for the user api (including a wildcard in the URL)
       mockHttp.When("http://localhost:5338/percy/comparison")
-        .Respond("application/json", "{\"success\": true, \"link\": \""+ expected + "\"}");
+        .Respond("application/json", "{\"success\": true, \"link\": \"" + expected + "\"}");
 
       CliWrapper.setHttpClient(new HttpClient(mockHttp));
       GenericProvider genericProvider = new GenericProvider(_androidPercyAppiumDriver.Object);
       string s = genericProvider.Screenshot("test screenshot", options);
-      Assert.Equal(expected ,s);
+      Assert.Equal(expected, s);
       CliWrapper.resetHttpClient();
     }
 
@@ -217,78 +217,6 @@ namespace Percy.Tests
     }
 
     [Fact]
-    public void TestValidateIgnoreLocation_ValidLocation_ReturnsTrue()
-    {
-      // Arrange
-      var ignoreRegion = new IgnoreRegion();
-      ignoreRegion.Top = 0;
-      ignoreRegion.Bottom = 200;
-      ignoreRegion.Left = 0;
-      ignoreRegion.Right = 600;
-
-      capabilities.Setup(x => x.GetCapability("deviceScreenSize"))
-        .Returns("1280x1420");
-      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities())
-        .Returns(capabilities.Object);
-      var genericProvider = new GenericProvider(_androidPercyAppiumDriver.Object);
-      var metadata = MetadataHelper.Resolve(_androidPercyAppiumDriver.Object, "Samsung Galaxy s22", 100, 200, null, null);
-      genericProvider.metadata = metadata;
-      // Act
-      var result = genericProvider.ValidateIgnoreLocation(ignoreRegion);
-
-      // Assert
-      Assert.True(result);
-    }
-
-    [Fact]
-    public void TestValidateIgnoreLocation_InvalidLocation_ReturnsFalse()
-    {
-      // Arrange
-      var ignoreRegion = new IgnoreRegion();
-      ignoreRegion.Top = 100;
-      ignoreRegion.Bottom = 20;
-      ignoreRegion.Left = 200;
-      ignoreRegion.Right = 100;
-
-      capabilities.Setup(x => x.GetCapability("deviceScreenSize"))
-        .Returns("1280x1420");
-      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities())
-      .Returns(capabilities.Object);
-      var genericProvider = new GenericProvider(_androidPercyAppiumDriver.Object);
-      var metadata = MetadataHelper.Resolve(_androidPercyAppiumDriver.Object, "Samsung Galaxy s22", 100, 200, null, null);
-      genericProvider.metadata = metadata;
-      // Act
-      var result = genericProvider.ValidateIgnoreLocation(ignoreRegion);
-
-      // Assert
-      Assert.False(result);
-    }
-
-    [Fact]
-    public void TestValidateIgnoreLocation_LocationOutsideScreen_ReturnsFalse()
-    {
-      // Arrange
-      var ignoreRegion = new IgnoreRegion();
-      ignoreRegion.Top = 0;
-      ignoreRegion.Bottom = 2000;
-      ignoreRegion.Left = 0;
-      ignoreRegion.Right = 600;
-      
-      capabilities.Setup(x => x.GetCapability("deviceScreenSize"))
-        .Returns("1280x1420");
-      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities())
-      .Returns(capabilities.Object);
-      var genericProvider = new GenericProvider(_androidPercyAppiumDriver.Object);
-      var metadata = MetadataHelper.Resolve(_androidPercyAppiumDriver.Object, "Samsung Galaxy s22", 100, 200, null, null);
-      genericProvider.metadata = metadata;
-      // Act
-      var result = genericProvider.ValidateIgnoreLocation(ignoreRegion);
-
-      // Assert
-      Assert.False(result);
-    }
-
-    [Fact]
     public void TestAddCustomIgnoreLocation_ValidLocation_AddsRegionToIgnoredElementsArray()
     {
       // Arrange
@@ -310,17 +238,17 @@ namespace Percy.Tests
       var metadata = MetadataHelper.Resolve(_androidPercyAppiumDriver.Object, "Samsung Galaxy s22", 100, 200, null, null);
       genericProvider.metadata = metadata;
       // Act
-      genericProvider.AddCustomIgnoreRegion(ignoredElementsArray, customLocations);
+      genericProvider.AddCustomIgnoreRegions(ignoredElementsArray, customLocations);
 
       // Assert
       Assert.Single(ignoredElementsArray);
       var ignoredRegion = ignoredElementsArray[0];
       Assert.Equal("custom ignore region 0", ignoredRegion["selector"].ToObject<string>());
       var co_ordinates = ignoredRegion["co_ordinates"];
-      Assert.Equal(10, co_ordinates["Top"].ToObject<int>());
-      Assert.Equal(100, co_ordinates["Bottom"].ToObject<int>());
-      Assert.Equal(20, co_ordinates["Left"].ToObject<int>());
-      Assert.Equal(200, co_ordinates["Right"].ToObject<int>());
+      Assert.Equal(10, co_ordinates["top"].ToObject<int>());
+      Assert.Equal(100, co_ordinates["bottom"].ToObject<int>());
+      Assert.Equal(20, co_ordinates["left"].ToObject<int>());
+      Assert.Equal(200, co_ordinates["right"].ToObject<int>());
     }
 
     [Fact]
@@ -345,7 +273,7 @@ namespace Percy.Tests
       var metadata = MetadataHelper.Resolve(_androidPercyAppiumDriver.Object, "Samsung Galaxy s22", 100, 200, null, null);
       genericProvider.metadata = metadata;
       // Act
-      genericProvider.AddCustomIgnoreRegion(ignoredElementsArray, customLocations);
+      genericProvider.AddCustomIgnoreRegions(ignoredElementsArray, customLocations);
 
       // Assert
       Assert.Empty(ignoredElementsArray);

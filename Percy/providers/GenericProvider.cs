@@ -79,7 +79,7 @@ namespace PercyIO.Appium
       this.debugUrl = debugUrl;
     }
 
-    public virtual String Screenshot(String name, ScreenshotOptions options ,String platformVersion = null)
+    public virtual String Screenshot(String name, ScreenshotOptions options, String platformVersion = null)
     {
       this.metadata = MetadataHelper.Resolve(
         percyAppiumDriver,
@@ -90,24 +90,24 @@ namespace PercyIO.Appium
         platformVersion
       );
       var tag = GetTag();
-      var ignoredElementLocation = IgnoredElementsLocation(options);
+      var ignoredElementLocation = FindIgnoredRegions(options);
       var tiles = CaptureTiles(options);
       return CliWrapper.PostScreenshot(name, tag, tiles, debugUrl, ignoredElementLocation);
     }
 
-    public JObject IgnoredElementsLocation(ScreenshotOptions options)
+    public JObject FindIgnoredRegions(ScreenshotOptions options)
     {
       var ignoredElementsArray = new JArray();
       IgnoreRegionsByXpaths(ignoredElementsArray, options.IgnoreRegionXpaths);
       IgnoreRegionsByIds(ignoredElementsArray, options.IgnoreRegionAccessibilityIds);
       IgnoreRegionsByElement(ignoredElementsArray, options.IgnoreRegionAppiumElements);
-      AddCustomIgnoreRegion(ignoredElementsArray, options.CustomIgnoreRegions);
+      AddCustomIgnoreRegions(ignoredElementsArray, options.CustomIgnoreRegions);
 
       var ignoredElementsLocations = JObject.FromObject(new
       {
         ignoreElementsData = ignoredElementsArray
       });
-      
+
       return ignoredElementsLocations;
     }
 
@@ -120,11 +120,11 @@ namespace PercyIO.Appium
         co_ordinates = new
         {
           top = location.Y * scaleFactor,
-          bottom = ( location.Y + size.Height ) * scaleFactor,
+          bottom = (location.Y + size.Height) * scaleFactor,
           left = location.X * scaleFactor,
-          right = ( location.X + size.Width ) *  scaleFactor
+          right = (location.X + size.Width) * scaleFactor
         }
-      });     
+      });
     }
 
     public void IgnoreRegionsByXpaths(JArray ignoredElementsArray, List<String> xpaths)
@@ -133,14 +133,16 @@ namespace PercyIO.Appium
       {
         try
         {
-          var element =  percyAppiumDriver.FindElementByXPath(xpath);
-          
+          var element = percyAppiumDriver.FindElementByXPath(xpath);
+
           var location = element.Location;
           var size = element.Size;
           var selector = string.Format("xpath: {0}", xpath);
           var ignoredRegion = IgnoreElementObject(selector, location, size);
           ignoredElementsArray.Add(ignoredRegion);
-        } catch(Exception e) {
+        }
+        catch (Exception e)
+        {
           AppPercy.Log("Appium Element with xpath:" + xpath + " not found. Ignoring this xpath.");
           AppPercy.Log(e.ToString());
         }
@@ -160,7 +162,9 @@ namespace PercyIO.Appium
           var selector = string.Format("id: {0}", id);
           var ignoredRegion = IgnoreElementObject(selector, location, size);
           ignoredElementsArray.Add(ignoredRegion);
-        } catch (Exception e) {
+        }
+        catch (Exception e)
+        {
           AppPercy.Log("Appium Element with id:" + id + " not found. Ignoring this id.");
           AppPercy.Log(e.ToString());
         }
@@ -177,17 +181,19 @@ namespace PercyIO.Appium
           var size = elements[index].Size;
           string type = elements[index].GetAttribute("class");
           var selector = string.Format("element: {0} {1}", index, type);
-            
+
           var ignoredRegion = IgnoreElementObject(selector, location, size);
           ignoredElementsArray.Add(ignoredRegion);
-        } catch (Exception e) {
+        }
+        catch (Exception e)
+        {
           AppPercy.Log("Correct Appium Element not passed at index " + index + ".");
           AppPercy.Log(e.ToString(), "debug");
         }
       }
     }
 
-    public void AddCustomIgnoreRegion(JArray ignoredElementsArray, List<IgnoreRegion> customLocations)
+    public void AddCustomIgnoreRegions(JArray ignoredElementsArray, List<IgnoreRegion> customLocations)
     {
       var width = metadata.DeviceScreenWidth();
       var height = metadata.DeviceScreenHeight();
@@ -195,46 +201,35 @@ namespace PercyIO.Appium
       {
         try
         {
-          if (ValidateIgnoreLocation(customLocations[index])) {
+          if (customLocations[index].IsValid(width, height))
+          {
             var selector = "custom ignore region " + index;
             var ignoredRegion = JObject.FromObject(new
             {
               selector = selector,
-              co_ordinates = JObject.FromObject(
-                customLocations[index]
+              co_ordinates = JObject.FromObject(new
+              {
+                top = customLocations[index].Top,
+                bottom = customLocations[index].Bottom,
+                left = customLocations[index].Left,
+                right = customLocations[index].Right
+              }
+                
               )
             });
             ignoredElementsArray.Add(ignoredRegion);
           }
           else
-            AppPercy.Log("Values passed in custom ignored region at index:- "+ index+ " is not valid");
-        } catch (Exception e)
+          {
+            AppPercy.Log("Values passed in custom ignored region at index:- " + index + " is not valid");
+          }
+        }
+        catch (Exception e)
         {
-          AppPercy.Log("Custom Ignore Region object not valid at index:- "+ index);
+          AppPercy.Log("Custom Ignore Region object not valid at index:- " + index);
           AppPercy.Log(e.ToString(), "debug");
         }
-        index++;
       }
-    }
-
-    public Boolean ValidateIgnoreLocation(IgnoreRegion customLocation)
-    {
-      var width = metadata.DeviceScreenWidth();
-      var height = metadata.DeviceScreenHeight();
-      var top = customLocation.Top;
-      var bottom = customLocation.Bottom;
-      var left  = customLocation.Left;
-      var right = customLocation.Right;
-
-      if (top >= bottom || left >= right)
-        return false;
-
-      if (top < 0 || bottom < 0 || left < 0 || right < 0)
-        return false;
-      
-      if (top >= height || bottom >= height || left >= width || right >= width)
-        return false;
-      return true;
     }
   }
 }
