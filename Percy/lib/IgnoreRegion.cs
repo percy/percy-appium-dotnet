@@ -70,7 +70,7 @@ namespace PercyIO.Appium
       if (_top >= _bottom || _left >= _right)
         return false;
 
-      if (_top >= height || _bottom >= height || _left >= width || _right >= width)
+      if (_top >= height || _bottom > height || _left >= width || _right > width)
         return false;
       return true;
     }

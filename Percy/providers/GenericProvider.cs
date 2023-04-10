@@ -111,9 +111,11 @@ namespace PercyIO.Appium
       return ignoredElementsLocations;
     }
 
-    public JObject IgnoreElementObject(String selector, Point location, Size size)
+    public JObject IgnoreElementObject(String selector, AppiumWebElement element)
     {
       var scaleFactor = metadata.ScaleFactor();
+      var location = element.Location;
+      var size = element.Size;
       return JObject.FromObject(new
       {
         selector = selector,
@@ -135,16 +137,14 @@ namespace PercyIO.Appium
         {
           var element = percyAppiumDriver.FindElementByXPath(xpath);
 
-          var location = element.Location;
-          var size = element.Size;
           var selector = string.Format("xpath: {0}", xpath);
-          var ignoredRegion = IgnoreElementObject(selector, location, size);
+          var ignoredRegion = IgnoreElementObject(selector, element);
           ignoredElementsArray.Add(ignoredRegion);
         }
         catch (Exception e)
         {
           AppPercy.Log("Appium Element with xpath:" + xpath + " not found. Ignoring this xpath.");
-          AppPercy.Log(e.ToString());
+          AppPercy.Log(e.ToString(), "debug");
         }
       }
     }
@@ -157,16 +157,14 @@ namespace PercyIO.Appium
         {
           var element = percyAppiumDriver.FindElementsByAccessibilityId(id);
 
-          var location = element.Location;
-          var size = element.Size;
           var selector = string.Format("id: {0}", id);
-          var ignoredRegion = IgnoreElementObject(selector, location, size);
+          var ignoredRegion = IgnoreElementObject(selector, element);
           ignoredElementsArray.Add(ignoredRegion);
         }
         catch (Exception e)
         {
           AppPercy.Log("Appium Element with id:" + id + " not found. Ignoring this id.");
-          AppPercy.Log(e.ToString());
+          AppPercy.Log(e.ToString(), "debug");
         }
       }
     }
@@ -177,12 +175,10 @@ namespace PercyIO.Appium
       {
         try
         {
-          var location = elements[index].Location;
-          var size = elements[index].Size;
           string type = elements[index].GetAttribute("class");
           var selector = string.Format("element: {0} {1}", index, type);
 
-          var ignoredRegion = IgnoreElementObject(selector, location, size);
+          var ignoredRegion = IgnoreElementObject(selector, elements[index]);
           ignoredElementsArray.Add(ignoredRegion);
         }
         catch (Exception e)

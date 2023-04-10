@@ -278,39 +278,5 @@ namespace Percy.Tests
       // Assert
       Assert.Empty(ignoredElementsArray);
     }
-
-    [Fact]
-    public void IgnoreElementObject_ValidValues_ReturnsJObject()
-    {
-      // Arrange
-      var selector = "testSelector";
-      var location = new Point(10, 20);
-      var size = new Size(30, 40);
-      var expectedTop = location.Y;
-      var expectedBottom = location.Y + size.Height;
-      var expectedLeft = location.X;
-      var expectedRight = location.X + size.Width;
-
-      capabilities.Setup(x => x.GetCapability("deviceScreenSize"))
-      .Returns("1280x1420");
-      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities())
-      .Returns(capabilities.Object);
-      var genericProvider = new GenericProvider(_androidPercyAppiumDriver.Object);
-      var metadata = MetadataHelper.Resolve(_androidPercyAppiumDriver.Object, "Samsung Galaxy s22", 100, 200, null, null);
-      genericProvider.metadata = metadata;
-      // Act
-      var result = genericProvider.IgnoreElementObject(selector, location, size);
-
-      // Assert
-      Assert.NotNull(result);
-      Assert.True(result.ContainsKey("selector"));
-      Assert.True(result.ContainsKey("co_ordinates"));
-      var co_ordinates = result["co_ordinates"];
-      Assert.NotNull(co_ordinates);
-      Assert.Equal(expectedTop, co_ordinates["top"].ToObject<int>());
-      Assert.Equal(expectedBottom, co_ordinates["bottom"].ToObject<int>());
-      Assert.Equal(expectedLeft, co_ordinates["left"].ToObject<int>());
-      Assert.Equal(expectedRight, co_ordinates["right"].ToObject<int>());
-    }
   }
 }
