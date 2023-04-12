@@ -89,11 +89,12 @@ namespace Percy.Tests
     {
       // Arrange
       AppPercy.cache.Clear();
-      var expected = 420;
+      var expected = 320;
       var _androidPercyAppiumDriver = new Mock<IPercyAppiumDriver>();
       var capabilities = new Mock<ICapabilities>();
       var viewport = new Dictionary<string, object>(){
-        {"top", 1000L}
+        {"top", 100L},
+        {"height", 1000L}
       };
       capabilities.Setup(x => x.GetCapability("deviceScreenSize"))
         .Returns("1280x1420");
@@ -101,7 +102,7 @@ namespace Percy.Tests
         .Returns(viewport);
       _androidPercyAppiumDriver.Setup(x => x.GetCapabilities())
         .Returns(capabilities.Object);
-      androidMetadata = new AndroidMetadata(_androidPercyAppiumDriver.Object, "Samsung_gs22u", 0, -1, null, null);
+      androidMetadata = new AndroidMetadata(_androidPercyAppiumDriver.Object, "Samsung_gs22u", -1, -1, null, null);
       // Act
       var actual = androidMetadata.NavBarHeight();
 
