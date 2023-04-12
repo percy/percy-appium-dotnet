@@ -54,7 +54,7 @@ namespace PercyIO.Appium
         return navBar;
       }
       int fullDeviceScreenHeight = DeviceScreenHeight();
-      int deviceScreenHeight = GetViewportRect().TryGetValue("top", out var value) ? (int)(long)value : 0;
+      int deviceScreenHeight = GetViewportRect().TryGetValue("height", out var value) ? (int)(long)value : 0;
       return fullDeviceScreenHeight - (deviceScreenHeight + StatBarHeight());
     }
 
