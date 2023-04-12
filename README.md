@@ -121,7 +121,7 @@ The screenshot method arguments:
           `Left` (int): Left coordinate of the ignore region.
 
           `Right` (int): Right coordinate of the ignore region.
-        - Raises:ValueError: If top, bottom, left, or right is less than 0 or top is greater than or equal to bottom or left is greater than or equal to right.
+        - Raises:ArgumentException: If top, bottom, left, or right is less than 0 or top is greater than or equal to bottom or left is greater than or equal to right.
         - valid: Ignore region should be within the boundaries of the screen.
 
 ### Migrating Config
