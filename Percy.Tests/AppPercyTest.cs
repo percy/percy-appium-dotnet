@@ -21,9 +21,9 @@ namespace Percy.Tests
       Mock<IPercyAppiumDriver> _androidPercyAppiumDriver = new Mock<IPercyAppiumDriver>();
       Mock<ICapabilities> capabilities = new Mock<ICapabilities>();
       var info = new Dictionary<string, object>(){
-          {"top", 100l},
-          {"height", 1000l},
-          {"width", 400l},
+          {"top", 100L},
+          {"height", 1000L},
+          {"width", 400L},
       };
       capabilities.Setup(x => x.GetCapability("platformName"))
          .Returns("android");

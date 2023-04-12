@@ -7,6 +7,12 @@ using Xunit;
 using PercyIO.Appium;
 using RichardSzalay.MockHttp;
 using System.Net.Http;
+using System.Collections.Generic;
+using OpenQA.Selenium.Appium;
+using System.Drawing;
+using OpenQA.Selenium.Appium.Interfaces;
+using OpenQA.Selenium.Appium.Android;
+using System.Reflection;
 
 namespace Percy.Tests
 {
@@ -79,8 +85,12 @@ namespace Percy.Tests
       var genericProvider = new GenericProvider(_androidPercyAppiumDriver.Object);
       var metadata = MetadataHelper.Resolve(_androidPercyAppiumDriver.Object, "Samsung Galaxy s22", 100, 200, null, null);
       genericProvider.metadata = metadata;
+      var options = new ScreenshotOptions();
+      options.FullScreen = false;
+      options.FullPage = false;
+      options.ScreenLengths = 0;
       // When
-      var tile = genericProvider.CaptureTiles(false, false, 0)[0];
+      var tile = genericProvider.CaptureTiles(options)[0];
       // Then
       Assert.True(tile.LocalFilePath.EndsWith(".png"));
       Assert.Equal(Convert.ToInt32(tile.StatusBarHeight), 100);
@@ -111,8 +121,12 @@ namespace Percy.Tests
       var genericProvider = new GenericProvider(_androidPercyAppiumDriver.Object);
       var metadata = MetadataHelper.Resolve(_androidPercyAppiumDriver.Object, "Samsung Galaxy s22", 100, 200, null, null);
       genericProvider.metadata = metadata;
+      var options = new ScreenshotOptions();
+      options.FullScreen = true;
+      options.FullPage = false;
+      options.ScreenLengths = 0;
       // When
-      var tile = genericProvider.CaptureTiles(true, false, 0)[0];
+      var tile = genericProvider.CaptureTiles(options)[0];
       // Then
       Assert.True(tile.LocalFilePath.EndsWith(".png"));
       Assert.Equal(Convert.ToInt32(tile.StatusBarHeight), 100);
@@ -144,17 +158,25 @@ namespace Percy.Tests
       Screenshot screenshot = new Screenshot("c2hvcnRlc3Q=");
       _androidPercyAppiumDriver.Setup(x => x.GetScreenshot())
         .Returns(screenshot);
+      var options = new ScreenshotOptions();
+      options.DeviceName = "Samsung";
+      options.StatusBarHeight = 0;
+      options.NavBarHeight = 0;
+      options.Orientation = "landscape";
+      options.FullScreen = false;
+      options.FullPage = false;
+      options.ScreenLengths = 0;
 
       var mockHttp = new MockHttpMessageHandler();
 
       // Setup a respond for the user api (including a wildcard in the URL)
       mockHttp.When("http://localhost:5338/percy/comparison")
-        .Respond("application/json", "{\"success\": true, \"link\": \""+ expected + "\"}");
+        .Respond("application/json", "{\"success\": true, \"link\": \"" + expected + "\"}");
 
       CliWrapper.setHttpClient(new HttpClient(mockHttp));
       GenericProvider genericProvider = new GenericProvider(_androidPercyAppiumDriver.Object);
-      string s = genericProvider.Screenshot("test screenshot","Samsung",0,0,"landscape",false, false, 0);
-      Assert.Equal(expected ,s);
+      string s = genericProvider.Screenshot("test screenshot", options);
+      Assert.Equal(expected, s);
       CliWrapper.resetHttpClient();
     }
 
@@ -179,8 +201,12 @@ namespace Percy.Tests
       var genericProvider = new GenericProvider(_androidPercyAppiumDriver.Object);
       var metadata = MetadataHelper.Resolve(_androidPercyAppiumDriver.Object, "Samsung Galaxy s22", 100, 200, null, null);
       genericProvider.metadata = metadata;
+      var options = new ScreenshotOptions();
+      options.FullScreen = true;
+      options.FullPage = false;
+      options.ScreenLengths = 1;
       // When
-      var tile = genericProvider.CaptureTiles(true, false, 1)[0];
+      var tile = genericProvider.CaptureTiles(options)[0];
       // Then
       Assert.True(tile.LocalFilePath.EndsWith(".png"));
       Assert.Equal(Convert.ToInt32(tile.StatusBarHeight), 100);
@@ -188,6 +214,69 @@ namespace Percy.Tests
       Assert.Equal(Convert.ToInt32(tile.HeaderHeight), 0);
       Assert.Equal(Convert.ToInt32(tile.FooterHeight), 0);
       Assert.Equal(tile.FullScreen, true);
+    }
+
+    [Fact]
+    public void TestAddCustomIgnoreLocation_ValidLocation_AddsRegionToIgnoredElementsArray()
+    {
+      // Arrange
+      var ignoredElementsArray = new JArray();
+      var ignoreRegion = new IgnoreRegion();
+      ignoreRegion.Top = 10;
+      ignoreRegion.Bottom = 100;
+      ignoreRegion.Left = 20;
+      ignoreRegion.Right = 200;
+      var customLocations = new List<IgnoreRegion>
+      {
+        ignoreRegion
+      };
+      capabilities.Setup(x => x.GetCapability("deviceScreenSize"))
+      .Returns("1280x1420");
+      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities())
+      .Returns(capabilities.Object);
+      var genericProvider = new GenericProvider(_androidPercyAppiumDriver.Object);
+      var metadata = MetadataHelper.Resolve(_androidPercyAppiumDriver.Object, "Samsung Galaxy s22", 100, 200, null, null);
+      genericProvider.metadata = metadata;
+      // Act
+      genericProvider.AddCustomIgnoreRegions(ignoredElementsArray, customLocations);
+
+      // Assert
+      Assert.Single(ignoredElementsArray);
+      var ignoredRegion = ignoredElementsArray[0];
+      Assert.Equal("custom ignore region 0", ignoredRegion["selector"].ToObject<string>());
+      var co_ordinates = ignoredRegion["co_ordinates"];
+      Assert.Equal(10, co_ordinates["top"].ToObject<int>());
+      Assert.Equal(100, co_ordinates["bottom"].ToObject<int>());
+      Assert.Equal(20, co_ordinates["left"].ToObject<int>());
+      Assert.Equal(200, co_ordinates["right"].ToObject<int>());
+    }
+
+    [Fact]
+    public void TestAddCustomIgnoreLocation_InvalidLocation_DoesNotAddRegionToIgnoredElementsArray()
+    {
+      // Arrange
+      var ignoredElementsArray = new JArray();
+      var ignoreRegion = new IgnoreRegion();
+      ignoreRegion.Top = 0;
+      ignoreRegion.Bottom = 2000;
+      ignoreRegion.Left = 0;
+      ignoreRegion.Right = 600;
+      var customLocations = new List<IgnoreRegion>
+      {
+        ignoreRegion
+      };
+      capabilities.Setup(x => x.GetCapability("deviceScreenSize"))
+      .Returns("1280x1420");
+      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities())
+      .Returns(capabilities.Object);
+      var genericProvider = new GenericProvider(_androidPercyAppiumDriver.Object);
+      var metadata = MetadataHelper.Resolve(_androidPercyAppiumDriver.Object, "Samsung Galaxy s22", 100, 200, null, null);
+      genericProvider.metadata = metadata;
+      // Act
+      genericProvider.AddCustomIgnoreRegions(ignoredElementsArray, customLocations);
+
+      // Assert
+      Assert.Empty(ignoredElementsArray);
     }
   }
 }

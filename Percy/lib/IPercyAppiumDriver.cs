@@ -1,7 +1,6 @@
 using System;
 using OpenQA.Selenium;
-using OpenQA.Selenium.Appium.Android;
-using OpenQA.Selenium.Appium.iOS;
+using OpenQA.Selenium.Appium;
 
 namespace PercyIO.Appium
 {
@@ -14,6 +13,10 @@ namespace PercyIO.Appium
     String sessionId();
     String ExecuteScript(String script);
     String GetHost();
+
+    AppiumWebElement FindElementsByAccessibilityId(String id);
+
+    AppiumWebElement FindElementByXPath(String xpath);
     Screenshot GetScreenshot();
   }
 }

@@ -1,5 +1,4 @@
 using System;
-using System.Reflection;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Appium.Android;
 using OpenQA.Selenium.Appium.iOS;
@@ -120,6 +119,22 @@ namespace PercyIO.Appium
         ?? appiumAndroidDriver?.GetScreenshot()!
         ?? appiumIosDriver?.GetScreenshot()!;
 
+    }
+
+    public AppiumWebElement FindElementsByAccessibilityId(string id)
+    {
+      return iosDriver?.FindElementByAccessibilityId(id)!
+        ?? appiumIosDriver?.FindElementByAccessibilityId(id)!
+        ?? androidDriver?.FindElementByAccessibilityId(id)!
+        ?? appiumAndroidDriver?.FindElementByAccessibilityId(id)!;
+    }
+
+    public AppiumWebElement FindElementByXPath(string xpath)
+    {
+      return iosDriver?.FindElementByXPath(xpath)!
+        ?? appiumIosDriver?.FindElementByXPath(xpath)!
+        ?? androidDriver?.FindElementByXPath(xpath)!
+        ?? appiumAndroidDriver?.FindElementByXPath(xpath)!;
     }
   }
 }

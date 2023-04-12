@@ -54,7 +54,8 @@ namespace PercyIO.Appium
 
     public void Screenshot(String name, ScreenshotOptions? options = null, Boolean fullScreen = false)
     {
-      if (options == null) {
+      if (options == null)
+      {
         options = new ScreenshotOptions();
       }
       options.FullScreen = fullScreen;
@@ -69,13 +70,7 @@ namespace PercyIO.Appium
         provider = ProviderResolver.ResolveProvider(percyAppiumDriver);
         provider.Screenshot(
           name,
-          options.DeviceName,
-          options.StatusBarHeight,
-          options.NavBarHeight,
-          options.Orientation,
-          options.FullScreen,
-          options.FullPage,
-          options.ScreenLengths
+          options
         );
       }
       catch (Exception e)

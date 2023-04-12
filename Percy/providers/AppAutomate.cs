@@ -108,25 +108,18 @@ namespace PercyIO.Appium
       return null;
     }
 
-    public override String Screenshot(String name, String deviceName, int statusBarHeight, int navBarHeight,
-        String orientation, Boolean fullScreen, bool fullPage, int? screenLengths, String? platformVersion = null)
+    public override String Screenshot(String name, ScreenshotOptions options, String? platformVersion = null)
     {
       var result = ExecutePercyScreenshotBegin(name);
       var percyScreenshotUrl = "";
       String? error = null;
-      var device = this.DeviceName(deviceName, result);
+      options.DeviceName = this.DeviceName(options.DeviceName, result);
       SetDebugUrl(result);
       try
       {
         percyScreenshotUrl = base.Screenshot(
           name,
-          device,
-          statusBarHeight,
-          navBarHeight,
-          orientation,
-          fullScreen,
-          fullPage,
-          screenLengths,
+          options,
           OsVersion(result)
         );
       }
@@ -135,28 +128,30 @@ namespace PercyIO.Appium
         error = e.Message;
         throw e;
       }
-      finally 
+      finally
       {
         ExecutePercyScreenshotEnd(name, percyScreenshotUrl, error);
       }
       return "";
     }
 
-    internal override List<Tile> CaptureTiles(Boolean fullScreen, bool fullPage, int? screenLengths)
+    internal override List<Tile> CaptureTiles(ScreenshotOptions options)
     {
       // For single screens just use original approach
-      if (!fullPage || (screenLengths != null && screenLengths < 2)) {
-        return base.CaptureTiles(fullPage, fullPage, screenLengths);
+      if (!options.FullPage || (options.ScreenLengths != null && options.ScreenLengths < 2))
+      {
+        return base.CaptureTiles(options);
       }
 
       var statusBar = this.metadata.StatBarHeight();
       var navBar = this.metadata.NavBarHeight();
-      string reqObject = ExecutePercyScreenshot(screenLengths);
+      string reqObject = ExecutePercyScreenshot(options);
       var jsonarray = new JArray();
-      try 
+      try
       {
         jsonarray = JArray.Parse(reqObject);
-      } catch (Exception e)
+      }
+      catch (Exception e)
       {
         var error = e.Message;
         throw new Exception("Error", e);
@@ -164,17 +159,18 @@ namespace PercyIO.Appium
       List<Tile> tiles = new List<Tile>();
       foreach (JObject jsonobject in jsonarray)
       {
-          String sha = jsonobject.GetValue("sha").ToString().Split('-')[0];
-          int HeaderHeight = (int) jsonobject.GetValue("header_height");
-          int FooterHeight = (int) jsonobject.GetValue("footer_height");
-          tiles.Add(new Tile(null, statusBar, navBar, HeaderHeight, FooterHeight, fullScreen, sha));
+        String sha = jsonobject.GetValue("sha").ToString().Split('-')[0];
+        int HeaderHeight = (int)jsonobject.GetValue("header_height");
+        int FooterHeight = (int)jsonobject.GetValue("footer_height");
+        tiles.Add(new Tile(null, statusBar, navBar, HeaderHeight, FooterHeight, options.FullScreen, sha));
       }
       return tiles;
     }
 
-    internal string ExecutePercyScreenshot(int? screenLengths)
+    internal string ExecutePercyScreenshot(ScreenshotOptions options)
     {
-      var reqObject = JObject.FromObject(new {
+      var reqObject = JObject.FromObject(new
+      {
         action = "percyScreenshot",
         arguments = new
         {
@@ -182,9 +178,12 @@ namespace PercyIO.Appium
           percyBuildId = Environment.GetEnvironmentVariable("PERCY_BUILD_ID"),
           screenshotType = "fullpage",
           scaleFactor = this.metadata.ScaleFactor(),
-          options = new {
+          options = new
+          {
             deviceHeight = this.metadata.DeviceScreenHeight(),
-            numOfTiles = screenLengths
+            numOfTiles = options.ScreenLengths,
+            scollableXpath = options.ScrollableXpath,
+            scrollableId = options.ScrollableId
           }
         }
       });
