@@ -96,29 +96,31 @@ The screenshot method arguments:
       - `Orientation` - Orientation of the application
       - `FullPage`: true/false. [Experimental] only supported on App Automate driver sessions [ needs @percy/cli 1.20.2+ ]
       - `ScreenLengths`: int [Experimental] max screen lengths for fullPage [ needs @percy/cli 1.20.2+ ]
-      - `scrollableXpath` (**optional**) - [Experimental] scrollable element xpath for fullpage [ needs @percy/cli 1.20.2+ ]; string
-      - `scrollableId` (**optional**) - [Experimental] scrollable element accessibility id for fullpage [ needs @percy/cli 1.20.2+ ]; string
-      - `ignoreRegionXpaths` (**optional**) - elements xpaths that user want to ignore in visual diff [ needs @percy/cli 1.23.0+ ]; list of string
-      - `ignoreRegionAccessibilityIds` (**optional**) - elements accessibility_ids that user want to ignore in visual diff [ needs @percy/cli 1.23.0+ ]; list of string
-      - `ignoreRegionAppiumElements` (**optional**) - appium elements that user want to ignore in visual diff [ needs @percy/cli 1.23.0+ ]; list of appium element object
-      - `customIgnoreRegions` (**optional**) - custom locations that user want to ignore in visual diff [ needs @percy/cli 1.23.0+ ]; list of ignore_region object
+      - `ScrollableXpath` (**optional**) - [Experimental] scrollable element xpath for fullpage [ needs @percy/cli 1.20.2+ ]; string
+      - `ScrollableId` (**optional**) - [Experimental] scrollable element accessibility id for fullpage [ needs @percy/cli 1.20.2+ ]; string
+      - `IgnoreRegionXpaths` (**optional**) - elements xpaths that user want to ignore in visual diff [ needs @percy/cli 1.23.0+ ]; list of string
+      - `IgnoreRegionAccessibilityIds` (**optional**) - elements accessibility_ids that user want to ignore in visual diff [ needs @percy/cli 1.23.0+ ]; list of string
+      - `IgnoreRegionAppiumElements` (**optional**) - appium elements that user want to ignore in visual diff [ needs @percy/cli 1.23.0+ ]; list of appium element object
+      - `CustomIgnoreRegions` (**optional**) - custom locations that user want to ignore in visual diff [ needs @percy/cli 1.23.0+ ]; list of ignore_region object
       - IgnoreRegion:-
         - Description: This class represents a rectangular area on a screen that needs to be ignored for visual diff.
-
-        - Constructor:
+        - constructor:-
           ```
-          init(self, top, bottom, left, right)
+          var ignoreRegion = new IgnoreRegion();
+          ignoreRegion.Top = top;
+          ignoreRegion.Bottom = bottom;
+          ignoreRegion.Left = left;
+          ignoreRegion.Right = right;
           ```
-
         - Parameters:
 
-          `top` (int): Top coordinate of the ignore region.
+          `Top` (int): Top coordinate of the ignore region.
 
-          `bottom` (int): Bottom coordinate of the ignore region.
+          `Bottom` (int): Bottom coordinate of the ignore region.
 
-          `left` (int): Left coordinate of the ignore region.
+          `Left` (int): Left coordinate of the ignore region.
 
-          `right` (int): Right coordinate of the ignore region.
+          `Right` (int): Right coordinate of the ignore region.
         - Raises:ValueError: If top, bottom, left, or right is less than 0 or top is greater than or equal to bottom or left is greater than or equal to right.
         - valid: Ignore region should be within the boundaries of the screen.
 
