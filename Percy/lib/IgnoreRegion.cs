@@ -9,6 +9,16 @@ namespace PercyIO.Appium
     private int _left;
     private int _right;
 
+    public IgnoreRegion(int top, int bottom, int left, int right)
+    {
+      if (top < 0 || bottom < 0 || left < 0 || right < 0)
+        throw new ArgumentException("Only Positive integer is allowed!");
+      _top = top;
+      _bottom = bottom;
+      _left = left;
+      _right = right;
+    }
+
     public int Top
     {
       get
