@@ -221,11 +221,7 @@ namespace Percy.Tests
     {
       // Arrange
       var ignoredElementsArray = new JArray();
-      var ignoreRegion = new IgnoreRegion();
-      ignoreRegion.Top = 10;
-      ignoreRegion.Bottom = 100;
-      ignoreRegion.Left = 20;
-      ignoreRegion.Right = 200;
+      var ignoreRegion = new IgnoreRegion(10, 100, 20, 200);
       var customLocations = new List<IgnoreRegion>
       {
         ignoreRegion
@@ -256,11 +252,7 @@ namespace Percy.Tests
     {
       // Arrange
       var ignoredElementsArray = new JArray();
-      var ignoreRegion = new IgnoreRegion();
-      ignoreRegion.Top = 0;
-      ignoreRegion.Bottom = 2000;
-      ignoreRegion.Left = 0;
-      ignoreRegion.Right = 600;
+      var ignoreRegion = new IgnoreRegion(0, 2000, 0, 600);
       var customLocations = new List<IgnoreRegion>
       {
         ignoreRegion
