@@ -40,23 +40,25 @@ namespace Percy.Tests
         .Returns(capabilities.Object);
 
       var arguments = new JObject();
-      var response = @"{
-        success:'true',
-        osVersion:'11.2',
-        buildHash:'abc',
-        sessionHash:'def',
-        deviceName: 'Android'
-      }";
+      var response = JObject.FromObject(new
+      {
+        success = true,
+        deviceName = "Samsung Galaxy S22",
+        osVersion = "13.0",
+        buildHash = "alfkjsdkfn",
+        sessionHash = "lskdfksdjfb"
+      });
       _androidPercyAppiumDriver.Setup(x => x.sessionId())
         .Returns(new SessionId("abc").ToString());
       _androidPercyAppiumDriver.Setup(x => x.GetType())
         .Returns("Android");
       _androidPercyAppiumDriver.Setup(x => x.ExecuteScript(It.IsAny<string>()))
-        .Returns(response);
+        .Returns(response.ToString());
       var screenshot = new Screenshot("c2hvcnRlc3Q=");
       _androidPercyAppiumDriver.Setup(x => x.GetScreenshot())
         .Returns(screenshot);
-      CliWrapper.Healthcheck = () => {
+      CliWrapper.Healthcheck = () =>
+      {
         return true;
       };
 
@@ -97,26 +99,28 @@ namespace Percy.Tests
         .Returns(screenshot);
       _iOSPercyAppiumDriver.Setup(x => x.GetSessionDetails())
         .Returns(info);
-       var arguments = new JObject();
-       var response = @"{
-        success:'true',
-        osVersion:'11.2',
-        buildHash:'abc',
-        sessionHash:'def',
-        deviceName: 'iPhone'
-      }";
+      var arguments = new JObject();
+      var response = JObject.FromObject(new
+      {
+        success = true,
+        deviceName = "iPhone 13",
+        osVersion = "15.0",
+        buildHash = "alfkjsdkfn",
+        sessionHash = "lskdfksdjfb"
+      });
       _iOSPercyAppiumDriver.Setup(x => x.sessionId())
         .Returns(new SessionId("abc").ToString());
       _iOSPercyAppiumDriver.Setup(x => x.GetType())
         .Returns("iOS");
       _iOSPercyAppiumDriver.Setup(x => x.ExecuteScript(It.IsAny<string>()))
-        .Returns(response);
-      CliWrapper.Healthcheck = () => {
+        .Returns(response.ToString());
+      CliWrapper.Healthcheck = () =>
+      {
         return true;
       };
 
       AppPercy appPercy = new AppPercy(_iOSPercyAppiumDriver.Object);
-      
+
       // Act
       appPercy.Screenshot("abc", null);
       // Assert
