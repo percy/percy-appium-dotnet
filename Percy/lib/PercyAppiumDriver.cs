@@ -106,7 +106,7 @@ namespace PercyIO.Appium
     public string GetHost()
     {
       var type = driver.GetType();
-      var property = type.GetProperty("CommandExecutor", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+      var property = type.GetProperty("CommandExecutor", BindingFlags.Instance | BindingFlags.NonPublic);
       var commandExecutor = property?.GetValue(driver);
       var uri = commandExecutor?.GetType().GetField("URL", BindingFlags.Instance | BindingFlags.NonPublic);
       var remoteServerUri = commandExecutor?.GetType().GetField("remoteServerUri", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -140,11 +140,3 @@ namespace PercyIO.Appium
     }
   }
 }
-
-// System.Uri remoteServerUri
-// System.TimeSpan serverResponseTimeout
-// Boolean enableKeepAlive
-// Boolean isDisposed
-// System.Net.IWebProxy proxy
-// OpenQA.Selenium.Remote.CommandInfoRepository commandInfoRepository
-// System.EventHandler`1[OpenQA.Selenium.Remote.SendingRemoteHttpRequestEventArgs] SendingRemoteHttpRequest
