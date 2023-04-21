@@ -45,8 +45,8 @@ namespace Percy.Tests
         success = true,
         deviceName = "Samsung Galaxy S22",
         osVersion = "13.0",
-        buildHash = "alfkjsdkfn",
-        sessionHash = "lskdfksdjfb"
+        buildHash = "dummy_build_hash",
+        sessionHash = "dummy_session_hash"
       });
       _androidPercyAppiumDriver.Setup(x => x.sessionId())
         .Returns(new SessionId("abc").ToString());
@@ -105,8 +105,8 @@ namespace Percy.Tests
         success = true,
         deviceName = "iPhone 13",
         osVersion = "15.0",
-        buildHash = "alfkjsdkfn",
-        sessionHash = "lskdfksdjfb"
+        buildHash = "dummy_build_hash",
+        sessionHash = "dummy_session_hash"
       });
       _iOSPercyAppiumDriver.Setup(x => x.sessionId())
         .Returns(new SessionId("abc").ToString());

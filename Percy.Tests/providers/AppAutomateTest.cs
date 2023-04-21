@@ -141,8 +141,8 @@ namespace Percy.Tests
         success = true,
         deviceName = "iPhone 13",
         osVersion = "15.0",
-        buildHash = "alfkjsdkfn",
-        sessionHash = "lskdfksdjfb"
+        buildHash = "dummy_build_hash",
+        sessionHash = "dummy_session_hash"
       });
       string name = "First";
       var obj = JObject.FromObject(new
