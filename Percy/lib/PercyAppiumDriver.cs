@@ -4,6 +4,7 @@ using OpenQA.Selenium.Appium.Android;
 using OpenQA.Selenium.Appium.iOS;
 using System.Collections.Generic;
 using OpenQA.Selenium.Appium;
+using System.Reflection;
 
 namespace PercyIO.Appium
 {
@@ -104,11 +105,12 @@ namespace PercyIO.Appium
 
     public string GetHost()
     {
-      Type type = driver.GetType();
-      var property = type.GetProperty("CommandExecutor", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+      var type = driver.GetType();
+      var property = type.GetProperty("CommandExecutor", BindingFlags.Instance | BindingFlags.NonPublic);
       var commandExecutor = property?.GetValue(driver);
-      var uri = commandExecutor?.GetType().GetField("URL", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-      var value = uri?.GetValue(commandExecutor);
+      var uri = commandExecutor?.GetType().GetField("URL", BindingFlags.Instance | BindingFlags.NonPublic);
+      var remoteServerUri = commandExecutor?.GetType().GetField("remoteServerUri", BindingFlags.Instance | BindingFlags.NonPublic);
+      var value = uri?.GetValue(commandExecutor) ?? remoteServerUri?.GetValue(commandExecutor);
       return value?.ToString()!;
     }
 

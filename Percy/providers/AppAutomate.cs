@@ -8,7 +8,6 @@ namespace PercyIO.Appium
   {
     private Boolean markedPercySession = true;
     private IPercyAppiumDriver percyAppiumDriver;
-    private string debugUrl;
 
     internal AppAutomate(IPercyAppiumDriver percyAppiumDriver) : base(percyAppiumDriver)
     {
@@ -26,18 +25,13 @@ namespace PercyIO.Appium
       return false;
     }
 
-    internal void SetDebugUrl(JObject result)
+    internal String GetDebugUrl(JObject result)
     {
-      if (result == null) return;
+      if (result == null) return null;
 
       var buildHash = result.GetValue("buildHash").ToString();
       var sessionHash = result.GetValue("sessionHash").ToString();
-      this.debugUrl = "https://app-automate.browserstack.com/dashboard/v2/builds/" + buildHash + "/sessions/" + sessionHash;
-    }
-
-    internal string GetDebugUrl()
-    {
-      return this.debugUrl;
+      return "https://app-automate.browserstack.com/dashboard/v2/builds/" + buildHash + "/sessions/" + sessionHash;
     }
 
     internal JObject ExecutePercyScreenshotBegin(String name)
@@ -59,7 +53,8 @@ namespace PercyIO.Appium
           });
           var resultString = percyAppiumDriver.ExecuteScript("browserstack_executor:" + obj.ToString());
           var result = JObject.Parse(resultString);
-          markedPercySession = (result.GetValue("success").ToString() == "true");
+
+          markedPercySession = (result.GetValue("success").ToString() == "True");
           return result;
         }
       }
@@ -97,7 +92,7 @@ namespace PercyIO.Appium
           });
           var resultString = percyAppiumDriver.ExecuteScript("browserstack_executor:" + obj.ToString());
           var result = JObject.Parse(resultString);
-          markedPercySession = result["success"]?.ToString() == "true";
+          markedPercySession = (result.GetValue("success").ToString() == "True");
           return result;
         }
       }
@@ -114,7 +109,7 @@ namespace PercyIO.Appium
       var percyScreenshotUrl = "";
       String? error = null;
       options.DeviceName = this.DeviceName(options.DeviceName, result);
-      SetDebugUrl(result);
+      base.SetDebugUrl(GetDebugUrl(result));
       try
       {
         percyScreenshotUrl = base.Screenshot(

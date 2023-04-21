@@ -52,9 +52,9 @@ namespace Percy.Tests
       string expected = "https://app-automate.browserstack.com/dashboard/v2/builds/abc/sessions/def";
       // When
       AppAutomate appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
-      appAutomate.SetDebugUrl(result);
+      string actual = appAutomate.GetDebugUrl(result);
       // Then
-      Assert.Equal(appAutomate.GetDebugUrl(), expected);
+      Assert.Equal(actual, expected);
     }
 
     [Fact]
@@ -136,23 +136,36 @@ namespace Percy.Tests
     {
       // Given
       var arguments = new JObject();
-      string response = @"{success:'true'}";
+      var response = JObject.FromObject(new
+      {
+        success = true,
+        deviceName = "iPhone 13",
+        osVersion = "15.0",
+        buildHash = "dummy_build_hash",
+        sessionHash = "dummy_session_hash"
+      });
       string name = "First";
-      arguments.Add("state", "begin");
-      arguments.Add("percyBuildId", Environment.GetEnvironmentVariable("PERCY_BUILD_ID"));
-      arguments.Add("percyBuildUrl", Environment.GetEnvironmentVariable("PERCY_BUILD_URL"));
-      arguments.Add("name", name);
-      JObject reqObject = new JObject();
-      reqObject.Add("action", "percyScreenshot");
-      reqObject.Add("arguments", arguments);
-      _androidPercyAppiumDriver.Setup(x => x.ExecuteScript("browserstack_executor:" + reqObject.ToString()))
-        .Returns(response);
+      var obj = JObject.FromObject(new
+      {
+        action = "percyScreenshot",
+        arguments = new
+        {
+          state = "begin",
+          percyBuildId = Environment.GetEnvironmentVariable("PERCY_BUILD_ID"),
+          percyBuildUrl = Environment.GetEnvironmentVariable("PERCY_BUILD_URL"),
+          name = name
+        }
+      });
+
+      _androidPercyAppiumDriver.Setup(x => x.ExecuteScript("browserstack_executor:" + obj.ToString()))
+        .Returns(response.ToString());
       // When
-      AppAutomate appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
-      string actual = appAutomate.ExecutePercyScreenshotBegin(name).GetValue("success").ToString();
+      var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
+      var result = appAutomate.ExecutePercyScreenshotBegin(name);
+      string actual = result.GetValue("success").ToString();
       // Then
-      Assert.Equal(actual, "true");
-      _androidPercyAppiumDriver.Verify(x => x.ExecuteScript("browserstack_executor:" + reqObject.ToString()), Times.Once);
+      Assert.Equal(actual, "True");
+      _androidPercyAppiumDriver.Verify(x => x.ExecuteScript("browserstack_executor:" + obj.ToString()), Times.Once);
     }
 
     [Fact]
@@ -161,13 +174,17 @@ namespace Percy.Tests
       // Given
       var arguments = new JObject();
       var name = "First";
-      arguments.Add("state", "begin");
-      arguments.Add("percyBuildId", Environment.GetEnvironmentVariable("PERCY_BUILD_ID"));
-      arguments.Add("percyBuildUrl", Environment.GetEnvironmentVariable("PERCY_BUILD_URL"));
-      arguments.Add("name", name);
-      var reqObject = new JObject();
-      reqObject.Add("action", "percyScreenshot");
-      reqObject.Add("arguments", arguments);
+      var reqObject = JObject.FromObject(new
+      {
+        action = "percyScreenshot",
+        arguments = new
+        {
+          state = "begin",
+          percyBuildId = Environment.GetEnvironmentVariable("PERCY_BUILD_ID"),
+          percyBuildUrl = Environment.GetEnvironmentVariable("PERCY_BUILD_URL"),
+          name = name
+        }
+      });
       _androidPercyAppiumDriver.Setup(x => x.ExecuteScript("browserstack_executor:" + reqObject.ToString()))
         .Throws(new Exception());
       // When
@@ -181,25 +198,33 @@ namespace Percy.Tests
     {
       // Given
       Environment.SetEnvironmentVariable("PERCY_LOGLEVEL", "debug");
-      var response = @"{success:'true'}";
+      var response = JObject.FromObject(new
+      {
+        success = true,
+      });
       var name = "First";
       var percyScreenshotUrl = "";
-      var arguments = new JObject();
-      arguments.Add("state", "end");
-      arguments.Add("percyScreenshotUrl", percyScreenshotUrl);
-      arguments.Add("status", "success");
-      arguments.Add("statusMessage", null);
-      arguments.Add("name", name);
-      var reqObject = new JObject();
-      reqObject.Add("action", "percyScreenshot");
-      reqObject.Add("arguments", arguments);
+      var reqObject = JObject.FromObject(new
+      {
+        action = "percyScreenshot",
+        arguments = new
+        {
+          state = "end",
+          percyScreenshotUrl = percyScreenshotUrl,
+          status = "success",
+          statusMessage = JValue.CreateNull(),
+          name = name
+        }
+      });
+
       _androidPercyAppiumDriver.Setup(x => x.ExecuteScript("browserstack_executor:" + reqObject.ToString()))
-        .Returns(response);
+        .Returns(response.ToString());
       // When
       var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
-      var actual = appAutomate.ExecutePercyScreenshotEnd(name, percyScreenshotUrl, null).GetValue("success").ToString();
+      var result = appAutomate.ExecutePercyScreenshotEnd(name, percyScreenshotUrl, null);
+      var actual = result.GetValue("success").ToString();
       // Then
-      Assert.Equal(actual, "true");
+      Assert.Equal(actual, "True");
       _androidPercyAppiumDriver.Verify(x => x.ExecuteScript("browserstack_executor:" + reqObject.ToString()), Times.Once);
     }
 
@@ -208,25 +233,31 @@ namespace Percy.Tests
     {
       // Given
       Environment.SetEnvironmentVariable("PERCY_LOGLEVEL", "debug");
-      var response = @"{success:'false'}";
+      var response = JObject.FromObject(new
+      {
+        success = false,
+      });
       var name = "First";
       var percyScreenshotUrl = "";
-      var arguments = new JObject();
-      arguments.Add("state", "end");
-      arguments.Add("percyScreenshotUrl", percyScreenshotUrl);
-      arguments.Add("status", "failure");
-      arguments.Add("statusMessage", "some error");
-      arguments.Add("name", name);
-      var reqObject = new JObject();
-      reqObject.Add("action", "percyScreenshot");
-      reqObject.Add("arguments", arguments);
+      var reqObject = JObject.FromObject(new
+      {
+        action = "percyScreenshot",
+        arguments = new
+        {
+          state = "end",
+          percyScreenshotUrl = percyScreenshotUrl,
+          status = "failure",
+          statusMessage = "some error",
+          name = name
+        }
+      });
       _androidPercyAppiumDriver.Setup(x => x.ExecuteScript("browserstack_executor:" + reqObject.ToString()))
-        .Returns(response);
+        .Returns(response.ToString());
       // When
       var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
       string actual = appAutomate.ExecutePercyScreenshotEnd(name, percyScreenshotUrl, "some error").GetValue("success").ToString();
       // Then
-      Assert.Equal(actual, "false");
+      Assert.Equal(actual, "False");
       _androidPercyAppiumDriver.Verify(x => x.ExecuteScript("browserstack_executor:" + reqObject.ToString()), Times.Once);
     }
 
@@ -237,15 +268,18 @@ namespace Percy.Tests
       Environment.SetEnvironmentVariable("PERCY_LOGLEVEL", "debug");
       var name = "First";
       var percyScreenshotUrl = "";
-      var arguments = new JObject();
-      arguments.Add("state", "end");
-      arguments.Add("percyScreenshotUrl", percyScreenshotUrl);
-      arguments.Add("status", "failure");
-      arguments.Add("statusMessage", "some error");
-      arguments.Add("name", name);
-      var reqObject = new JObject();
-      reqObject.Add("action", "percyScreenshot");
-      reqObject.Add("arguments", arguments);
+      var reqObject = JObject.FromObject(new
+      {
+        action = "percyScreenshot",
+        arguments = new
+        {
+          state = "end",
+          percyScreenshotUrl = percyScreenshotUrl,
+          status = "failure",
+          statusMessage = "some error",
+          name = name
+        }
+      });
       _androidPercyAppiumDriver.Setup(x => x.ExecuteScript("browserstack_executor:" + reqObject.ToString()))
         .Throws(new Exception());
       // When
