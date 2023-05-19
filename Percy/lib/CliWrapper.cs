@@ -18,7 +18,7 @@ namespace PercyIO.Appium
   {
     public static readonly string CLI_API =
     Environment.GetEnvironmentVariable("PERCY_CLI_API") ?? "http://localhost:5338";
-    public static readonly string CLIENT_INFO = "percy-appium-dotnet/1.2.4";
+    public static readonly string CLIENT_INFO = "percy-appium-dotnet/2.0.0";
     public static readonly string ENVIRONMENT_INFO = Regex.Replace(
         Regex.Replace(RuntimeInformation.FrameworkDescription, @"\s+", "-"),
         @"-([\d\.]+).*$", "/$1").Trim().ToLower();
