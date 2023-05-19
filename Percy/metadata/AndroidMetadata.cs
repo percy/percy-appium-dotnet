@@ -38,8 +38,7 @@ namespace PercyIO.Appium
 
     internal override string OsName()
     {
-      var osName = driver.GetCapabilities().GetCapability("platformName").ToString();
-      return osName.Substring(0, 1).ToLower() + osName.Substring(1).ToUpper();
+      return "Android";
     }
     internal override int DeviceScreenWidth()
     {
