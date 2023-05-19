@@ -56,7 +56,7 @@ namespace Percy.Tests
       // Then
       var tile = genericProvider.GetTag();
       Assert.Equal(tile.GetValue("name").ToString(), "Samsung Galaxy s22");
-      Assert.Equal(tile.GetValue("osName").ToString(), "aNDROID");
+      Assert.Equal(tile.GetValue("osName").ToString(), "Android");
       Assert.Equal(tile.GetValue("osVersion").ToString(), "9");
       Assert.Equal(Convert.ToInt32(tile.GetValue("width")), 1280);
       Assert.Equal(Convert.ToInt32(tile.GetValue("height")), 1420);
@@ -140,7 +140,7 @@ namespace Percy.Tests
     public void TestScreenshot()
     {
       // Given
-      string expected = "https://percy.io/api/v1/comparisons/redirect?snapshot[name]=test%20screenshot&tag[name]=Samsung&tag[os_name]=aNDROID&tag[os_version]=9&tag[width]=1280&tag[height]=1420&tag[orientation]=landscape";
+      string expected = "https://percy.io/api/v1/comparisons/redirect?snapshot[name]=test%20screenshot&tag[name]=Samsung&tag[os_name]=Android&tag[os_version]=9&tag[width]=1280&tag[height]=1420&tag[orientation]=landscape";
       string url = "http://hub-cloud.browserstack.com/wd/hub";
       AppPercy.cache.Clear();
       capabilities.Setup(x => x.GetCapability("platformName"))

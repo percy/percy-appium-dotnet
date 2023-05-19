@@ -87,17 +87,8 @@ namespace Percy.Tests
     [Fact]
     public void TestOsName()
     {
-      // Given
-      capabilities.Setup(x => x.GetCapability("platformName"))
-         .Returns("ios");
-      _iPhonePercyAppiumDriver.Setup(x => x.GetCapabilities())
-        .Returns(capabilities.Object);
-      iosMetadata = new IosMetadata(_iPhonePercyAppiumDriver.Object, "Samsung_gs22u", 0, 0, null, null);
-      var expected = "iOS";
-      // When
-      var actual = iosMetadata.OsName();
-      // Then
-      Assert.Equal(actual, expected);
+      iosMetadata = new IosMetadata(_iPhonePercyAppiumDriver.Object, "iPhone_11", 100, -1, null, null);
+      Assert.Equal(iosMetadata.OsName(), "iOS");
     }
 
     [Fact]
