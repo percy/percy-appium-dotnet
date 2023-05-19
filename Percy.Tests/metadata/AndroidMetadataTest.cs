@@ -9,13 +9,13 @@ namespace Percy.Tests
   public class AndroidMetadataTest
   {
     private AndroidMetadata? androidMetadata;
+    private readonly Mock<IPercyAppiumDriver> _androidPercyAppiumDriver = new Mock<IPercyAppiumDriver>();
 
     [Fact]
     public void TestGetDeviceName_WhenNameIsNotNull()
     {
       // Arrange
       var expected = "Samsung_gs22u";
-      var _androidPercyAppiumDriver = new Mock<IPercyAppiumDriver>();
       androidMetadata = new AndroidMetadata(_androidPercyAppiumDriver.Object, "Samsung_gs22u", 0, 0, null, null);
       // Act
       var actual = androidMetadata.DeviceName();
@@ -32,7 +32,6 @@ namespace Percy.Tests
         {"deviceName", "Samsung_gs22u"}
       };
       var capabilities = new Mock<ICapabilities>();
-      var _androidPercyAppiumDriver = new Mock<IPercyAppiumDriver>();
       capabilities.Setup(x => x.GetCapability("desired"))
         .Returns(deviceDetail);
       _androidPercyAppiumDriver.Setup(x => x.GetCapabilities())
@@ -51,7 +50,6 @@ namespace Percy.Tests
     {
       // Arrange
       var expected = 1420;
-      var _androidPercyAppiumDriver = new Mock<IPercyAppiumDriver>();
       var capabilities = new Mock<ICapabilities>();
       capabilities.Setup(x => x.GetCapability("deviceScreenSize"))
         .Returns("1280x1420");
@@ -70,7 +68,6 @@ namespace Percy.Tests
     {
       // Arrange
       var expected = 1280;
-      var _androidPercyAppiumDriver = new Mock<IPercyAppiumDriver>();
       var capabilities = new Mock<ICapabilities>();
       capabilities.Setup(x => x.GetCapability("deviceScreenSize"))
         .Returns("1280x1420");
@@ -90,7 +87,6 @@ namespace Percy.Tests
       // Arrange
       AppPercy.cache.Clear();
       var expected = 320;
-      var _androidPercyAppiumDriver = new Mock<IPercyAppiumDriver>();
       var capabilities = new Mock<ICapabilities>();
       var viewport = new Dictionary<string, object>(){
         {"top", 100L},
@@ -115,7 +111,6 @@ namespace Percy.Tests
     {
       // Arrange
       var expected = 100;
-      var _androidPercyAppiumDriver = new Mock<IPercyAppiumDriver>();
       var capabilities = new Mock<ICapabilities>();
       androidMetadata = new AndroidMetadata(_androidPercyAppiumDriver.Object, "Samsung_gs22u", 0, 100, null, null);
       // Act
@@ -131,7 +126,6 @@ namespace Percy.Tests
       // Arrange
       AppPercy.cache.Clear();
       var expected = 100;
-      var _androidPercyAppiumDriver = new Mock<IPercyAppiumDriver>();
       var capabilities = new Mock<ICapabilities>();
       var viewportRect = new Dictionary<string, object>(){
         {"top", 100L}
@@ -155,7 +149,6 @@ namespace Percy.Tests
     {
       // Arrange
       var expected = 100;
-      var _androidPercyAppiumDriver = new Mock<IPercyAppiumDriver>();
       var capabilities = new Mock<ICapabilities>();
       androidMetadata = new AndroidMetadata(_androidPercyAppiumDriver.Object, "Samsung_gs22u", 100, -1, null, null);
       // Act
