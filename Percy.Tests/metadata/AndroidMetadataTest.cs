@@ -168,6 +168,7 @@ namespace Percy.Tests
     [Fact]
     public void TestOsName()
     {
+      androidMetadata = new AndroidMetadata(_androidPercyAppiumDriver.Object, "Samsung_gs22u", 0, 100, null, null);
       Assert.Equal(androidMetadata.OsName(), "Android");
     }
   }

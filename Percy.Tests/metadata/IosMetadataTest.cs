@@ -87,6 +87,7 @@ namespace Percy.Tests
     [Fact]
     public void TestOsName()
     {
+      iosMetadata = new IosMetadata(_iPhonePercyAppiumDriver.Object, "iPhone_11", 100, -1, null, null);
       Assert.Equal(iosMetadata.OsName(), "iOS");
     }
 
