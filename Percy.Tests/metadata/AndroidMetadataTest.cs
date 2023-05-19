@@ -168,19 +168,7 @@ namespace Percy.Tests
     [Fact]
     public void TestOsName()
     {
-      // Given
-      var _androidPercyAppiumDriver = new Mock<IPercyAppiumDriver>();
-      var capabilities = new Mock<ICapabilities>();
-      capabilities.Setup(x => x.GetCapability("platformName"))
-        .Returns("android");
-      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities())
-        .Returns(capabilities.Object);
-      androidMetadata = new AndroidMetadata(_androidPercyAppiumDriver.Object, "Samsung_gs22u", 0, 0, null, null);
-      var expected = "aNDROID";
-      // When
-      var actual = androidMetadata.OsName();
-      // Then
-      Assert.Equal(actual, expected);
+      Assert.Equal(androidMetadata.OsName(), "Android");
     }
   }
 }
