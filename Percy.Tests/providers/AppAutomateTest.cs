@@ -151,8 +151,8 @@ namespace Percy.Tests
         arguments = new
         {
           state = "begin",
-          percyBuildId = Environment.GetEnvironmentVariable("PERCY_BUILD_ID"),
-          percyBuildUrl = Environment.GetEnvironmentVariable("PERCY_BUILD_URL"),
+          percyBuildId = CliWrapper.PERCY_BUILD_ID,
+          percyBuildUrl = CliWrapper.PERCY_BUILD_URL,
           name = name
         }
       });
@@ -180,8 +180,8 @@ namespace Percy.Tests
         arguments = new
         {
           state = "begin",
-          percyBuildId = Environment.GetEnvironmentVariable("PERCY_BUILD_ID"),
-          percyBuildUrl = Environment.GetEnvironmentVariable("PERCY_BUILD_URL"),
+          percyBuildId = CliWrapper.PERCY_BUILD_ID,
+          percyBuildUrl = CliWrapper.PERCY_BUILD_URL,
           name = name
         }
       });

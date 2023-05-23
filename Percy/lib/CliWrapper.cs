@@ -24,6 +24,8 @@ namespace PercyIO.Appium
         @"-([\d\.]+).*$", "/$1").Trim().ToLower();
     private static HttpClient _http = new HttpClient();
     private static bool? _enabled = null;
+    public static string PERCY_BUILD_ID = null;
+    public static string PERCY_BUILD_URL = null;
 
     private static dynamic Request(string endpoint, JObject? payload = null)
     {
@@ -58,6 +60,8 @@ namespace PercyIO.Appium
       {
         dynamic res = Request("/percy/healthcheck");
         dynamic data = JsonSerializer.Deserialize<dynamic>(res.content);
+        PERCY_BUILD_ID = data.GetProperty("build").GetProperty("id").ToString();
+        PERCY_BUILD_URL = data.GetProperty("build").GetProperty("url").ToString();
 
         if (data.GetProperty("success").GetBoolean() != true)
         {
@@ -76,7 +80,7 @@ namespace PercyIO.Appium
       catch (Exception error)
       {
         AppPercy.Log("Percy is not running, disabling snapshots");
-        AppPercy.Log(error.ToString(), "debug");
+        AppPercy.Log(error.ToString());
         return (bool)(_enabled = false);
       }
     };
