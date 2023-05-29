@@ -34,7 +34,7 @@ namespace PercyIO.Appium
 
     internal static String GetClientInfo()
     {
-      return "percy-appium-dotnet/2.0.0";
+      return "percy-appium-dotnet/2.0.1";
     }
 
     internal static String GetEnvironmentInfo()
