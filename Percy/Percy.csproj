@@ -9,7 +9,7 @@
     <PackageId>PercyIO.Appium</PackageId>
     <Description>An App Percy SDK for Appium WebDriver API .NET Bindings</Description>
     <PackageTags>appium;percy;visual;testing</PackageTags>
-    <Version>2.0.0</Version>
+    <Version>2.0.1</Version>
     <Company>Perceptual Inc</Company>
     <Copyright>Copyright Perceptual Inc</Copyright>
     <Authors>percy-admin</Authors>
