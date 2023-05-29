@@ -1,12 +1,10 @@
 using System;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using System.Text.Json;
 using Newtonsoft.Json.Linq;
 using System.Diagnostics.CodeAnalysis;
@@ -16,12 +14,7 @@ namespace PercyIO.Appium
   [ExcludeFromCodeCoverage]
   internal class CliWrapper
   {
-    public static readonly string CLI_API =
-    Environment.GetEnvironmentVariable("PERCY_CLI_API") ?? "http://localhost:5338";
-    public static readonly string CLIENT_INFO = "percy-appium-dotnet/2.0.0";
-    public static readonly string ENVIRONMENT_INFO = Regex.Replace(
-        Regex.Replace(RuntimeInformation.FrameworkDescription, @"\s+", "-"),
-        @"-([\d\.]+).*$", "/$1").Trim().ToLower();
+    public static readonly string CLI_API = Environment.GetEnvironmentVariable("PERCY_CLI_API") ?? "http://localhost:5338";
     private static HttpClient _http = new HttpClient();
     private static bool? _enabled = null;
 
@@ -58,6 +51,8 @@ namespace PercyIO.Appium
       {
         dynamic res = Request("/percy/healthcheck");
         dynamic data = JsonSerializer.Deserialize<dynamic>(res.content);
+        Env.SetPercyBuildID(data.GetProperty("build").GetProperty("id").ToString());
+        Env.SetPercyBuildUrl(data.GetProperty("build").GetProperty("url").ToString());
 
         if (data.GetProperty("success").GetBoolean() != true)
         {
@@ -76,7 +71,7 @@ namespace PercyIO.Appium
       catch (Exception error)
       {
         AppPercy.Log("Percy is not running, disabling snapshots");
-        AppPercy.Log(error.ToString(), "debug");
+        AppPercy.Log(error.ToString());
         return (bool)(_enabled = false);
       }
     };
@@ -87,8 +82,8 @@ namespace PercyIO.Appium
       {
         var screenshotOptions = new
         {
-          clientInfo = CLIENT_INFO,
-          environmentInfo = ENVIRONMENT_INFO,
+          clientInfo = Env.GetClientInfo(),
+          environmentInfo = Env.GetEnvironmentInfo(),
           tag = tag,
           tiles = Tile.GetTilesAsJson(tiles),
           externalDebugUrl = externalDebugUrl,

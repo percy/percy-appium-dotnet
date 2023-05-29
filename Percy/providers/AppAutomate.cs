@@ -46,8 +46,8 @@ namespace PercyIO.Appium
             arguments = new
             {
               state = "begin",
-              percyBuildId = Environment.GetEnvironmentVariable("PERCY_BUILD_ID"),
-              percyBuildUrl = Environment.GetEnvironmentVariable("PERCY_BUILD_URL"),
+              percyBuildId = Env.GetPercyBuildID(),
+              percyBuildUrl = Env.GetPercyBuildUrl(),
               name = name
             }
           });
@@ -170,7 +170,7 @@ namespace PercyIO.Appium
         arguments = new
         {
           state = "screenshot",
-          percyBuildId = Environment.GetEnvironmentVariable("PERCY_BUILD_ID"),
+          percyBuildId = Env.GetPercyBuildID(),
           screenshotType = "fullpage",
           scaleFactor = this.metadata.ScaleFactor(),
           options = new
