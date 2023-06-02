@@ -17,7 +17,6 @@ namespace PercyIO.Appium
           return method.Invoke(obj, args);
         }
 
-        Console.WriteLine("Method not found: " + methodName);
         return null;
       }
       catch (Exception e)
@@ -41,8 +40,6 @@ namespace PercyIO.Appium
     {
       Type objectType = obj.GetType();
       MethodInfo method = objectType.GetMethod("FindElement", new Type[] { typeof(string), typeof(string) });
-      Console.WriteLine("ExecuteScript:" + method);
-      Console.WriteLine("ExecuteScript:" + method.Name);
       if (method != null)
       {
         return method.Invoke(obj, new object[] { by, value});
