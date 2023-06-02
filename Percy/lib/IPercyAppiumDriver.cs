@@ -1,22 +1,20 @@
 using System;
-using OpenQA.Selenium;
-using OpenQA.Selenium.Appium;
-
+using System.Collections.Generic;
 namespace PercyIO.Appium
 {
   internal interface IPercyAppiumDriver
   {
     String GetType();
     String Orientation();
-    ICapabilities GetCapabilities();
-    System.Collections.Generic.IDictionary<string, object> GetSessionDetails();
+    Object GetCapabilities();
+    IDictionary<string, object> GetSessionDetails();
     String sessionId();
     String ExecuteScript(String script);
     String GetHost();
 
-    AppiumWebElement FindElementsByAccessibilityId(String id);
+    Object FindElementsByAccessibilityId(String id);
 
-    AppiumWebElement FindElementByXPath(String xpath);
-    Screenshot GetScreenshot();
+    Object FindElementByXPath(String xpath);
+    Object GetScreenshot();
   }
 }

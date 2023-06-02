@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using Newtonsoft.Json.Linq;
-using OpenQA.Selenium.Appium;
 
 namespace PercyIO.Appium
 {
@@ -71,7 +69,13 @@ namespace PercyIO.Appium
 
     private string CaptureScreenshot(IPercyAppiumDriver driver)
     {
-      return driver.GetScreenshot().AsBase64EncodedString;
+      try{
+        return Utils.ReflectionPropertyHelper(driver.GetScreenshot(), "AsBase64EncodedString")?.ToString()!;
+      } catch(Exception e)
+      {
+        throw e;
+      }
+      
     }
 
     internal void SetDebugUrl(string debugUrl)
@@ -111,20 +115,24 @@ namespace PercyIO.Appium
       return ignoredElementsLocations;
     }
 
-    public JObject IgnoreElementObject(String selector, AppiumWebElement element)
+    public JObject IgnoreElementObject(String selector, Object element)
     {
       var scaleFactor = metadata.ScaleFactor();
-      var location = element.Location;
-      var size = element.Size;
+      var location = Utils.ReflectionPropertyHelper(element, "Location")!; 
+      var size = Utils.ReflectionPropertyHelper(element, "Size")!;
+      var y = Int16.Parse(Utils.ReflectionPropertyHelper(location, "Y")!.ToString());
+      var x = Int16.Parse(Utils.ReflectionPropertyHelper(location, "X")!.ToString());
+      var height = Int16.Parse(Utils.ReflectionPropertyHelper(size, "Height")!.ToString());
+      var width = Int16.Parse(Utils.ReflectionPropertyHelper(size, "Width")!.ToString());
       return JObject.FromObject(new
       {
         selector = selector,
         co_ordinates = new
         {
-          top = location.Y * scaleFactor,
-          bottom = (location.Y + size.Height) * scaleFactor,
-          left = location.X * scaleFactor,
-          right = (location.X + size.Width) * scaleFactor
+          top = y * scaleFactor,
+          bottom = (y + height) * scaleFactor,
+          left = x * scaleFactor,
+          right = (x + width) * scaleFactor
         }
       });
     }
@@ -169,13 +177,13 @@ namespace PercyIO.Appium
       }
     }
 
-    public void IgnoreRegionsByElement(JArray ignoredElementsArray, List<AppiumWebElement> elements)
+    public void IgnoreRegionsByElement(JArray ignoredElementsArray, List<Object> elements)
     {
       for (var index = 0; index < elements.Count; index++)
       {
         try
         {
-          string type = elements[index].GetAttribute("class");
+          string type = Utils.ReflectionMethodHelper(elements[index], "GetAttribute", "class")?.ToString()!;
           var selector = string.Format("element: {0} {1}", index, type);
 
           var ignoredRegion = IgnoreElementObject(selector, elements[index]);

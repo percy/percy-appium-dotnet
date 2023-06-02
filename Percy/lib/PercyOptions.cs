@@ -17,7 +17,7 @@ namespace PercyIO.Appium
     internal bool PercyEnabled()
     {
       var percyOptionsW3CProtocol = getPercyOptions();
-      var percyEnabledJsonProtocol = percyAppiumDriver.GetCapabilities().GetCapability("percy.enabled");
+      var percyEnabledJsonProtocol = Utils.ReflectionMethodHelper(percyAppiumDriver.GetCapabilities(), "GetCapability", "percy.enabled");
       if (percyOptionsW3CProtocol == null && percyEnabledJsonProtocol == null)
       {
         AppPercy.Log("Percy options not provided in capabilitiies, considering enabled", "debug");
@@ -35,8 +35,7 @@ namespace PercyIO.Appium
     internal void SetPercyIgnoreErrors()
     {
       var percyOptionsW3CProtocol = getPercyOptions();
-      var percyIgnoreErrorsJsonProtocol = percyAppiumDriver.GetCapabilities().GetCapability("percy.ignoreErrors");
-
+      var percyIgnoreErrorsJsonProtocol = Utils.ReflectionMethodHelper(percyAppiumDriver.GetCapabilities(), "GetCapability", "percy.ignoreErrors");
       if (percyOptionsW3CProtocol == null && percyIgnoreErrorsJsonProtocol == null)
       {
         AppPercy.Log("Percy options not provided in capabilitiies, ignoring errors by default", "debug");
@@ -54,7 +53,8 @@ namespace PercyIO.Appium
     {
       if (AppPercy.cache.Get("percyOptions_" + sessionId) == null)
       {
-        AppPercy.cache.Store("percyOptions_" + sessionId, percyAppiumDriver.GetCapabilities().GetCapability("percyOptions"));
+        var options = Utils.ReflectionMethodHelper(percyAppiumDriver.GetCapabilities(), "GetCapability", "percyOptions");
+        AppPercy.cache.Store("percyOptions_" + sessionId, options);
       }
       return (Dictionary<string, object>)AppPercy.cache.Get("percyOptions_" + sessionId);
     }

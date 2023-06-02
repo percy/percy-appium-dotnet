@@ -2,12 +2,12 @@ using System;
 using System.Linq;
 using System.Text;
 using System.Net.Http;
-using System.Reflection;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using System.Text.Json;
 using Newtonsoft.Json.Linq;
 using System.Diagnostics.CodeAnalysis;
+using Newtonsoft.Json;
+using System.IO;
 
 namespace PercyIO.Appium
 {
@@ -50,11 +50,11 @@ namespace PercyIO.Appium
       try
       {
         dynamic res = Request("/percy/healthcheck");
-        dynamic data = JsonSerializer.Deserialize<dynamic>(res.content);
-        Env.SetPercyBuildID(data.GetProperty("build").GetProperty("id").ToString());
-        Env.SetPercyBuildUrl(data.GetProperty("build").GetProperty("url").ToString());
+        dynamic data = DeserializeJson<dynamic>(res.content);
+        Env.SetPercyBuildID(data.GetValue("build").GetValue("id").ToString());
+        Env.SetPercyBuildUrl(data.GetValue("build").GetValue("url").ToString());
 
-        if (data.GetProperty("success").GetBoolean() != true)
+        if (data.GetValue("success").ToString() != "True")
         {
           throw new Exception(data.error);
         }
@@ -91,12 +91,12 @@ namespace PercyIO.Appium
           ignoredElementsData = ignoredElementsData
         };
         dynamic res = Request("/percy/comparison", JObject.FromObject(screenshotOptions));
-        dynamic data = JsonSerializer.Deserialize<object>(res.content);
-        if (data.GetProperty("success").GetBoolean() != true)
+        dynamic data = DeserializeJson<dynamic>(res.content);
+        if (data.GetValue("success").ToString() != "True")
         {
-          throw new Exception(data.GetProperty("error").GetString());
+          throw new Exception(data.GetValue("error").ToString());
         }
-        return data.GetProperty("link").ToString();
+        return data.GetValue("link").ToString();
       }
       catch (Exception error)
       {
@@ -104,6 +104,15 @@ namespace PercyIO.Appium
         AppPercy.Log(error.ToString(), "debug");
         return null;
       }
+    }
+
+    private static dynamic DeserializeJson<T>(string json)
+    {
+        JsonSerializer serializer = new JsonSerializer();
+        using (JsonTextReader reader = new JsonTextReader(new StringReader(json)))
+        {
+            return serializer.Deserialize<T>(reader);
+        }
     }
 
     internal static void setHttpClient(HttpClient client)

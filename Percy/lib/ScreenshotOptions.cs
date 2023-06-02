@@ -1,8 +1,6 @@
 // Include namespace system
 using System;
 using System.Collections.Generic;
-using OpenQA.Selenium.Appium;
-using Newtonsoft.Json.Linq;
 
 namespace PercyIO.Appium
 {
@@ -18,7 +16,7 @@ namespace PercyIO.Appium
     public int? ScreenLengths { get; set; }
     public List<String> IgnoreRegionXpaths { get; set; } = new List<string>();
     public List<String> IgnoreRegionAccessibilityIds { get; set; } = new List<string>();
-    public List<AppiumWebElement> IgnoreRegionAppiumElements { get; set; } = new List<AppiumWebElement>();
+    public List<Object> IgnoreRegionAppiumElements { get; set; } = new List<Object>();
     public List<IgnoreRegion> CustomIgnoreRegions { get; set; } = new List<IgnoreRegion>();
     public String? ScrollableXpath { get; set; } = null;
     public String? ScrollableId { get; set; } = null;

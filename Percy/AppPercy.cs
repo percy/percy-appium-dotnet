@@ -1,7 +1,4 @@
 ﻿using System;
-using OpenQA.Selenium.Appium;
-using OpenQA.Selenium.Appium.Android;
-using OpenQA.Selenium.Appium.iOS;
 
 namespace PercyIO.Appium
 {
@@ -15,25 +12,7 @@ namespace PercyIO.Appium
     private String sessionId;
     public static Cache<string, object> cache = new Cache<string, object>();
 
-    public AppPercy(AndroidDriver<AndroidElement> driver)
-    {
-      this.percyAppiumDriver = new PercyAppiumDriver(driver);
-      setValues(this.percyAppiumDriver);
-    }
-
-    public AppPercy(IOSDriver<IOSElement> driver)
-    {
-      this.percyAppiumDriver = new PercyAppiumDriver(driver);
-      setValues(this.percyAppiumDriver);
-    }
-
-    public AppPercy(AndroidDriver<AppiumWebElement> driver)
-    {
-      this.percyAppiumDriver = new PercyAppiumDriver(driver);
-      setValues(this.percyAppiumDriver);
-    }
-
-    public AppPercy(IOSDriver<AppiumWebElement> driver)
+    public AppPercy(Object driver)
     {
       this.percyAppiumDriver = new PercyAppiumDriver(driver);
       setValues(this.percyAppiumDriver);

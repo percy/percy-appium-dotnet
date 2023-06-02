@@ -56,7 +56,7 @@ namespace PercyIO.Appium
       }
       else
       {
-        object orientationCapability = driver.GetCapabilities().GetCapability("orientation");
+        object orientationCapability = Utils.ReflectionMethodHelper(driver.GetCapabilities(), "GetCapability", "orientation");
         if (orientationCapability != null)
         {
           return orientationCapability.ToString().ToLower();
@@ -74,10 +74,11 @@ namespace PercyIO.Appium
       {
         return platVersion;
       }
-      object osVersion = driver.GetCapabilities().GetCapability("platformVersion");
+
+      object osVersion = Utils.ReflectionMethodHelper(driver.GetCapabilities(), "GetCapability", "platformVersion");
       if (osVersion == null)
       {
-        osVersion = driver.GetCapabilities().GetCapability("os_version");
+        osVersion = Utils.ReflectionMethodHelper(driver.GetCapabilities(), "GetCapability", "os_version");
         if (osVersion == null)
         {
           return null;
