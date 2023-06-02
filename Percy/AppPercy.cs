@@ -14,13 +14,11 @@ namespace PercyIO.Appium
 
     public AppPercy(Object driver)
     {
+      if(!Utils.isValidDriverObject(driver))
+      {
+        Log("Driver object is not the type of AndroidDriver or IOSDriver. The percy command may break.", "debug");
+      }
       this.percyAppiumDriver = new PercyAppiumDriver(driver);
-      setValues(this.percyAppiumDriver);
-    }
-
-    internal AppPercy(IPercyAppiumDriver driver)
-    {
-      this.percyAppiumDriver = driver;
       setValues(this.percyAppiumDriver);
     }
 
@@ -55,7 +53,7 @@ namespace PercyIO.Appium
       catch (Exception e)
       {
         Log("Error taking screenshot " + name);
-        if (!ignoreErrors)
+        if (true)
         {
           throw new Exception("Error taking screenshot " + name, e);
         }

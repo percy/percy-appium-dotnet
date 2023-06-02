@@ -14,7 +14,7 @@ namespace PercyIO.Appium
 
     public new String GetType()
     {
-      return Utils.ReflectionMethodHelper(GetCapabilities(), "GetCapability", "platformName")?.ToString()!;
+      return GetCapabilities().getValue("platformName")?.ToString()!;
     }
 
     public String Orientation()
@@ -22,15 +22,17 @@ namespace PercyIO.Appium
       return Utils.ReflectionPropertyHelper(driver, "Orientation")?.ToString()!;
     }
 
-    public Object GetCapabilities()
+    public PercyAppiumCapabilites GetCapabilities()
     {
       var key = "caps_" + sessionId();
       if (AppPercy.cache.Get(key) == null)
       {
-        var caps = Utils.ReflectionPropertyHelper(driver, "Capabilities");
-        AppPercy.cache.Store(key, caps);
+        var capabilities = Utils.ReflectionPropertyHelper(driver, "Capabilities");
+        var caps = Utils.GetCapability(capabilities);
+        var percyAppiumCapabilites = new PercyAppiumCapabilites(caps);
+        AppPercy.cache.Store(key, percyAppiumCapabilites);
       }
-      return AppPercy.cache.Get(key);
+      return (PercyAppiumCapabilites)AppPercy.cache.Get(key);
     }
 
     public IDictionary<string, object> GetSessionDetails()
@@ -61,19 +63,30 @@ namespace PercyIO.Appium
       return Utils.GetHostV5(driver)?.ToString()! ?? Utils.GetHostV4(driver)?.ToString()!;
     }
 
-    public Object GetScreenshot()
+    public String GetScreenshot()
     {
-      return Utils.ReflectionMethodHelper(driver, "GetScreenshot", null);
+      var screenshot = Utils.ReflectionMethodHelper(driver, "GetScreenshot", null);
+      return Utils.ReflectionPropertyHelper(screenshot, "AsBase64EncodedString")?.ToString()!;
     }
 
-    public Object FindElementsByAccessibilityId(string id)
+    public PercyAppiumElement FindElementsByAccessibilityId(string id)
     {
-      return Utils.FindElement(driver, "id", id);
+      var element = Utils.FindElement(driver, "id", id);
+      if (element != null)
+      {
+        return new PercyAppiumElement(element);
+      }
+      return null;
     }
 
-    public Object FindElementByXPath(string xpath)
+    public PercyAppiumElement FindElementByXPath(string xpath)
     {
-      return Utils.FindElement(driver, "xpath", xpath);
+      var element = Utils.FindElement(driver, "xpath", xpath);
+      if (element != null)
+      {
+        return new PercyAppiumElement(element);
+      }
+      return null;
     }
   }
 }

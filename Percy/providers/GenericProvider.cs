@@ -69,13 +69,7 @@ namespace PercyIO.Appium
 
     private string CaptureScreenshot(IPercyAppiumDriver driver)
     {
-      try{
-        return Utils.ReflectionPropertyHelper(driver.GetScreenshot(), "AsBase64EncodedString")?.ToString()!;
-      } catch(Exception e)
-      {
-        throw e;
-      }
-      
+      return driver.GetScreenshot();
     }
 
     internal void SetDebugUrl(string debugUrl)
@@ -115,24 +109,20 @@ namespace PercyIO.Appium
       return ignoredElementsLocations;
     }
 
-    public JObject IgnoreElementObject(String selector, Object element)
+    public JObject IgnoreElementObject(String selector, PercyAppiumElement element)
     {
       var scaleFactor = metadata.ScaleFactor();
-      var location = Utils.ReflectionPropertyHelper(element, "Location")!; 
-      var size = Utils.ReflectionPropertyHelper(element, "Size")!;
-      var y = Int16.Parse(Utils.ReflectionPropertyHelper(location, "Y")!.ToString());
-      var x = Int16.Parse(Utils.ReflectionPropertyHelper(location, "X")!.ToString());
-      var height = Int16.Parse(Utils.ReflectionPropertyHelper(size, "Height")!.ToString());
-      var width = Int16.Parse(Utils.ReflectionPropertyHelper(size, "Width")!.ToString());
+      var location = element.GetLocation();
+      var size = element.GetSize();
       return JObject.FromObject(new
       {
         selector = selector,
         co_ordinates = new
         {
-          top = y * scaleFactor,
-          bottom = (y + height) * scaleFactor,
-          left = x * scaleFactor,
-          right = (x + width) * scaleFactor
+          top = location.Y * scaleFactor,
+          bottom = (location.Y + size.Height) * scaleFactor,
+          left = location.X * scaleFactor,
+          right = (location.X + size.Width) * scaleFactor
         }
       });
     }
@@ -183,10 +173,11 @@ namespace PercyIO.Appium
       {
         try
         {
-          string type = Utils.ReflectionMethodHelper(elements[index], "GetAttribute", "class")?.ToString()!;
+          var element = new PercyAppiumElement(elements[index]);
+          string type = element.Type();
           var selector = string.Format("element: {0} {1}", index, type);
 
-          var ignoredRegion = IgnoreElementObject(selector, elements[index]);
+          var ignoredRegion = IgnoreElementObject(selector, element);
           ignoredElementsArray.Add(ignoredRegion);
         }
         catch (Exception e)
@@ -218,7 +209,7 @@ namespace PercyIO.Appium
                 left = customLocations[index].Left,
                 right = customLocations[index].Right
               }
-                
+
               )
             });
             ignoredElementsArray.Add(ignoredRegion);

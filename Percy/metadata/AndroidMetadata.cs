@@ -22,10 +22,10 @@ namespace PercyIO.Appium
       {
         return deviceName;
       }
-      object device = Utils.ReflectionMethodHelper(driver.GetCapabilities(), "GetCapability", "device");
+      object device = driver.GetCapabilities().getValue("device");
       if (device == null)
       {
-        Dictionary<string, object> desiredCaps = (Dictionary<string, object>)Utils.ReflectionMethodHelper(driver.GetCapabilities(), "GetCapability", "desired");
+        Dictionary<string, object> desiredCaps = (Dictionary<string, object>)driver.GetCapabilities().getValue("desired")!;
         return desiredCaps.TryGetValue("deviceName", out var value) ? value.ToString() : "";
       }
       return device.ToString();
@@ -33,7 +33,7 @@ namespace PercyIO.Appium
 
     internal override int DeviceScreenHeight()
     {
-      var deviceScreenSize = Utils.ReflectionMethodHelper(driver.GetCapabilities(), "GetCapability", "deviceScreenSize");
+      var deviceScreenSize = driver.GetCapabilities().getValue("deviceScreenSize");
       return Int16.Parse(deviceScreenSize.ToString().Split('x')[1]);
     }
 
@@ -43,7 +43,7 @@ namespace PercyIO.Appium
     }
     internal override int DeviceScreenWidth()
     {
-      var deviceScreenSize = Utils.ReflectionMethodHelper(driver.GetCapabilities(), "GetCapability", "deviceScreenSize");
+      var deviceScreenSize = driver.GetCapabilities().getValue("deviceScreenSize");
       return Int16.Parse(deviceScreenSize.ToString().Split('x')[0]);
     }
 
@@ -73,7 +73,7 @@ namespace PercyIO.Appium
     {
       if (AppPercy.cache.Get("viewportRect_" + sessionId) == null)
       {
-        var viewportRect = Utils.ReflectionMethodHelper(driver.GetCapabilities(), "GetCapability", "viewportRect");
+        var viewportRect = driver.GetCapabilities().getValue("viewportRect")!;
         AppPercy.cache.Store("viewportRect_" + sessionId, viewportRect);
       }
       return (Dictionary<string, object>)AppPercy.cache.Get("viewportRect_" + sessionId);

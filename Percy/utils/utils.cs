@@ -1,11 +1,12 @@
 using System;
-using System.Linq;
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace PercyIO.Appium
 {
   internal class Utils
   {
+    public static readonly string[] MyConstants = { "OpenQA.Selenium.Appium.Android.AndroidDriver", "OpenQA.Selenium.Appium.iOS.IOSDriver" };
     public static Object ReflectionMethodHelper(Object obj, String methodName, params object[] args)
     {
       try
@@ -36,14 +37,26 @@ namespace PercyIO.Appium
       return null;
     }
 
-    public static Object FindElement(Object obj, String by ,String value)
+    public static Object FindElement(Object obj, String by, String value)
     {
-      Type objectType = obj.GetType();
-      MethodInfo method = objectType.GetMethod("FindElement", new Type[] { typeof(string), typeof(string) });
-      if (method != null)
+      try
       {
-        return method.Invoke(obj, new object[] { by, value});
+        Type objectType = obj.GetType();
+        MethodInfo method = objectType.GetMethod("FindElement", new Type[] { typeof(string), typeof(string) });
+        if (method != null)
+        {
+          return method.Invoke(obj, new object[] { by, value });
+        }
+        else
+        {
+          AppPercy.Log($"Driver doesn't have method FindElement by: {by}", "debug");
+        }
       }
+      catch (Exception)
+      {
+        AppPercy.Log($"Got Error while running FindElement by: {by}", "debug");
+      }
+
       return null;
     }
 
@@ -68,26 +81,40 @@ namespace PercyIO.Appium
       }
       catch (Exception e)
       {
+        AppPercy.Log($"Got Error while running GetHostV5", "debug");
         return null;
       }
+    }
+    public static Dictionary<string, object> GetCapability(Object obj)
+    {
+      var type = obj.GetType();
+      var fieldInfo = type.GetField("capabilities", BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
+      return (Dictionary<string, object>)fieldInfo.GetValue(obj);
     }
 
     public static Object? GetHostV4(Object obj)
     {
-      try
-      {
         var type = obj.GetType();
-        var property = type.GetProperty("CommandExecutor", BindingFlags.Instance | BindingFlags.NonPublic);
+        var property = type.GetProperty("CommandExecutor", BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
         var commandExecutor = property?.GetValue(obj);
         var uri = commandExecutor?.GetType().GetField("URL", BindingFlags.Instance | BindingFlags.NonPublic);
         var remoteServerUri = commandExecutor?.GetType().GetField("remoteServerUri", BindingFlags.Instance | BindingFlags.NonPublic);
         var value = uri?.GetValue(commandExecutor) ?? remoteServerUri?.GetValue(commandExecutor);
         return value;
-      }
-      catch (Exception e)
+    }
+
+    public static Boolean isValidDriverObject(Object obj)
+    {
+      String type = obj.GetType().ToString();
+      foreach (string constant in MyConstants)
       {
-        return null;
+        if (type.Contains(constant))
+        {
+          return true;
+        }
       }
+
+      return false;
     }
   }
 }

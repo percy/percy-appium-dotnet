@@ -6,15 +6,15 @@ namespace PercyIO.Appium
   {
     String GetType();
     String Orientation();
-    Object GetCapabilities();
+    PercyAppiumCapabilites GetCapabilities();
     IDictionary<string, object> GetSessionDetails();
     String sessionId();
     String ExecuteScript(String script);
     String GetHost();
 
-    Object FindElementsByAccessibilityId(String id);
+    PercyAppiumElement FindElementsByAccessibilityId(String id);
 
-    Object FindElementByXPath(String xpath);
-    Object GetScreenshot();
+    PercyAppiumElement FindElementByXPath(String xpath);
+    String GetScreenshot();
   }
 }

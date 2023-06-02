@@ -51,10 +51,10 @@ namespace PercyIO.Appium
       {
         dynamic res = Request("/percy/healthcheck");
         dynamic data = DeserializeJson<dynamic>(res.content);
-        Env.SetPercyBuildID(data.GetValue("build").GetValue("id").ToString());
-        Env.SetPercyBuildUrl(data.GetValue("build").GetValue("url").ToString());
+        Env.SetPercyBuildID(data.build.id.ToString());
+        Env.SetPercyBuildUrl(data.build.url.ToString());
 
-        if (data.GetValue("success").ToString() != "True")
+        if (data.success.ToString() != "True")
         {
           throw new Exception(data.error);
         }
@@ -92,11 +92,11 @@ namespace PercyIO.Appium
         };
         dynamic res = Request("/percy/comparison", JObject.FromObject(screenshotOptions));
         dynamic data = DeserializeJson<dynamic>(res.content);
-        if (data.GetValue("success").ToString() != "True")
+        if (data.success.ToString() != "True")
         {
-          throw new Exception(data.GetValue("error").ToString());
+          throw new Exception(data.error.ToString());
         }
-        return data.GetValue("link").ToString();
+        return data.link.ToString();
       }
       catch (Exception error)
       {
@@ -106,7 +106,7 @@ namespace PercyIO.Appium
       }
     }
 
-    private static dynamic DeserializeJson<T>(string json)
+    private static T DeserializeJson<T>(string json)
     {
         JsonSerializer serializer = new JsonSerializer();
         using (JsonTextReader reader = new JsonTextReader(new StringReader(json)))
