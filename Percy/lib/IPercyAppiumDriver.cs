@@ -6,7 +6,7 @@ namespace PercyIO.Appium
   {
     String GetType();
     String Orientation();
-    PercyAppiumCapabilites GetCapabilities();
+    PercyAppiumCapabilities GetCapabilities();
     IDictionary<string, object> GetSessionDetails();
     String sessionId();
     String ExecuteScript(String script);

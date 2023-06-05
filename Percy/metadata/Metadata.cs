@@ -56,10 +56,10 @@ namespace PercyIO.Appium
       }
       else
       {
-        object orientationCapability = driver.GetCapabilities()?.getValue("orientation");
+        var orientationCapability = driver.GetCapabilities()?.getValue<String>("orientation");
         if (orientationCapability != null)
         {
-          return orientationCapability.ToString().ToLower();
+          return orientationCapability.ToLower();
         }
         else
         {
@@ -75,16 +75,16 @@ namespace PercyIO.Appium
         return platVersion;
       }
 
-      object osVersion = driver.GetCapabilities().getValue("platformVersion");
+      var osVersion = driver.GetCapabilities().getValue<String>("platformVersion");
       if (osVersion == null)
       {
-        osVersion = driver.GetCapabilities().getValue("os_version");
+        osVersion = driver.GetCapabilities().getValue<String>("os_version");
         if (osVersion == null)
         {
           return null;
         }
       }
-      return osVersion.ToString();
+      return osVersion;
     }
 
     internal abstract int DeviceScreenWidth();

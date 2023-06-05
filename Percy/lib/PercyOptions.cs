@@ -17,14 +17,13 @@ namespace PercyIO.Appium
     internal bool PercyEnabled()
     {
       var percyOptionsW3CProtocol = getPercyOptions();
-      var percyEnabledJsonProtocol = percyAppiumDriver.GetCapabilities().getValue("percy.enabled");
+      var percyEnabledJsonProtocol = percyAppiumDriver.GetCapabilities().getValue<String>("percy.enabled");
       if (percyOptionsW3CProtocol == null && percyEnabledJsonProtocol == null)
       {
         AppPercy.Log("Percy options not provided in capabilitiies, considering enabled", "debug");
         return true;
       }
-      else if ((percyEnabledJsonProtocol?.ToString() == "False") ||
-              (percyOptionsW3CProtocol?["enabled"]?.ToString() == "False"))
+      else if (percyEnabledJsonProtocol.IsFalse() || percyOptionsW3CProtocol["enabled"].IsFalse())
       {
         AppPercy.Log("App Percy is disabled in capabilities");
         return false;
@@ -35,14 +34,13 @@ namespace PercyIO.Appium
     internal void SetPercyIgnoreErrors()
     {
       var percyOptionsW3CProtocol = getPercyOptions();
-      var percyIgnoreErrorsJsonProtocol = percyAppiumDriver.GetCapabilities().getValue("percy.ignoreErrors");
+      var percyIgnoreErrorsJsonProtocol = percyAppiumDriver.GetCapabilities().getValue<String>("percy.ignoreErrors");
       if (percyOptionsW3CProtocol == null && percyIgnoreErrorsJsonProtocol == null)
       {
         AppPercy.Log("Percy options not provided in capabilitiies, ignoring errors by default", "debug");
         return;
       }
-      else if ((percyIgnoreErrorsJsonProtocol?.ToString() == "False")
-              || (percyOptionsW3CProtocol?["ignoreErrors"]?.ToString() == "False"))
+      else if (percyIgnoreErrorsJsonProtocol.IsFalse() || percyOptionsW3CProtocol["ignoreErrors"].IsFalse())
       {
         AppPercy.ignoreErrors = false;
       }
@@ -53,7 +51,7 @@ namespace PercyIO.Appium
     {
       if (AppPercy.cache.Get("percyOptions_" + sessionId) == null)
       {
-        var options = percyAppiumDriver.GetCapabilities().getValue("percyOptions");
+        var options = percyAppiumDriver.GetCapabilities().getValue<Dictionary<string, object>>("percyOptions");
         AppPercy.cache.Store("percyOptions_" + sessionId, options);
       }
       return (Dictionary<string, object>)AppPercy.cache.Get("percyOptions_" + sessionId);

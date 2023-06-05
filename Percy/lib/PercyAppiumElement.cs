@@ -13,17 +13,17 @@ namespace PercyIO.Appium
 
     public Size GetSize()
     {
-      return (Size)Utils.ReflectionPropertyHelper(element, "Size")!;
+      return RefectionUtils.PropertyCall<Size>(element, "Size")!;
     }
 
     public Point GetLocation()
     {
-      return (Point)Utils.ReflectionPropertyHelper(element, "Location")!; 
+      return RefectionUtils.PropertyCall<Point>(element, "Location")!; 
     }
 
     public String Type()
     {
-      return Utils.ReflectionMethodHelper(element, "GetAttribute", "class")?.ToString()!;
+      return RefectionUtils.MethodCall<String>(element, "GetAttribute", "class")!;
     }
   }
 }
