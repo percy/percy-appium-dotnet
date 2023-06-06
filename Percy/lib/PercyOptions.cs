@@ -23,7 +23,7 @@ namespace PercyIO.Appium
         AppPercy.Log("Percy options not provided in capabilitiies, considering enabled", "debug");
         return true;
       }
-      else if (percyEnabledJsonProtocol.IsFalse() || percyOptionsW3CProtocol["enabled"].IsFalse())
+      else if (percyEnabledJsonProtocol.IsFalse() || (percyOptionsW3CProtocol?["enabled"].IsFalse() ?? false))
       {
         AppPercy.Log("App Percy is disabled in capabilities");
         return false;

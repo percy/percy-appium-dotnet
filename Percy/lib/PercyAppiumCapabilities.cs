@@ -7,9 +7,13 @@ namespace PercyIO.Appium
   internal class PercyAppiumCapabilities : IPercyAppiumCapabilities
   {
     private Dictionary<string, object> capabilites;
+    internal PercyAppiumCapabilities()
+    {
+
+    }
     internal PercyAppiumCapabilities(Object driver)
     {
-      this.capabilites = GetCapability(driver);
+      SetCapability(GetCapability(driver));
     }
 
     public T getValue<T>(String key)
@@ -21,7 +25,12 @@ namespace PercyIO.Appium
       return default(T);
     }
 
-    private Dictionary<string, object> GetCapability(Object driver)
+    public void SetCapability(Dictionary<string, object> capabilites)
+    {
+      this.capabilites = capabilites;
+    }
+
+    public Dictionary<string, object> GetCapability(Object driver)
     {
       var capabilityObject = RefectionUtils.PropertyCall<object>(driver, "Capabilities");
       var type = capabilityObject.GetType();

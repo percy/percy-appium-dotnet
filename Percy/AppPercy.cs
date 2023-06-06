@@ -53,7 +53,7 @@ namespace PercyIO.Appium
       }
       catch (Exception e)
       {
-        if (e is CustomException)
+        if (e is PercyException)
         {
           Log("The method is not valid for current driver. Please contact us.", "warn");
         }

@@ -23,7 +23,7 @@ namespace PercyIO.Appium
       return RefectionUtils.PropertyCall<String>(driver, "Orientation");
     }
 
-    public PercyAppiumCapabilities GetCapabilities()
+    public IPercyAppiumCapabilities GetCapabilities()
     {
       var key = "caps_" + sessionId();
       if (AppPercy.cache.Get(key) == null)

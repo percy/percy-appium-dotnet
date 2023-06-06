@@ -54,7 +54,7 @@ namespace PercyIO.Appium
         Env.SetPercyBuildID(data.build.id.ToString());
         Env.SetPercyBuildUrl(data.build.url.ToString());
 
-        if (data.success.ToString() != "True")
+        if (!data.success.IsTrue)
         {
           throw new Exception(data.error);
         }

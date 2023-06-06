@@ -21,7 +21,7 @@ namespace PercyIO.Appium
       }
       catch (Exception e)
       {
-        throw new CustomException($"Method {methodName} not found for class {obj.GetType()}", e);
+        throw new PercyException($"Method {methodName} not found for class {obj.GetType()}", e);
       }
     }
 
@@ -40,7 +40,7 @@ namespace PercyIO.Appium
       }
       catch (Exception e)
       {
-        throw new CustomException($"Method {propertyName} not found for class {obj.GetType()}", e);
+        throw new PercyException($"Method {propertyName} not found for class {obj.GetType()}", e);
       }
     }
   }
