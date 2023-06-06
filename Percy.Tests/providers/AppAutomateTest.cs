@@ -13,72 +13,59 @@ namespace Percy.Tests
   {
     private AndroidMetadata androidMetadata;
     private readonly Mock<IPercyAppiumDriver> _androidPercyAppiumDriver = new Mock<IPercyAppiumDriver>();
-    private readonly Mock<ICapabilities> capabilities = new Mock<ICapabilities>();
+
+    public AppAutomateTest()
+    {
+      _androidPercyAppiumDriver = MetadataBuilder.mockDriver("Android");
+    }
 
     [Fact]
     public void TestSupports_WhenNotNull()
     {
-      // Given
+      // Arrange
       String url = "http://hub-cloud.browserstack.com/wd/hub";
       _androidPercyAppiumDriver.Setup(x => x.GetHost())
         .Returns(url);
-      // When
+      // Act
       bool actual = AppAutomate.Supports(_androidPercyAppiumDriver.Object);
-      // Then
+      // Assert
       Assert.True(actual);
     }
 
     [Fact]
     public void TestSupports_WhenNull()
     {
-      // Given
+      // Arrange
       String url = "http://hub-cloud.abc.com/wd/hub";
       _androidPercyAppiumDriver.Setup(x => x.GetHost())
         .Returns(url);
-      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities())
-        .Returns(capabilities.Object);
-      // When
+      // Act
       bool actual = AppAutomate.Supports(_androidPercyAppiumDriver.Object);
-      // Then
+      // Assert
       Assert.False(actual);
     }
 
     [Fact]
     public void TestGetDebugUrl()
     {
-      // Given
+      // Arrange
       string json = @"{success:'true', osVersion:'11.2', buildHash:'abc', sessionHash:'def'}";
       JObject result = JObject.Parse(json);
       string expected = "https://app-automate.browserstack.com/dashboard/v2/builds/abc/sessions/def";
-      // When
+      // Act
       AppAutomate appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
       string actual = appAutomate.GetDebugUrl(result);
-      // Then
+      // Assert
       Assert.Equal(actual, expected);
     }
 
     [Fact]
     public void TestScreenshot()
     {
-      // Given
+      // Arrange
       var response = @"{success:'true', osVersion:'11.2', buildHash:'abc', sessionHash:'def'}";
       _androidPercyAppiumDriver.Setup(x => x.ExecuteScript(It.IsAny<string>()))
         .Returns(response);
-      _androidPercyAppiumDriver.Setup(x => x.GetType()).Returns("Android");
-      AppPercy.cache.Clear();
-      capabilities.Setup(x => x.GetCapability("platformName"))
-         .Returns("Android");
-      capabilities.Setup(x => x.GetCapability("platformVersion"))
-        .Returns("9");
-      capabilities.Setup(x => x.GetCapability("deviceScreenSize"))
-        .Returns("1280x1420");
-      capabilities.Setup(x => x.GetCapability("orientation"))
-        .Returns("landscape");
-      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities())
-        .Returns(capabilities.Object);
-      var screenshot = new Screenshot("c2hvcnRlc3Q=");
-      _androidPercyAppiumDriver.Setup(x => x.GetScreenshot())
-        .Returns(screenshot);
       AppAutomate appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
       var options = new ScreenshotOptions();
       options.DeviceName = "Samsung";
@@ -88,33 +75,18 @@ namespace Percy.Tests
       options.FullScreen = false;
       options.FullPage = false;
       options.ScreenLengths = 0;
-      // When
+      // Act
       string actual = appAutomate.Screenshot("temp", options);
-      // Then
+      // Assert
       Assert.Equal(actual, "");
     }
 
     [Fact]
     public void TestScreenshot_WhenPercyScreenshotBeginReturnsNull()
     {
-      // Given
+      // Arrange
       _androidPercyAppiumDriver.Setup(x => x.ExecuteScript(It.IsAny<string>()))
         .Throws(new Exception());
-      _androidPercyAppiumDriver.Setup(x => x.GetType()).Returns("Android");
-      AppPercy.cache.Clear();
-      capabilities.Setup(x => x.GetCapability("platformName"))
-         .Returns("Android");
-      capabilities.Setup(x => x.GetCapability("platformVersion"))
-        .Returns("9");
-      capabilities.Setup(x => x.GetCapability("deviceScreenSize"))
-        .Returns("1280x1420");
-      capabilities.Setup(x => x.GetCapability("orientation"))
-        .Returns("landscape");
-      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities())
-        .Returns(capabilities.Object);
-      var screenshot = new Screenshot("c2hvcnRlc3Q=");
-      _androidPercyAppiumDriver.Setup(x => x.GetScreenshot())
-        .Returns(screenshot);
       var options = new ScreenshotOptions();
       options.DeviceName = "Samsung";
       options.StatusBarHeight = 100;
@@ -125,16 +97,16 @@ namespace Percy.Tests
       options.ScreenLengths = 0;
 
       AppAutomate appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
-      // When
+      // Act
       string actual = appAutomate.Screenshot("temp", options);
-      // Then
+      // Assert
       Assert.Equal(actual, "");
     }
 
     [Fact]
     public void TestExecutePercyScreenshotBegin()
     {
-      // Given
+      // Arrange
       var arguments = new JObject();
       var response = JObject.FromObject(new
       {
@@ -159,11 +131,11 @@ namespace Percy.Tests
 
       _androidPercyAppiumDriver.Setup(x => x.ExecuteScript("browserstack_executor:" + obj.ToString()))
         .Returns(response.ToString());
-      // When
+      // Act
       var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
       var result = appAutomate.ExecutePercyScreenshotBegin(name);
       string actual = result.GetValue("success").ToString();
-      // Then
+      // Assert
       Assert.Equal(actual, "True");
       _androidPercyAppiumDriver.Verify(x => x.ExecuteScript("browserstack_executor:" + obj.ToString()), Times.Once);
     }
@@ -171,7 +143,7 @@ namespace Percy.Tests
     [Fact]
     public void TestExecutePercyScreenshotBegin_WhenThrowError()
     {
-      // Given
+      // Arrange
       var arguments = new JObject();
       var name = "First";
       var reqObject = JObject.FromObject(new
@@ -187,16 +159,16 @@ namespace Percy.Tests
       });
       _androidPercyAppiumDriver.Setup(x => x.ExecuteScript("browserstack_executor:" + reqObject.ToString()))
         .Throws(new Exception());
-      // When
+      // Act
       var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
-      // Then
+      // Assert
       Assert.Throws<NullReferenceException>(() => appAutomate.ExecutePercyScreenshotBegin(name).GetValue("success").ToString());
     }
 
     [Fact]
     public void TestExecutePercyScreenshotEnd()
     {
-      // Given
+      // Arrange
       Environment.SetEnvironmentVariable("PERCY_LOGLEVEL", "debug");
       var response = JObject.FromObject(new
       {
@@ -219,11 +191,11 @@ namespace Percy.Tests
 
       _androidPercyAppiumDriver.Setup(x => x.ExecuteScript("browserstack_executor:" + reqObject.ToString()))
         .Returns(response.ToString());
-      // When
+      // Act
       var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
       var result = appAutomate.ExecutePercyScreenshotEnd(name, percyScreenshotUrl, null);
       var actual = result.GetValue("success").ToString();
-      // Then
+      // Assert
       Assert.Equal(actual, "True");
       _androidPercyAppiumDriver.Verify(x => x.ExecuteScript("browserstack_executor:" + reqObject.ToString()), Times.Once);
     }
@@ -231,7 +203,7 @@ namespace Percy.Tests
     [Fact]
     public void TestExecutePercyScreenshotEnd_WhenError()
     {
-      // Given
+      // Arrange
       Environment.SetEnvironmentVariable("PERCY_LOGLEVEL", "debug");
       var response = JObject.FromObject(new
       {
@@ -253,10 +225,10 @@ namespace Percy.Tests
       });
       _androidPercyAppiumDriver.Setup(x => x.ExecuteScript("browserstack_executor:" + reqObject.ToString()))
         .Returns(response.ToString());
-      // When
+      // Act
       var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
       string actual = appAutomate.ExecutePercyScreenshotEnd(name, percyScreenshotUrl, "some error").GetValue("success").ToString();
-      // Then
+      // Assert
       Assert.Equal(actual, "False");
       _androidPercyAppiumDriver.Verify(x => x.ExecuteScript("browserstack_executor:" + reqObject.ToString()), Times.Once);
     }
@@ -264,7 +236,7 @@ namespace Percy.Tests
     [Fact]
     public void TestExecutePercyScreenshotEnd_WhenException()
     {
-      // Given
+      // Arrange
       Environment.SetEnvironmentVariable("PERCY_LOGLEVEL", "debug");
       var name = "First";
       var percyScreenshotUrl = "";
@@ -282,9 +254,9 @@ namespace Percy.Tests
       });
       _androidPercyAppiumDriver.Setup(x => x.ExecuteScript("browserstack_executor:" + reqObject.ToString()))
         .Throws(new Exception());
-      // When
+      // Act
       var app = new AppAutomate(_androidPercyAppiumDriver.Object);
-      // Then
+      // Assert
       Assert.Throws<NullReferenceException>(() => app.ExecutePercyScreenshotEnd(null, null, null).GetValue("success").ToString());
       _androidPercyAppiumDriver.Verify(x => x.ExecuteScript("browserstack_executor:" + reqObject.ToString()), Times.Never);
     }
@@ -293,24 +265,6 @@ namespace Percy.Tests
     public void CaptureTiles_ShouldReturnListOfTiles_WhenCalled()
     {
       // Arrange
-      var androidPercyAppiumDriver = new Mock<IPercyAppiumDriver>();
-      var viewport = new Dictionary<string, object>(){
-        {"top", 10L}
-      };
-      capabilities.Setup(x => x.GetCapability("platformName"))
-        .Returns("Android");
-      capabilities.Setup(x => x.GetCapability("platformVersion"))
-        .Returns("9");
-      capabilities.Setup(x => x.GetCapability("os_version"))
-        .Returns("9");
-      capabilities.Setup(x => x.GetCapability("deviceScreenSize"))
-        .Returns("1280x1420");
-      capabilities.Setup(x => x.GetCapability("orientation"))
-        .Returns("landscape");
-      capabilities.Setup(x => x.GetCapability("viewportRect"))
-        .Returns(viewport);
-      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities())
-        .Returns(capabilities.Object);
       _androidPercyAppiumDriver.Setup(x => x.ExecuteScript(It.IsAny<string>()))
         .Returns(JsonConvert.SerializeObject(new
         {
@@ -345,7 +299,6 @@ namespace Percy.Tests
     [Fact]
     public void TestExecutePercyScreenshot()
     {
-      Environment.SetEnvironmentVariable("PERCY_LOGLEVEL", "debug");
       var response = JsonConvert.SerializeObject(new
       {
         success = true,
@@ -354,22 +307,17 @@ namespace Percy.Tests
           })
       }
       );
-      var capabilities = new Mock<ICapabilities>();
-      capabilities.Setup(x => x.GetCapability("deviceScreenSize"))
-        .Returns("1280x1420");
-      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities())
-        .Returns(capabilities.Object);
       _androidPercyAppiumDriver.Setup(x => x.ExecuteScript(It.IsAny<string>())).Returns(response);
 
       var options = new ScreenshotOptions();
       options.ScreenLengths = 2;
       options.ScrollableXpath = "xapth/dummy/scrollable";
-      // When
+      // Act
       var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
       var metadata = new AndroidMetadata(_androidPercyAppiumDriver.Object, "Samsung Galaxy s22", 100, 200, null, null);
       appAutomate.metadata = metadata;
       var actual = appAutomate.ExecutePercyScreenshot(options);
-      // Then
+      // Assert
       _androidPercyAppiumDriver.Verify(x => x.ExecuteScript(It.IsAny<string>()), Times.Once);
       Assert.Contains("abcd-1234", actual);
     }
@@ -377,28 +325,28 @@ namespace Percy.Tests
     [Fact]
     public void TestDeviceName_WhenValueIsNull()
     {
-      // Given
+      // Arrange
       var json = @"{deviceName:'Samsung Galaxy S22'}";
       var result = JObject.Parse(json);
       var expected = "Samsung Galaxy S22";
-      // When
+      // Act
       var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
       var actual = appAutomate.DeviceName(null, result);
-      // Then
+      // Assert
       Assert.Equal(actual, expected);
     }
 
     [Fact]
     public void TestDeviceName_WhenProvidedInParams()
     {
-      // Given
+      // Arrange
       var json = @"{deviceName:'Samsung Galaxy S22'}";
       var result = JObject.Parse(json);
       var expected = "Samsung Galaxy S21";
-      // When
+      // Act
       var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
       var actual = appAutomate.DeviceName(expected, result);
-      // Then
+      // Assert
       Assert.Equal(actual, expected);
     }
   }
