@@ -92,7 +92,7 @@ namespace PercyIO.Appium
         };
         dynamic res = Request("/percy/comparison", JObject.FromObject(screenshotOptions));
         dynamic data = DeserializeJson<dynamic>(res.content);
-        if (data.success.ToString() != "True")
+        if (data.success.ToString().ToLower() != "true")
         {
           throw new Exception(data.error.ToString());
         }
