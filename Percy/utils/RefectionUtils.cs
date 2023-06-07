@@ -30,7 +30,7 @@ namespace PercyIO.Appium
       try
       {
         Type objectType = obj.GetType();
-        PropertyInfo property = objectType.GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance);
+        PropertyInfo property = objectType.GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
         var propertyObj = property?.GetValue(obj);
         if (propertyObj is T result)
         {

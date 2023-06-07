@@ -90,9 +90,7 @@ namespace PercyIO.Appium
 
     private Object? GetHostV4(Object obj)
     {
-      var type = obj.GetType();
-      var property = type.GetProperty("CommandExecutor", BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
-      var commandExecutor = property?.GetValue(obj);
+      var commandExecutor = ReflectionUtils.PropertyCall<Object>(obj, "CommandExecutor");
       var uri = commandExecutor?.GetType().GetField("URL", BindingFlags.Instance | BindingFlags.NonPublic);
       var remoteServerUri = commandExecutor?.GetType().GetField("remoteServerUri", BindingFlags.Instance | BindingFlags.NonPublic);
       var value = uri?.GetValue(commandExecutor) ?? remoteServerUri?.GetValue(commandExecutor);
@@ -101,9 +99,7 @@ namespace PercyIO.Appium
 
     private Object? GetHostV5(Object obj)
     {
-      var type = obj.GetType();
-      PropertyInfo property = type.GetProperty("CommandExecutor", BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
-      var commandExecutor = property?.GetValue(obj);
+      var commandExecutor = ReflectionUtils.PropertyCall<Object>(obj, "CommandExecutor");
       var field = commandExecutor?.GetType().GetField("RealExecutor", BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
       var realExecutor = field?.GetValue(commandExecutor);
       var remoteServerUri = realExecutor?.GetType().GetField("remoteServerUri", BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
