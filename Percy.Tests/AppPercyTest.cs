@@ -1,124 +1,189 @@
 using System;
-using System.Collections.Generic;
-using OpenQA.Selenium.Remote;
-using OpenQA.Selenium;
-using Moq;
 using Xunit;
 using PercyIO.Appium;
-using Newtonsoft.Json.Linq;
 using RichardSzalay.MockHttp;
 using System.Net.Http;
+using Newtonsoft.Json;
+using System.IO;
 
 namespace Percy.Tests
 {
   public class AppPercyTest
   {
 
-    // [Fact]
-    // public void TestName_WithAndroid()
-    // {
-    //   AppPercy.cache.Clear();
-    //   // Arrange
-    //   var _androidPercyAppiumDriver = MetadataBuilder.mockDriver("Android");
-    //   var info = new Dictionary<string, object>(){
-    //       {"top", 100L},
-    //       {"height", 1000L},
-    //       {"width", 400L},
-    //   };
-    //   string url = "http://hub-cloud.browserstack.com/wd/hub";
-    //   _androidPercyAppiumDriver.Setup(x => x.GetHost())
-    //     .Returns(url);
-    //   _androidPercyAppiumDriver.Setup(x => x.GetType())
-    //     .Returns("Android");
+    private static String LogMessage(String label, String message, String color = "39m")
+    {
+      return $"[\u001b[35m{label}\u001b[{color}] {message}";
+    }
 
-    //   var arguments = new JObject();
-    //   var response = JObject.FromObject(new
-    //   {
-    //     success = true,
-    //     deviceName = "Samsung Galaxy S22",
-    //     osVersion = "13.0",
-    //     buildHash = "dummy_build_hash",
-    //     sessionHash = "dummy_session_hash"
-    //   });
-    //   _androidPercyAppiumDriver.Setup(x => x.sessionId())
-    //     .Returns(new SessionId("abc").ToString());
-    //   _androidPercyAppiumDriver.Setup(x => x.GetType())
-    //     .Returns("Android");
-    //   _androidPercyAppiumDriver.Setup(x => x.ExecuteScript(It.IsAny<string>()))
-    //     .Returns(response.ToString());
-    //   var screenshot = new Screenshot("c2hvcnRlc3Q=");
-    //    CliWrapper.Healthcheck = () =>
-    //   {
-    //     return true;
-    //   };
-    //   Mock<IPercyAppiumCapabilities> percyCapabilities = new Mock<IPercyAppiumCapabilities>();
-    //   percyCapabilities.Setup(x => x.GetCapability(It.IsAny<Object>()))
-    //     .Returns(MetadataBuilder.CapabilityBuilder("Android"));
-    //   _androidPercyAppiumDriver.Setup(x => x.GetCapabilities())
-    //     .Returns(percyCapabilities.Object);
-    //   AppPercy appPercy = new AppPercy(_androidPercyAppiumDriver.Object);
+    [Fact]
+    public void TestName_WithAndroid_V4()
+    {
+      // Arrange
+      AppPercy.cache.Clear();
+      TestHelper.UnsetEnvVariables();
+      var mockDriver = new MockDriverObject();
+      mockDriver.SessionId = "session-1";
+      mockDriver.SetCapability(MetadataBuilder.CapabilityBuilder("Android"));
+      mockDriver.setCommandExecutor("https://browserstack.com/wd/hub");
+      CliWrapper.Healthcheck = () =>
+      {
+        return true;
+      };
+      var mockHttp = new MockHttpMessageHandler();
+      var expected = "https://percy.io/api/v1/comparisons/redirect?snapshot[name]=test%20screenshot&tag[name]=Samsung&tag[os_name]=Android&tag[os_version]=9&tag[width]=1280&tag[height]=1420&tag[orientation]=landscape";
+      var obj = new
+      {
+        success = true,
+        link = expected
+      };
+      CliWrapper.setHttpClient(new HttpClient(mockHttp));
+      // Setup a respond for the user api (including a wildcard in the URL)
+      mockHttp.When("http://localhost:5338/percy/comparison")
+        .Respond("application/json", JsonConvert.SerializeObject(obj));
 
-    //   // Act
-    //   appPercy.Screenshot("abc", null);
-    //   // Assert
-    //   //_androidPercyAppiumDriver.Verify(x => x.ExecuteScript(It.IsAny<string>()), Times.Exactly(2));
-    // }
+      StringWriter stringWriter = new StringWriter();
+      Console.SetOut(stringWriter);
 
-    // [Fact]
-    // public void TestName_WithiOS()
-    // {
-    //   AppPercy.cache.Clear();
-    //   // Arrange
-    //   Mock<IPercyAppiumDriver> _iOSPercyAppiumDriver = new Mock<IPercyAppiumDriver>();
-    //   Mock<ICapabilities> capabilities = new Mock<ICapabilities>();
-    //   capabilities.Setup(x => x.GetCapability("platformName"))
-    //      .Returns("ios");
-    //   capabilities.Setup(x => x.GetCapability("deviceScreenSize"))
-    //     .Returns("1280x1420");
-    //   string url = "http://hub-cloud.browserstack.com/wd/hub";
-    //   _iOSPercyAppiumDriver.Setup(x => x.GetHost())
-    //     .Returns(url);
-    //   _iOSPercyAppiumDriver.Setup(x => x.GetType())
-    //     .Returns("iOS");
-    //   // _iOSPercyAppiumDriver.Setup(x => x.GetCapabilities())
-    //   //   .Returns(capabilities.Object);
-    //   var info = new Dictionary<string, object>(){
-    //     { "viewportRect", new Dictionary<string, object> {
-    //       {"top", 100l},
-    //       {"height", 1000l},
-    //       {"width", 400l},
-    //   }}};
-    //   var screenshot = new Screenshot("c2hvcnRlc3Q=");
-    //   // _iOSPercyAppiumDriver.Setup(x => x.GetScreenshot())
-    //   //   .Returns(screenshot);
-    //   _iOSPercyAppiumDriver.Setup(x => x.GetSessionDetails())
-    //     .Returns(info);
-    //   var arguments = new JObject();
-    //   var response = JObject.FromObject(new
-    //   {
-    //     success = true,
-    //     deviceName = "iPhone 13",
-    //     osVersion = "15.0",
-    //     buildHash = "dummy_build_hash",
-    //     sessionHash = "dummy_session_hash"
-    //   });
-    //   _iOSPercyAppiumDriver.Setup(x => x.sessionId())
-    //     .Returns(new SessionId("abc").ToString());
-    //   _iOSPercyAppiumDriver.Setup(x => x.GetType())
-    //     .Returns("iOS");
-    //   _iOSPercyAppiumDriver.Setup(x => x.ExecuteScript(It.IsAny<string>()))
-    //     .Returns(response.ToString());
-    //   CliWrapper.Healthcheck = () =>
-    //   {
-    //     return true;
-    //   };
+      // Act
+      var name = "dummyName";
+      AppPercy appPercy = new AppPercy(mockDriver);
+      appPercy.Screenshot("abc", null);
+      var expectedOutput = LogMessage("percy:dotnet", "Driver object is not the type of AndroidDriver or IOSDriver. The percy command may break.", "93m") + Environment.NewLine;
+      var actualOutput = stringWriter.ToString();
+      var errorOutput = LogMessage("percy", $"Error taking screenshot {name}") +  Environment.NewLine;
+      // Assert
+      Assert.Equal(expectedOutput, actualOutput);
+      Assert.NotEqual(errorOutput, actualOutput);
+    }
 
-    //   AppPercy appPercy = new AppPercy(_iOSPercyAppiumDriver.Object);
+    [Fact]
+    public void TestName_WithIOS_V4()
+    {
+      // Arrange
+      AppPercy.cache.Clear();
+      TestHelper.UnsetEnvVariables();
+      var mockDriver = new MockDriverObject();
+      mockDriver.SessionId = "session-1";
+      mockDriver.SetCapability(MetadataBuilder.CapabilityBuilder("iOS"));
+      mockDriver.setCommandExecutor("https://browserstack.com/wd/hub");
+      CliWrapper.Healthcheck = () =>
+      {
+        return true;
+      };
+      var mockHttp = new MockHttpMessageHandler();
+      var expected = "https://percy.io/api/v1/comparisons/redirect?snapshot[name]=test%20screenshot&tag[name]=Samsung&tag[os_name]=Android&tag[os_version]=9&tag[width]=1280&tag[height]=1420&tag[orientation]=landscape";
+      var obj = new
+      {
+        success = true,
+        link = expected
+      };
 
-    //   // Act
-    //   appPercy.Screenshot("abc", null);
-    //   // Assert
-    //  // _iOSPercyAppiumDriver.Verify(x => x.ExecuteScript(It.IsAny<string>()), Times.Exactly(2));
-    // }
+      CliWrapper.setHttpClient(new HttpClient(mockHttp));
+      // Setup a respond for the user api (including a wildcard in the URL)
+      mockHttp.When("http://localhost:5338/percy/comparison")
+        .Respond("application/json", JsonConvert.SerializeObject(obj));
+
+      StringWriter stringWriter = new StringWriter();
+      Console.SetOut(stringWriter);
+
+      // Act
+      AppPercy appPercy = new AppPercy(mockDriver);
+      var name = "dummyName";
+      appPercy.Screenshot(name, null);
+      var expectedOutput = LogMessage("percy:dotnet", "Driver object is not the type of AndroidDriver or IOSDriver. The percy command may break.", "93m") + Environment.NewLine;
+      var actualOutput = stringWriter.ToString();
+      var errorOutput = LogMessage("percy", $"Error taking screenshot {name}") +  Environment.NewLine;
+      // Assert
+      Assert.Equal(expectedOutput, actualOutput);
+      Assert.NotEqual(errorOutput, actualOutput);
+    }
+
+    [Fact]
+    public void TestName_WithAndroid_V5()
+    {
+      // Arrange
+      AppPercy.cache.Clear();
+      TestHelper.UnsetEnvVariables();
+      var mockDriver = new MockDriverObject();
+      mockDriver.SessionId = "session-1";
+      mockDriver.SetCapability(MetadataBuilder.CapabilityBuilder("Android"));
+      // Setting v5
+      mockDriver.setIsV5(true);
+      mockDriver.setCommandExecutor("https://browserstack.com/wd/hub");
+      CliWrapper.Healthcheck = () =>
+      {
+        return true;
+      };
+      var mockHttp = new MockHttpMessageHandler();
+      var expected = "https://percy.io/api/v1/comparisons/redirect?snapshot[name]=test%20screenshot&tag[name]=Samsung&tag[os_name]=Android&tag[os_version]=9&tag[width]=1280&tag[height]=1420&tag[orientation]=landscape";
+      var obj = new
+      {
+        success = true,
+        link = expected
+      };
+      CliWrapper.setHttpClient(new HttpClient(mockHttp));
+      // Setup a respond for the user api (including a wildcard in the URL)
+      mockHttp.When("http://localhost:5338/percy/comparison")
+        .Respond("application/json", JsonConvert.SerializeObject(obj));
+
+      StringWriter stringWriter = new StringWriter();
+      Console.SetOut(stringWriter);
+
+      // Act
+      var name = "dummyName";
+      AppPercy appPercy = new AppPercy(mockDriver);
+      appPercy.Screenshot("abc", null);
+      var expectedOutput = LogMessage("percy:dotnet", "Driver object is not the type of AndroidDriver or IOSDriver. The percy command may break.", "93m") + Environment.NewLine;
+      var actualOutput = stringWriter.ToString();
+      var errorOutput = LogMessage("percy", $"Error taking screenshot {name}") +  Environment.NewLine;
+      // Assert
+      Assert.Equal(expectedOutput, actualOutput);
+      Assert.NotEqual(errorOutput, actualOutput);
+    }
+
+    [Fact]
+    public void TestName_WithIOS_V5()
+    {
+      // Arrange
+      AppPercy.cache.Clear();
+      TestHelper.UnsetEnvVariables();
+      var mockDriver = new MockDriverObject();
+      mockDriver.SessionId = "session-1";
+      mockDriver.SetCapability(MetadataBuilder.CapabilityBuilder("iOS"));
+      // Setting v5
+      mockDriver.setIsV5(true);
+      mockDriver.setCommandExecutor("https://browserstack.com/wd/hub");
+      CliWrapper.Healthcheck = () =>
+      {
+        return true;
+      };
+      var mockHttp = new MockHttpMessageHandler();
+      var expected = "https://percy.io/api/v1/comparisons/redirect?snapshot[name]=test%20screenshot&tag[name]=Samsung&tag[os_name]=Android&tag[os_version]=9&tag[width]=1280&tag[height]=1420&tag[orientation]=landscape";
+      var obj = new
+      {
+        success = true,
+        link = expected
+      };
+
+      CliWrapper.setHttpClient(new HttpClient(mockHttp));
+      // Setup a respond for the user api (including a wildcard in the URL)
+      mockHttp.When("http://localhost:5338/percy/comparison")
+        .Respond("application/json", JsonConvert.SerializeObject(obj));
+
+      StringWriter stringWriter = new StringWriter();
+      Console.SetOut(stringWriter);
+
+      // Act
+      AppPercy appPercy = new AppPercy(mockDriver);
+      var name = "dummyName";
+      appPercy.Screenshot(name, null);
+      var expectedOutput = LogMessage("percy:dotnet", "Driver object is not the type of AndroidDriver or IOSDriver. The percy command may break.", "93m") + Environment.NewLine;
+      var actualOutput = stringWriter.ToString();
+      var errorOutput = LogMessage("percy", $"Error taking screenshot {name}") +  Environment.NewLine;
+      // Assert
+      Assert.Equal(expectedOutput, actualOutput);
+      Assert.NotEqual(errorOutput, actualOutput);
+    }
   }
 }

@@ -32,7 +32,7 @@ namespace PercyIO.Appium
 
     public Dictionary<string, object> GetCapability(Object driver)
     {
-      var capabilityObject = RefectionUtils.PropertyCall<object>(driver, "Capabilities");
+      var capabilityObject = ReflectionUtils.PropertyCall<object>(driver, "Capabilities");
       var type = capabilityObject.GetType();
       var fieldInfo = type.GetField("capabilities", BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
       return (Dictionary<string, object>)fieldInfo.GetValue(capabilityObject);

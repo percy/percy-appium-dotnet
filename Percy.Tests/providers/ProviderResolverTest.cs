@@ -1,4 +1,3 @@
-using OpenQA.Selenium;
 using Moq;
 using Xunit;
 using PercyIO.Appium;
@@ -7,7 +6,6 @@ namespace Percy.Tests
   public class ProviderResolverTest
   {
     private Mock<IPercyAppiumDriver> _androidPercyAppiumDriver = new Mock<IPercyAppiumDriver>();
-    private Mock<ICapabilities> capabilities = new Mock<ICapabilities>();
 
     [Fact]
     public void TestResolveProvider_WithBsSupport()

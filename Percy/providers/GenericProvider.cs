@@ -112,8 +112,8 @@ namespace PercyIO.Appium
     public JObject IgnoreElementObject(String selector, PercyAppiumElement element)
     {
       var scaleFactor = metadata.ScaleFactor();
-      var location = element.GetLocation();
-      var size = element.GetSize();
+      var location = element.Location;
+      var size = element.Size;
       return JObject.FromObject(new
       {
         selector = selector,

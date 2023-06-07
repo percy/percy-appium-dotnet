@@ -1,7 +1,5 @@
 using System;
-using OpenQA.Selenium.Remote;
 using OpenQA.Selenium.Appium.Android;
-using OpenQA.Selenium;
 using Moq;
 using Xunit;
 using PercyIO.Appium;

@@ -1,7 +1,4 @@
 using System;
-using OpenQA.Selenium.Remote;
-using OpenQA.Selenium;
-using OpenQA.Selenium.Appium.iOS;
 using Moq;
 using Xunit;
 using PercyIO.Appium;
@@ -13,7 +10,6 @@ namespace Percy.Tests
   {
     private IosMetadata iosMetadata;
     private readonly Mock<IPercyAppiumDriver> _iPhonePercyAppiumDriver = new Mock<IPercyAppiumDriver>();
-    private Mock<ICapabilities> capabilities = new Mock<ICapabilities>();
 
     public IosMetadataTest()
     {

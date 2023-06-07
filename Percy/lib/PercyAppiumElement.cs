@@ -6,24 +6,29 @@ namespace PercyIO.Appium
   internal class PercyAppiumElement
   {
     private object element;
+    public Size Size { get; set; }
+    public Point Location { get; set; }
+
     internal PercyAppiumElement(object element)
     {
       this.element = element;
+      this.Size = GetSize();
+      this.Location = GetLocation();
     }
 
-    public Size GetSize()
+    private Size GetSize()
     {
-      return RefectionUtils.PropertyCall<Size>(element, "Size")!;
+      return ReflectionUtils.PropertyCall<Size>(element, "Size")!;
     }
 
-    public Point GetLocation()
+    private Point GetLocation()
     {
-      return RefectionUtils.PropertyCall<Point>(element, "Location")!; 
+      return ReflectionUtils.PropertyCall<Point>(element, "Location")!;
     }
 
     public String Type()
     {
-      return RefectionUtils.MethodCall<String>(element, "GetAttribute", "class")!;
+      return ReflectionUtils.MethodCall<String>(element, "GetAttribute", "class")!;
     }
   }
 }

@@ -1,48 +1,88 @@
 
 using System;
 using System.Collections.Generic;
-using System.Dynamic;
 
 namespace Percy.Tests
 {
-  internal class DriverObject
+  internal class MockDriverObject
   {
-    public dynamic CreateDynamicAppiumDriver(String os)
+    private MockCapabilities mockCapabilities;
+    public String SessionId { get; set; }
+    public MockCapabilities Capabilities
     {
-        dynamic dynamicObject = new ExpandoObject();
+      get
+      {
+        return mockCapabilities;
+      }
+    }
 
-        // Set properties
-        dynamicObject.SessionId = "12345";
-        // dynamicObject.Capabilities = new DesiredCapabilities();
-
-        dynamicObject.Capabilities = new {
-          capabilities = MetadataBuilder.CapabilityBuilder(os)
-        };
-
-        dynamicObject.SessionDetails = new Dictionary<string, object> {
-          { "viewportRect", 
-            new Dictionary<string, object> {
-              {"top", 100l},
-              {"height", 1000l},
-              {"width", 400l},
-            }
-         },
-         {
-          "pixelRatio", 1
-         }
-        };
-        
-        // Define methods
-        dynamicObject.FindElement = new Func<string, object>((locator) =>
+    public void SetCapability(Dictionary<string, object> caps)
+    {
+      mockCapabilities = new MockCapabilities();
+      mockCapabilities.Capabilities = caps;
+      SessionDetails = new Dictionary<string, object> 
+      {
+        { "viewportRect",
+          new Dictionary<string, object> {
+            {"top", 100l},
+            {"height", 1000l},
+            {"width", 400l},
+          }
+        },
         {
-            // Logic to find element
-            return null;
-        });
+          "pixelRatio", 1
+        }
+      };
+    }
+    public Dictionary<string, object> SessionDetails { get; set; }
 
+    private Boolean isV5 = false;
 
-        // Add more properties and methods as needed
+    public void setIsV5(Boolean isV5)
+    {
+      this.isV5 = isV5;
+    }
 
-        return dynamicObject;
-    } 
+    private CommandExecutor commandExecutor;
+
+    CommandExecutor CommandExecutor
+    {
+      get
+      {
+        return commandExecutor;
+      }
+    }
+
+    public void setCommandExecutor(String url)
+    {
+      commandExecutor = new CommandExecutor();
+
+      if (isV5)
+      {
+        commandExecutor.setIsV5(isV5);
+      }
+      commandExecutor.SetUrl(url);
+    }
+
+    public Object GetScreenshot()
+    {
+      return new Screenshot();
+    }
+
+    public Object ExecuteScript(String script, Object obj)
+    {
+      return @"{success:'true', osVersion:'11.2', buildHash:'abc', sessionHash:'def'}";
+    }
+  }
+
+  internal class Screenshot
+  {
+    public String AsBase64EncodedString
+    {
+      get
+      {
+        return "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=";
+      }
+    }
   }
 }

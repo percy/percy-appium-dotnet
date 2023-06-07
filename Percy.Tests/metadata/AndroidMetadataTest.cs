@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using OpenQA.Selenium;
 using Moq;
 using Xunit;

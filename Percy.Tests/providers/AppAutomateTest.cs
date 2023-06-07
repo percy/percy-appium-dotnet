@@ -1,5 +1,4 @@
 using System;
-using OpenQA.Selenium;
 using Newtonsoft.Json.Linq;
 using Moq;
 using Xunit;

@@ -20,7 +20,7 @@ namespace PercyIO.Appium
 
     public String Orientation()
     {
-      return RefectionUtils.PropertyCall<String>(driver, "Orientation");
+      return ReflectionUtils.PropertyCall<String>(driver, "Orientation");
     }
 
     public IPercyAppiumCapabilities GetCapabilities()
@@ -40,7 +40,7 @@ namespace PercyIO.Appium
       var key = "session_" + sessionId();
       if (AppPercy.cache.Get(key) == null)
       {
-        var sess = RefectionUtils.PropertyCall<IDictionary<string, object>>(driver, "SessionDetails");
+        var sess = ReflectionUtils.PropertyCall<IDictionary<string, object>>(driver, "SessionDetails");
         AppPercy.cache.Store(key, sess);
       }
       return (IDictionary<string, object>)AppPercy.cache.Get(key);
@@ -48,7 +48,7 @@ namespace PercyIO.Appium
 
     public String sessionId()
     {
-      return RefectionUtils.PropertyCall<String>(driver, "SessionId");
+      return ReflectionUtils.PropertyCall<String>(driver, "SessionId");
     }
 
     public String ExecuteScript(String script)
@@ -64,8 +64,8 @@ namespace PercyIO.Appium
 
     public String GetScreenshot()
     {
-      var screenshot = RefectionUtils.MethodCall<object>(driver, "GetScreenshot", null);
-      return RefectionUtils.PropertyCall<String>(screenshot, "AsBase64EncodedString")!;
+      var screenshot = ReflectionUtils.MethodCall<object>(driver, "GetScreenshot", null);
+      return ReflectionUtils.PropertyCall<String>(screenshot, "AsBase64EncodedString")!;
     }
 
     public PercyAppiumElement FindElementsByAccessibilityId(string id)

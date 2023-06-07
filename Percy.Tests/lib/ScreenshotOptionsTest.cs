@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using OpenQA.Selenium.Remote;
-using OpenQA.Selenium;
-using Moq;
 using Xunit;
 using PercyIO.Appium;
 namespace Percy.Tests

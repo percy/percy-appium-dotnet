@@ -14,10 +14,9 @@ namespace PercyIO.Appium
 
     public AppPercy(Object driver)
     {
-      Log("isdhfukdgfdjyf", "warn");
       if(!Utils.isValidDriverObject(driver))
       {
-        Log("Driver object is not the type of AndroidDriver or IOSDriver. The percy command may break.", "debug");
+        Log("Driver object is not the type of AndroidDriver or IOSDriver. The percy command may break.", "warn");
       }
       this.percyAppiumDriver = new PercyAppiumDriver(driver);
       setValues(this.percyAppiumDriver);

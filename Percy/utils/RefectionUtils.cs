@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace PercyIO.Appium
 {
-  internal class RefectionUtils
+  internal class ReflectionUtils
   {
     public static T MethodCall<T>(Object obj, String methodName, params object[] args)
     {
@@ -30,7 +30,7 @@ namespace PercyIO.Appium
       try
       {
         Type objectType = obj.GetType();
-        PropertyInfo property = objectType.GetProperty(propertyName);
+        PropertyInfo property = objectType.GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance);
         var propertyObj = property?.GetValue(obj);
         if (propertyObj is T result)
         {
