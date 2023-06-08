@@ -1,9 +1,5 @@
 using System;
-using OpenQA.Selenium;
-using OpenQA.Selenium.Appium.Android;
-using OpenQA.Selenium.Appium.iOS;
 using System.Collections.Generic;
-using OpenQA.Selenium.Appium;
 using System.Reflection;
 
 namespace PercyIO.Appium
@@ -11,65 +7,31 @@ namespace PercyIO.Appium
   internal class PercyAppiumDriver : IPercyAppiumDriver
   {
     private object driver;
-    private String driverType;
-    private IOSDriver<IOSElement>? iosDriver;
-    private AndroidDriver<AndroidElement>? androidDriver;
-    private AndroidDriver<AppiumWebElement>? appiumAndroidDriver;
-    private IOSDriver<AppiumWebElement>? appiumIosDriver;
 
-    internal PercyAppiumDriver(AndroidDriver<AndroidElement> driver)
+    internal PercyAppiumDriver(Object driver)
     {
       this.driver = driver;
-      this.driverType = "Android";
-      this.androidDriver = driver;
-    }
-
-    internal PercyAppiumDriver(IOSDriver<AppiumWebElement> driver)
-    {
-      this.driver = driver;
-      this.driverType = "iOS";
-      this.appiumIosDriver = driver;
-    }
-
-    internal PercyAppiumDriver(AndroidDriver<AppiumWebElement> driver)
-    {
-      this.driver = driver;
-      this.driverType = "Android";
-      this.appiumAndroidDriver = driver;
-    }
-
-    internal PercyAppiumDriver(IOSDriver<IOSElement> driver)
-    {
-      this.driver = driver;
-      this.driverType = "iOS";
-      this.iosDriver = driver;
     }
 
     public new String GetType()
     {
-      return driverType;
+      return GetCapabilities().getValue<String>("platformName")!;
     }
 
     public String Orientation()
     {
-      return iosDriver?.Orientation.ToString()!
-        ?? androidDriver?.Orientation.ToString()!
-        ?? appiumAndroidDriver?.Orientation.ToString()!
-        ?? appiumIosDriver?.Orientation.ToString()!;
+      return ReflectionUtils.PropertyCall<String>(driver, "Orientation");
     }
 
-    public ICapabilities GetCapabilities()
+    public IPercyAppiumCapabilities GetCapabilities()
     {
       var key = "caps_" + sessionId();
       if (AppPercy.cache.Get(key) == null)
       {
-        var caps = iosDriver?.Capabilities
-          ?? androidDriver?.Capabilities
-          ?? appiumAndroidDriver?.Capabilities
-          ?? appiumIosDriver?.Capabilities;
-        AppPercy.cache.Store(key, caps);
+        var percyAppiumCapabilites = new PercyAppiumCapabilities(driver);
+        AppPercy.cache.Store(key, percyAppiumCapabilites);
       }
-      return (ICapabilities)AppPercy.cache.Get(key);
+      return (PercyAppiumCapabilities)AppPercy.cache.Get(key);
     }
 
     public IDictionary<string, object> GetSessionDetails()
@@ -78,10 +40,7 @@ namespace PercyIO.Appium
       var key = "session_" + sessionId();
       if (AppPercy.cache.Get(key) == null)
       {
-        var sess = iosDriver?.SessionDetails 
-          ?? androidDriver?.SessionDetails
-          ?? appiumAndroidDriver?.SessionDetails
-          ?? appiumIosDriver?.SessionDetails;
+        var sess = ReflectionUtils.PropertyCall<IDictionary<string, object>>(driver, "SessionDetails");
         AppPercy.cache.Store(key, sess);
       }
       return (IDictionary<string, object>)AppPercy.cache.Get(key);
@@ -89,54 +48,98 @@ namespace PercyIO.Appium
 
     public String sessionId()
     {
-      return iosDriver?.SessionId?.ToString()!
-        ?? androidDriver?.SessionId?.ToString()!
-        ?? appiumAndroidDriver?.SessionId?.ToString()!
-        ?? appiumIosDriver?.SessionId?.ToString()!;
+      return ReflectionUtils.PropertyCall<String>(driver, "SessionId");
     }
 
     public String ExecuteScript(String script)
     {
-      return iosDriver?.ExecuteScript(script).ToString()!
-        ?? androidDriver?.ExecuteScript(script).ToString()!
-        ?? appiumAndroidDriver?.ExecuteScript(script).ToString()!
-        ?? appiumIosDriver?.ExecuteScript(script).ToString()!;
+
+      return ExecuteScript(driver, script)?.ToString()!;
     }
 
     public string GetHost()
     {
-      var type = driver.GetType();
-      var property = type.GetProperty("CommandExecutor", BindingFlags.Instance | BindingFlags.NonPublic);
-      var commandExecutor = property?.GetValue(driver);
+      return GetHostV5(driver)?.ToString()! ?? GetHostV4(driver)?.ToString()!;
+    }
+
+    public String GetScreenshot()
+    {
+      var screenshot = ReflectionUtils.MethodCall<object>(driver, "GetScreenshot", null);
+      return ReflectionUtils.PropertyCall<String>(screenshot, "AsBase64EncodedString")!;
+    }
+
+    public PercyAppiumElement FindElementsByAccessibilityId(string id)
+    {
+      var element = FindElement(driver, "id", id);
+      if (element != null)
+      {
+        return new PercyAppiumElement(element);
+      }
+      return null;
+    }
+
+    public PercyAppiumElement FindElementByXPath(string xpath)
+    {
+      var element = FindElement(driver, "xpath", xpath);
+      if (element != null)
+      {
+        return new PercyAppiumElement(element);
+      }
+      return null;
+    }
+
+    private Object? GetHostV4(Object obj)
+    {
+      var commandExecutor = ReflectionUtils.PropertyCall<Object>(obj, "CommandExecutor");
       var uri = commandExecutor?.GetType().GetField("URL", BindingFlags.Instance | BindingFlags.NonPublic);
       var remoteServerUri = commandExecutor?.GetType().GetField("remoteServerUri", BindingFlags.Instance | BindingFlags.NonPublic);
       var value = uri?.GetValue(commandExecutor) ?? remoteServerUri?.GetValue(commandExecutor);
-      return value?.ToString()!;
+      return value;
     }
 
-    public Screenshot GetScreenshot()
+    private Object? GetHostV5(Object obj)
     {
-      return iosDriver?.GetScreenshot()!
-        ?? androidDriver?.GetScreenshot()!
-        ?? appiumAndroidDriver?.GetScreenshot()!
-        ?? appiumIosDriver?.GetScreenshot()!;
-
+      var commandExecutor = ReflectionUtils.PropertyCall<Object>(obj, "CommandExecutor");
+      var field = commandExecutor?.GetType().GetField("RealExecutor", BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
+      var realExecutor = field?.GetValue(commandExecutor);
+      var remoteServerUri = realExecutor?.GetType().GetField("remoteServerUri", BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
+      return remoteServerUri?.GetValue(realExecutor);
     }
 
-    public AppiumWebElement FindElementsByAccessibilityId(string id)
+    // FindElement method is overloaded so creating separate method
+    private Object FindElement(Object obj, String by, String value)
     {
-      return iosDriver?.FindElementByAccessibilityId(id)!
-        ?? appiumIosDriver?.FindElementByAccessibilityId(id)!
-        ?? androidDriver?.FindElementByAccessibilityId(id)!
-        ?? appiumAndroidDriver?.FindElementByAccessibilityId(id)!;
+      try
+      {
+        Type objectType = obj.GetType();
+        MethodInfo method = objectType.GetMethod("FindElement", new Type[] { typeof(string), typeof(string) });
+        if (method != null)
+        {
+          return method.Invoke(obj, new object[] { by, value });
+        }
+        else
+        {
+          AppPercy.Log($"Driver doesn't have method FindElement by: {by}", "debug");
+        }
+      }
+      catch (Exception)
+      {
+        AppPercy.Log($"Got Error while running FindElement by: {by}", "debug");
+      }
+
+      return null;
     }
 
-    public AppiumWebElement FindElementByXPath(string xpath)
+    // ExecuteScript is overloaded so creating separate method
+    private Object ExecuteScript(Object obj, String script)
     {
-      return iosDriver?.FindElementByXPath(xpath)!
-        ?? appiumIosDriver?.FindElementByXPath(xpath)!
-        ?? androidDriver?.FindElementByXPath(xpath)!
-        ?? appiumAndroidDriver?.FindElementByXPath(xpath)!;
+      Type objectType = obj.GetType();
+      MethodInfo method = objectType.GetMethod("ExecuteScript", new Type[] { typeof(string), typeof(object[]) });
+      if (method != null)
+      {
+        return method.Invoke(obj, new object[] { script, new object[] { null } });
+      }
+      return null;
     }
   }
 }

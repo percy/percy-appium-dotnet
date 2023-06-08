@@ -1,7 +1,4 @@
 using System;
-using OpenQA.Selenium.Remote;
-using OpenQA.Selenium;
-using OpenQA.Selenium.Appium.iOS;
 using Moq;
 using Xunit;
 using PercyIO.Appium;
@@ -13,14 +10,18 @@ namespace Percy.Tests
   {
     private IosMetadata iosMetadata;
     private readonly Mock<IPercyAppiumDriver> _iPhonePercyAppiumDriver = new Mock<IPercyAppiumDriver>();
-    private Mock<ICapabilities> capabilities = new Mock<ICapabilities>();
+
+    public IosMetadataTest()
+    {
+      _iPhonePercyAppiumDriver = MetadataBuilder.mockDriver("iOS");
+    }
 
     [Fact]
     public void TestGetDeviceName()
     {
       // Arrange
-      var expected = "iPhone_11";
-      iosMetadata = new IosMetadata(_iPhonePercyAppiumDriver.Object, "iPhone_11", 0, 0, null, null);
+      var expected = "iPhone_13";
+      iosMetadata = new IosMetadata(_iPhonePercyAppiumDriver.Object, "iPhone_13", 0, 0, null, null);
       // Act
       var actual = iosMetadata.DeviceName();
 
@@ -31,11 +32,6 @@ namespace Percy.Tests
     [Fact]
     public void TestGetDeviceName_WhenNull()
     {
-      // Arrange
-      capabilities.Setup(x => x.GetCapability("deviceName"))
-        .Returns("iPhone_11");
-      _iPhonePercyAppiumDriver.Setup(x => x.GetCapabilities())
-        .Returns(capabilities.Object);
       var expected = "iPhone_11";
       iosMetadata = new IosMetadata(_iPhonePercyAppiumDriver.Object, null, 0, 0, null, null);
       // Act
@@ -50,7 +46,7 @@ namespace Percy.Tests
       // Arrange
       AppPercy.cache.Clear();
       var expected = 0;
-      iosMetadata = new IosMetadata(_iPhonePercyAppiumDriver.Object, "iPhone_11", 0, -1, null, null);
+      iosMetadata = new IosMetadata(_iPhonePercyAppiumDriver.Object, null, 0, -1, null, null);
       // Act
       var actual = iosMetadata.NavBarHeight();
 
@@ -63,7 +59,7 @@ namespace Percy.Tests
     {
       // Arrange
       var expected = 100;
-      iosMetadata = new IosMetadata(_iPhonePercyAppiumDriver.Object, "iPhone_11", 0, 100, null, null);
+      iosMetadata = new IosMetadata(_iPhonePercyAppiumDriver.Object, null, 0, 100, null, null);
       // Act
       var actual = iosMetadata.NavBarHeight();
 
@@ -76,7 +72,7 @@ namespace Percy.Tests
     {
       // Arrange
       var expected = 100;
-      iosMetadata = new IosMetadata(_iPhonePercyAppiumDriver.Object, "iPhone_11", 100, -1, null, null);
+      iosMetadata = new IosMetadata(_iPhonePercyAppiumDriver.Object, null, 100, -1, null, null);
       // Act
       var actual = iosMetadata.StatBarHeight();
 
@@ -87,7 +83,7 @@ namespace Percy.Tests
     [Fact]
     public void TestOsName()
     {
-      iosMetadata = new IosMetadata(_iPhonePercyAppiumDriver.Object, "iPhone_11", 100, -1, null, null);
+      iosMetadata = new IosMetadata(_iPhonePercyAppiumDriver.Object, null, 100, -1, null, null);
       Assert.Equal(iosMetadata.OsName(), "iOS");
     }
 
@@ -100,7 +96,7 @@ namespace Percy.Tests
       {
         return 100;
       };
-      iosMetadata = new IosMetadata(_iPhonePercyAppiumDriver.Object, "iPhone_11", -1, -1, null, null);
+      iosMetadata = new IosMetadata(_iPhonePercyAppiumDriver.Object, null, -1, -1, null, null);
       // Act
       var actual = iosMetadata.StatBarHeight();
 
@@ -139,16 +135,6 @@ namespace Percy.Tests
     public void TestMetaDataHelperResolver()
     {
       // Arrange
-      capabilities.Setup(x => x.GetCapability("platformName"))
-         .Returns("iphone");
-      capabilities.Setup(x => x.GetCapability("platformVersion"))
-        .Returns("9");
-      capabilities.Setup(x => x.GetCapability("deviceScreenSize"))
-        .Returns("1280x1420");
-      capabilities.Setup(x => x.GetCapability("orientation"))
-        .Returns("landscape");
-      _iPhonePercyAppiumDriver.Setup(x => x.GetCapabilities())
-        .Returns(capabilities.Object);
       _iPhonePercyAppiumDriver.Setup(x => x.GetType())
         .Returns("iOS");
       Type type = MetadataHelper.Resolve(_iPhonePercyAppiumDriver.Object, "iphone", 100, 200, null, null).GetType();

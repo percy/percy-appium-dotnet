@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using Newtonsoft.Json.Linq;
-using OpenQA.Selenium.Appium;
 
 namespace PercyIO.Appium
 {
@@ -71,7 +69,7 @@ namespace PercyIO.Appium
 
     private string CaptureScreenshot(IPercyAppiumDriver driver)
     {
-      return driver.GetScreenshot().AsBase64EncodedString;
+      return driver.GetScreenshot();
     }
 
     internal void SetDebugUrl(string debugUrl)
@@ -111,7 +109,7 @@ namespace PercyIO.Appium
       return ignoredElementsLocations;
     }
 
-    public JObject IgnoreElementObject(String selector, AppiumWebElement element)
+    public JObject IgnoreElementObject(String selector, PercyAppiumElement element)
     {
       var scaleFactor = metadata.ScaleFactor();
       var location = element.Location;
@@ -169,16 +167,17 @@ namespace PercyIO.Appium
       }
     }
 
-    public void IgnoreRegionsByElement(JArray ignoredElementsArray, List<AppiumWebElement> elements)
+    public void IgnoreRegionsByElement(JArray ignoredElementsArray, List<Object> elements)
     {
       for (var index = 0; index < elements.Count; index++)
       {
         try
         {
-          string type = elements[index].GetAttribute("class");
+          var element = new PercyAppiumElement(elements[index]);
+          string type = element.Type();
           var selector = string.Format("element: {0} {1}", index, type);
 
-          var ignoredRegion = IgnoreElementObject(selector, elements[index]);
+          var ignoredRegion = IgnoreElementObject(selector, element);
           ignoredElementsArray.Add(ignoredRegion);
         }
         catch (Exception e)
@@ -210,7 +209,7 @@ namespace PercyIO.Appium
                 left = customLocations[index].Left,
                 right = customLocations[index].Right
               }
-                
+
               )
             });
             ignoredElementsArray.Add(ignoredRegion);

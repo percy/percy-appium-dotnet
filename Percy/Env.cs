@@ -1,7 +1,4 @@
 ﻿using System;
-using OpenQA.Selenium.Appium;
-using OpenQA.Selenium.Appium.Android;
-using OpenQA.Selenium.Appium.iOS;
 using System.Text.RegularExpressions;
 using System.Runtime.InteropServices;
 

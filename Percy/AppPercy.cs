@@ -1,7 +1,4 @@
 ﻿using System;
-using OpenQA.Selenium.Appium;
-using OpenQA.Selenium.Appium.Android;
-using OpenQA.Selenium.Appium.iOS;
 
 namespace PercyIO.Appium
 {
@@ -15,33 +12,13 @@ namespace PercyIO.Appium
     private String sessionId;
     public static Cache<string, object> cache = new Cache<string, object>();
 
-    public AppPercy(AndroidDriver<AndroidElement> driver)
+    public AppPercy(Object driver)
     {
+      if(!Utils.isValidDriverObject(driver))
+      {
+        Log("Driver object is not the type of AndroidDriver or IOSDriver. The percy command may break.", "warn");
+      }
       this.percyAppiumDriver = new PercyAppiumDriver(driver);
-      setValues(this.percyAppiumDriver);
-    }
-
-    public AppPercy(IOSDriver<IOSElement> driver)
-    {
-      this.percyAppiumDriver = new PercyAppiumDriver(driver);
-      setValues(this.percyAppiumDriver);
-    }
-
-    public AppPercy(AndroidDriver<AppiumWebElement> driver)
-    {
-      this.percyAppiumDriver = new PercyAppiumDriver(driver);
-      setValues(this.percyAppiumDriver);
-    }
-
-    public AppPercy(IOSDriver<AppiumWebElement> driver)
-    {
-      this.percyAppiumDriver = new PercyAppiumDriver(driver);
-      setValues(this.percyAppiumDriver);
-    }
-
-    internal AppPercy(IPercyAppiumDriver driver)
-    {
-      this.percyAppiumDriver = driver;
       setValues(this.percyAppiumDriver);
     }
 
@@ -75,8 +52,12 @@ namespace PercyIO.Appium
       }
       catch (Exception e)
       {
+        if (e is PercyException)
+        {
+          Log("The method is not valid for current driver. Please contact us.", "warn");
+        }
         Log("Error taking screenshot " + name);
-        if (!ignoreErrors)
+        if (true)
         {
           throw new Exception("Error taking screenshot " + name, e);
         }
@@ -96,13 +77,23 @@ namespace PercyIO.Appium
       if (logLevel == "debug" && DEBUG)
       {
         string label = "percy:dotnet";
-        Console.WriteLine($"[\u001b[35m{label}\u001b[39m] {message}");
+        LogMessage(message, label, "91m");
       }
       else if (logLevel == "info")
       {
         string label = "percy";
-        Console.WriteLine($"[\u001b[35m{label}\u001b[39m] {message}");
+        LogMessage(message, label);
       }
+      else if (logLevel == "warn")
+      {
+        string label = "percy:dotnet";
+        LogMessage(message, label, "93m");
+      }
+    }
+
+    private static void LogMessage(String message, String label, String color = "39m")
+    {
+      Console.WriteLine($"[\u001b[35m{label}\u001b[{color}] {message}");
     }
   }
 }

@@ -22,18 +22,19 @@ namespace PercyIO.Appium
       {
         return deviceName;
       }
-      object device = driver.GetCapabilities().GetCapability("device");
+      var device = driver.GetCapabilities().getValue<String>("device");
       if (device == null)
       {
-        Dictionary<string, object> desiredCaps = (Dictionary<string, object>)driver.GetCapabilities().GetCapability("desired");
+        Dictionary<string, object> desiredCaps = driver.GetCapabilities().getValue<Dictionary<string, object>>("desired")!;
         return desiredCaps.TryGetValue("deviceName", out var value) ? value.ToString() : "";
       }
-      return device.ToString();
+      return device;
     }
 
     internal override int DeviceScreenHeight()
     {
-      return Int16.Parse(driver.GetCapabilities().GetCapability("deviceScreenSize").ToString().Split('x')[1]);
+      var deviceScreenSize = driver.GetCapabilities().getValue<String>("deviceScreenSize");
+      return Int16.Parse(deviceScreenSize.Split('x')[1]);
     }
 
     internal override string OsName()
@@ -42,7 +43,8 @@ namespace PercyIO.Appium
     }
     internal override int DeviceScreenWidth()
     {
-      return Int16.Parse(driver.GetCapabilities().GetCapability("deviceScreenSize").ToString().Split('x')[0]);
+      var deviceScreenSize = driver.GetCapabilities().getValue<String>("deviceScreenSize");
+      return Int16.Parse(deviceScreenSize.Split('x')[0]);
     }
 
     internal override int NavBarHeight()
@@ -71,7 +73,8 @@ namespace PercyIO.Appium
     {
       if (AppPercy.cache.Get("viewportRect_" + sessionId) == null)
       {
-        AppPercy.cache.Store("viewportRect_" + sessionId, driver.GetCapabilities().GetCapability("viewportRect"));
+        var viewportRect = driver.GetCapabilities().getValue<Dictionary<string, object>>("viewportRect")!;
+        AppPercy.cache.Store("viewportRect_" + sessionId, viewportRect);
       }
       return (Dictionary<string, object>)AppPercy.cache.Get("viewportRect_" + sessionId);
     }

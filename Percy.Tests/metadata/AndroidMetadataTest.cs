@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using OpenQA.Selenium;
 using Moq;
 using Xunit;
@@ -9,11 +7,16 @@ namespace Percy.Tests
   public class AndroidMetadataTest
   {
     private AndroidMetadata? androidMetadata;
-    private readonly Mock<IPercyAppiumDriver> _androidPercyAppiumDriver = new Mock<IPercyAppiumDriver>();
+    private Mock<IPercyAppiumDriver> _androidPercyAppiumDriver = new Mock<IPercyAppiumDriver>();
 
+    public AndroidMetadataTest()
+    {
+      _androidPercyAppiumDriver = MetadataBuilder.mockDriver("Android");
+    }
     [Fact]
     public void TestGetDeviceName_WhenNameIsNotNull()
     {
+      
       // Arrange
       var expected = "Samsung_gs22u";
       androidMetadata = new AndroidMetadata(_androidPercyAppiumDriver.Object, "Samsung_gs22u", 0, 0, null, null);
@@ -26,16 +29,7 @@ namespace Percy.Tests
 
     [Fact]
     public void TestGetDeviceName_WhenNameIsNull()
-    {
-      // Arrange
-      var deviceDetail = new Dictionary<string, object>(){
-        {"deviceName", "Samsung_gs22u"}
-      };
-      var capabilities = new Mock<ICapabilities>();
-      capabilities.Setup(x => x.GetCapability("desired"))
-        .Returns(deviceDetail);
-      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities())
-        .Returns(capabilities.Object);
+    { 
       var expected = "Samsung_gs22u";
       androidMetadata = new AndroidMetadata(_androidPercyAppiumDriver.Object, null, 0, 0, null, null);
       // Act
@@ -50,11 +44,6 @@ namespace Percy.Tests
     {
       // Arrange
       var expected = 1420;
-      var capabilities = new Mock<ICapabilities>();
-      capabilities.Setup(x => x.GetCapability("deviceScreenSize"))
-        .Returns("1280x1420");
-      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities())
-        .Returns(capabilities.Object);
       androidMetadata = new AndroidMetadata(_androidPercyAppiumDriver.Object, "Samsung_gs22u", 0, 0, null, null);
       // Act
       int actual = androidMetadata.DeviceScreenHeight();
@@ -68,11 +57,6 @@ namespace Percy.Tests
     {
       // Arrange
       var expected = 1280;
-      var capabilities = new Mock<ICapabilities>();
-      capabilities.Setup(x => x.GetCapability("deviceScreenSize"))
-        .Returns("1280x1420");
-      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities())
-        .Returns(capabilities.Object);
       androidMetadata = new AndroidMetadata(_androidPercyAppiumDriver.Object, "Samsung_gs22u", 0, 0, null, null);
       // Act
       int actual = androidMetadata.DeviceScreenWidth();
@@ -87,17 +71,6 @@ namespace Percy.Tests
       // Arrange
       AppPercy.cache.Clear();
       var expected = 320;
-      var capabilities = new Mock<ICapabilities>();
-      var viewport = new Dictionary<string, object>(){
-        {"top", 100L},
-        {"height", 1000L}
-      };
-      capabilities.Setup(x => x.GetCapability("deviceScreenSize"))
-        .Returns("1280x1420");
-      capabilities.Setup(x => x.GetCapability("viewportRect"))
-        .Returns(viewport);
-      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities())
-        .Returns(capabilities.Object);
       androidMetadata = new AndroidMetadata(_androidPercyAppiumDriver.Object, "Samsung_gs22u", -1, -1, null, null);
       // Act
       var actual = androidMetadata.NavBarHeight();
@@ -126,16 +99,6 @@ namespace Percy.Tests
       // Arrange
       AppPercy.cache.Clear();
       var expected = 100;
-      var capabilities = new Mock<ICapabilities>();
-      var viewportRect = new Dictionary<string, object>(){
-        {"top", 100L}
-      };
-      capabilities.Setup(x => x.GetCapability("deviceScreenSize"))
-        .Returns("1280x1420");
-      capabilities.Setup(x => x.GetCapability("viewportRect"))
-        .Returns(viewportRect);
-      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities())
-        .Returns(capabilities.Object);
       androidMetadata = new AndroidMetadata(_androidPercyAppiumDriver.Object, "Samsung_gs22u", -1, -1, null, null);
       // Act
       var actual = androidMetadata.StatBarHeight();

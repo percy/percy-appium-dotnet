@@ -21,7 +21,7 @@ namespace PercyIO.Appium
       {
         return deviceName;
       }
-      return driver.GetCapabilities().GetCapability("deviceName").ToString();
+      return driver.GetCapabilities().getValue<String>("deviceName")!;
     }
 
     internal override string OsName()

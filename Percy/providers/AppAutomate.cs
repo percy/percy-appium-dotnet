@@ -54,7 +54,7 @@ namespace PercyIO.Appium
           var resultString = percyAppiumDriver.ExecuteScript("browserstack_executor:" + obj.ToString());
           var result = JObject.Parse(resultString);
 
-          markedPercySession = (result.GetValue("success").ToString() == "True");
+          markedPercySession = (result.GetValue("success").IsTrue());
           return result;
         }
       }
@@ -92,7 +92,7 @@ namespace PercyIO.Appium
           });
           var resultString = percyAppiumDriver.ExecuteScript("browserstack_executor:" + obj.ToString());
           var result = JObject.Parse(resultString);
-          markedPercySession = (result.GetValue("success").ToString() == "True");
+          markedPercySession = result.GetValue("success")!.IsTrue();
           return result;
         }
       }
