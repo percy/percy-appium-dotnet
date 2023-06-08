@@ -9,11 +9,9 @@ NuGet Package: [](http://www.nuget.org/packages/PercyIO.Appium/)
 
 Dependencies:
 
-- [Appium.WebDriver](https://www.nuget.org/packages/Appium.WebDriver/4.0.0) Version >= 4.0 and < 5
-- [Newtonsoft.Json](http://www.nuget.org/packages/Newtonsoft.Json/) Version >= 12.0.1
+- [Newtonsoft.Json](http://www.nuget.org/packages/Newtonsoft.Json/) Version >= 13.0.1
 - [Castle.Core](https://www.nuget.org/packages/Castle.Core/) Version >= 4.3.1
 - [Microsoft.CSharp](https://www.nuget.org/packages/Microsoft.CSharp) Version >= 4.7.0
-- [DotNetSeleniumExtras.WaitHelpers](https://www.nuget.org/packages/DotNetSeleniumExtras.WaitHelpers)
 
 > Note: This package is tested against .netstandard 2.0 should be compatible with and standard that is superset of this.
 
