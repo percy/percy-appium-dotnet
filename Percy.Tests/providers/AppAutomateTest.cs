@@ -348,5 +348,61 @@ namespace Percy.Tests
       // Assert
       Assert.Equal(actual, expected);
     }
+
+    [Fact]
+    public void TestVerifyCorrectAppiumVersion_WhenJSONFalse()
+    {
+      var expected = false;
+      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities().getValue<String>("browserstack.appium_version")).Returns("1.16.0");
+      // Act
+      var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
+      var actual = appAutomate.VerifyCorrectAppiumVersion();
+      // Assert
+      Assert.Equal(actual, expected);
+    }
+
+    [Fact]
+    public void TestVerifyCorrectAppiumVersion_WhenJSONTrue()
+    {
+      var expected = true;
+      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities().getValue<String>("browserstack.appium_version")).Returns("1.20.0");
+      // Act
+      var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
+      var actual = appAutomate.VerifyCorrectAppiumVersion();
+      // Assert
+      Assert.Equal(actual, expected);
+    }
+
+    [Fact]
+    public void TestVerifyCorrectAppiumVersion_WhenW3CFalse()
+    {
+      var expected = false;
+      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities().getValue<Dictionary<string, object>>("bstack:options")).Returns(
+        new Dictionary<string, object> {
+          {"appiumVersion", "1.16.0"},
+        }
+      );
+      // Act
+      var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
+      var actual = appAutomate.VerifyCorrectAppiumVersion();
+      // Assert
+      Assert.Equal(actual, expected);
+    }
+
+    [Fact]
+    public void TestVerifyCorrectAppiumVersion_WhenW3CTrue()
+    {
+      var expected = true;
+      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities().getValue<Dictionary<string, object>>("bstack:options")).Returns(
+        new Dictionary<string, object> {
+          {"appiumVersion", "1.20.0"},
+        }
+      );
+      // Act
+      var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
+      var actual = appAutomate.VerifyCorrectAppiumVersion();
+      // Assert
+      Assert.Equal(actual, expected);
+    }
   }
 }

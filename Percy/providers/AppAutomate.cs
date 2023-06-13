@@ -133,7 +133,7 @@ namespace PercyIO.Appium
     internal override List<Tile> CaptureTiles(ScreenshotOptions options)
     {
       // For single screens just use original approach
-      if (!options.FullPage || (options.ScreenLengths != null && options.ScreenLengths < 2))
+      if (!options.FullPage || (options.ScreenLengths != null && options.ScreenLengths < 2) || !VerifyCorrectAppiumVersion())
       {
         return base.CaptureTiles(options);
       }
@@ -199,6 +199,34 @@ namespace PercyIO.Appium
       if (result == null) return null;
 
       return new List<string>(result.GetValue("osVersion")?.ToString().Split(new string[] { "\\." }, StringSplitOptions.None))[0];
+    }
+
+    internal Boolean VerifyCorrectAppiumVersion()
+    {
+      var bstackOptions = percyAppiumDriver.GetCapabilities().getValue<Dictionary<string, object>>("bstack:options");
+      var appiumVersionJsonProtocol = percyAppiumDriver.GetCapabilities().getValue<String>("browserstack.appium_version");
+      if (bstackOptions == null && appiumVersionJsonProtocol == null)
+      {
+        AppPercy.Log("Unable to fetch Appium version, Appium version should be >= 1.19 for Fullpage Screenshot", "warn");
+      }
+      else if ((appiumVersionJsonProtocol != null && !AppiumVersionCheck(appiumVersionJsonProtocol)) || (bstackOptions != null && !AppiumVersionCheck(bstackOptions["appiumVersion"].ToString())))
+      {
+        AppPercy.Log("Appium version should be >= 1.19 for Fullpage Screenshot, Falling back to single page screenshot.", "warn");
+        return false;
+      }
+      return true;
+    }
+
+    internal Boolean AppiumVersionCheck(String version)
+    {
+      string[] versionArr = version.Split('.');
+      int majorVersion = int.Parse(versionArr[0]);
+      int minorVersion = int.Parse(versionArr[1]);
+
+      if (majorVersion == 2 || (majorVersion == 1 && minorVersion > 18)) {
+          return true;
+      }
+      return false;
     }
   }
 }
