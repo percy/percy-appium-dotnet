@@ -31,7 +31,7 @@ namespace PercyIO.Appium
 
     internal virtual List<Tile> CaptureTiles(ScreenshotOptions options)
     {
-      if (options.FullPage)
+      if (options.FullPage && !AppAutomate.Supports(percyAppiumDriver))
       {
         AppPercy.Log("Full page screeshot is only supported on App Automate." +
           " Falling back to single page screenshot.");

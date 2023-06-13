@@ -53,20 +53,28 @@ namespace PercyIO.Appium
         dynamic data = DeserializeJson<dynamic>(res.content);
         Env.SetPercyBuildID(data.build.id.ToString());
         Env.SetPercyBuildUrl(data.build.url.ToString());
+        string[] version = res.version.Split('.');
+        int majorVersion = int.Parse(version[0]);
+        int minorVersion = int.Parse(version[1]);
 
         if (data.success.ToString().ToLower() != "true")
         {
           throw new Exception(data.error);
         }
-        else if (res.version[0] != '1')
+
+        if (majorVersion < 1)
         {
           AppPercy.Log($"Unsupported Percy CLI version, {res.version}");
           return (bool)(_enabled = false);
         }
         else
         {
-          return (bool)(_enabled = true);
+          if (minorVersion < 25) {
+            AppPercy.Log($"Percy CLI version, {res.version} " +
+            "is not the minimum version required, some features might not work as expected.", "warn");
+          }
         }
+        return (bool)(_enabled = true);
       }
       catch (Exception error)
       {
