@@ -8,7 +8,7 @@ namespace PercyIO.Appium
   {
     String GetType();
     String Orientation();
-    List<string> getElementIds(JArray elements);
+    List<string> getElementIds(List<object> elements);
     IPercyAppiumCapabilities GetCapabilities();
     IDictionary<string, object> GetSessionDetails();
     String sessionId();

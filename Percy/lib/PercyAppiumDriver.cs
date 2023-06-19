@@ -24,7 +24,7 @@ namespace PercyIO.Appium
       return ReflectionUtils.PropertyCall<String>(driver, "Orientation");
     }
 
-    public List<string> getElementIds(JArray elements) {
+    public List<string> getElementIds(List<object> elements) {
       List<string> ignoredElementsArray = new List<string>();
       for (int index = 0; index < elements.Count; index++)
       {

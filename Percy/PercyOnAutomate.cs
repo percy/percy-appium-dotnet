@@ -28,8 +28,7 @@ namespace PercyIO.Appium
               userOptions = options.ToDictionary(kv => kv.Key, kv => kv.Value);
 
               if(userOptions.ContainsKey(ignoreElementKey)) {
-                  JArray? ignoreElements = userOptions[ignoreElementKey] as JArray;
-
+                  List<object>? ignoreElements = userOptions[ignoreElementKey] as List<object>;
                   if(ignoreElements != null)
                   {
                       List<string> elementIds = percyAppiumDriver.getElementIds(ignoreElements);

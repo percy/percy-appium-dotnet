@@ -127,7 +127,7 @@ namespace PercyIO.Appium
           commandExecutorUrl = commandExecutorUrl,
           capabilities = capabilities.GetCapabilities(),
           snapshotName = name,
-          options = options
+          options = JObject.FromObject(options)
         };
         dynamic res = Request("/percy/automateScreenshot", JObject.FromObject(screenshotOptions));
         dynamic data = DeserializeJson<dynamic>(res.content);
