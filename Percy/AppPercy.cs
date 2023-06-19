@@ -1,8 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace PercyIO.Appium
 {
-  public class AppPercy
+  public class AppPercy : IPercy
   {
     public static readonly bool DEBUG = Environment.GetEnvironmentVariable("PERCY_LOGLEVEL") == "debug";
     private Boolean isPercyEnabled;
@@ -62,6 +63,14 @@ namespace PercyIO.Appium
           throw new Exception("Error taking screenshot " + name, e);
         }
       }
+    }
+
+    public void Screenshot(String name, IEnumerable<KeyValuePair<string, object>>? options) {
+      if (options == null) {
+        Screenshot(name, null, false);
+        return;
+      }
+      throw new Exception("Options need to be passed using Sceenshot Options for: " + name);
     }
 
     ~AppPercy()

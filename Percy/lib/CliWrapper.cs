@@ -53,6 +53,7 @@ namespace PercyIO.Appium
         dynamic data = DeserializeJson<dynamic>(res.content);
         Env.SetPercyBuildID(data.build.id.ToString());
         Env.SetPercyBuildUrl(data.build.url.ToString());
+        Env.SetSessionType("automate");
         string[] version = res.version.Split('.');
         int majorVersion = int.Parse(version[0]);
         int minorVersion = int.Parse(version[1]);
@@ -111,6 +112,34 @@ namespace PercyIO.Appium
         AppPercy.Log($"Could not take screenshot \"{name}\"");
         AppPercy.Log(error.ToString(), "debug");
         return null;
+      }
+    }
+
+    internal static void PostPOAScreenshot(string name, string sessionId, string commandExecutorUrl, IPercyAppiumCapabilities capabilities, Dictionary<string, object> options)
+    {
+      try
+      {
+        var screenshotOptions = new
+        {
+          clientInfo = Env.GetClientInfo(),
+          environmentInfo = Env.GetEnvironmentInfo(),
+          sessionId = sessionId,
+          commandExecutorUrl = commandExecutorUrl,
+          capabilities = capabilities.GetCapabilities(),
+          snapshotName = name,
+          options = options
+        };
+        dynamic res = Request("/percy/automateScreenshot", JObject.FromObject(screenshotOptions));
+        dynamic data = DeserializeJson<dynamic>(res.content);
+        if (data.success.ToString().ToLower() != "true")
+        {
+          throw new Exception(data.error.ToString());
+        }
+      }
+      catch (Exception error)
+      {
+        AppPercy.Log($"Could not take screenshot \"{name}\"");
+        AppPercy.Log(error.ToString());
       }
     }
 

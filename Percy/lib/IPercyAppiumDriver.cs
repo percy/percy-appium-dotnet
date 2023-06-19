@@ -1,14 +1,18 @@
 using System;
 using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
+
 namespace PercyIO.Appium
 {
   internal interface IPercyAppiumDriver
   {
     String GetType();
     String Orientation();
+    List<string> getElementIds(JArray elements);
     IPercyAppiumCapabilities GetCapabilities();
     IDictionary<string, object> GetSessionDetails();
     String sessionId();
+    String getSessionId();
     String ExecuteScript(String script);
     String GetHost();
 
