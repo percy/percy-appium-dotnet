@@ -7,18 +7,21 @@ namespace PercyIO.Appium
 {
   public class PercyOnAutomate : IPercy
   {
-    public static readonly bool DEBUG = Environment.GetEnvironmentVariable("PERCY_LOGLEVEL") == "debug";
     private IPercyAppiumDriver percyAppiumDriver;
     private Boolean isPercyEnabled;
     private static readonly string ignoreElementKey = "ignore_region_appium_elements";
 
     public PercyOnAutomate(Object driver)
     {
+      if(!Utils.isValidDriverObject(driver))
+      {
+        Utils.Log("Driver object is not the type of AndroidDriver or IOSDriver. The percy command may break.", "warn");
+      }
       this.percyAppiumDriver = new PercyAppiumDriver(driver);
       this.isPercyEnabled = CliWrapper.Healthcheck();
     }
 
-    public void Screenshot(String name, IEnumerable<KeyValuePair<string, object>>? options) 
+    public void Screenshot(String name, IEnumerable<KeyValuePair<string, object>>? options = null) 
     {
       if(!isPercyEnabled) return;
       try
@@ -31,7 +34,7 @@ namespace PercyIO.Appium
                   List<object>? ignoreElements = userOptions[ignoreElementKey] as List<object>;
                   if(ignoreElements != null)
                   {
-                      List<string> elementIds = percyAppiumDriver.getElementIds(ignoreElements);
+                      List<string> elementIds = percyAppiumDriver.GetElementIds(ignoreElements);
                       userOptions.Remove(ignoreElementKey);
                       userOptions["ignore_region_elements"] = elementIds;
                   }
@@ -42,8 +45,8 @@ namespace PercyIO.Appium
       }
       catch(Exception error)
       {
-          Log($"Could not take Percy Screenshot \"{name}\"");
-          Log(error.ToString(), "debug");
+          Utils.Log($"Could not take Percy Screenshot \"{name}\"");
+          Utils.Log(error.ToString(), "debug");
       }
     }
     public void Screenshot(String name, ScreenshotOptions? options, bool fullScreen) {
@@ -51,29 +54,5 @@ namespace PercyIO.Appium
     }
 
     public class Options : Dictionary<string, object> {}
-
-    internal static void Log(String message, String logLevel = "info")
-    {
-      if (logLevel == "debug" && DEBUG)
-      {
-        string label = "percy:dotnet";
-        LogMessage(message, label, "91m");
-      }
-      else if (logLevel == "info")
-      {
-        string label = "percy";
-        LogMessage(message, label);
-      }
-      else if (logLevel == "warn")
-      {
-        string label = "percy:dotnet";
-        LogMessage(message, label, "93m");
-      }
-    }
-
-    private static void LogMessage(String message, String label, String color = "39m")
-    {
-      Console.WriteLine($"[\u001b[35m{label}\u001b[{color}] {message}");
-    }
   }
 }

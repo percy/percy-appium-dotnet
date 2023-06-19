@@ -13,7 +13,7 @@ namespace PercyIO.Appium
     public Percy(Object driver) {
       if(!Utils.isValidDriverObject(driver))
       {
-        return;
+        Utils.Log("Driver object is not the type of AndroidDriver or IOSDriver. The percy command may break.", "warn");
       }
       isPercyEnabled = CliWrapper.Healthcheck();
       if(!isPercyEnabled)
@@ -27,7 +27,7 @@ namespace PercyIO.Appium
       }
     }
 
-    public void Screenshot(String name, Object options, Boolean fullScreen = false)
+    public void Screenshot(String name, Object options = null, Boolean fullScreen = false)
     {
       if(!isPercyEnabled)
       {
