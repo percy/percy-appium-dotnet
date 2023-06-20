@@ -65,13 +65,13 @@ namespace PercyIO.Appium
 
         if (majorVersion < 1)
         {
-          AppPercy.Log($"Unsupported Percy CLI version, {res.version}");
+          Utils.Log($"Unsupported Percy CLI version, {res.version}");
           return (bool)(_enabled = false);
         }
         else
         {
           if (minorVersion < 25) {
-            AppPercy.Log($"Percy CLI version, {res.version} " +
+            Utils.Log($"Percy CLI version, {res.version} " +
             "is not the minimum version required, some features might not work as expected.", "warn");
           }
         }
@@ -79,8 +79,8 @@ namespace PercyIO.Appium
       }
       catch (Exception error)
       {
-        AppPercy.Log("Percy is not running, disabling snapshots");
-        AppPercy.Log(error.ToString());
+        Utils.Log("Percy is not running, disabling snapshots");
+        Utils.Log(error.ToString());
         return (bool)(_enabled = false);
       }
     };
@@ -109,8 +109,8 @@ namespace PercyIO.Appium
       }
       catch (Exception error)
       {
-        AppPercy.Log($"Could not take screenshot \"{name}\"");
-        AppPercy.Log(error.ToString(), "debug");
+        Utils.Log($"Could not take screenshot \"{name}\"");
+        Utils.Log(error.ToString(), "debug");
         return null;
       }
     }
@@ -138,8 +138,8 @@ namespace PercyIO.Appium
       }
       catch (Exception error)
       {
-        AppPercy.Log($"Could not take screenshot \"{name}\"");
-        AppPercy.Log(error.ToString());
+        Utils.Log($"Could not take screenshot \"{name}\"");
+        Utils.Log(error.ToString());
       }
     }
 

@@ -140,12 +140,12 @@ namespace PercyIO.Appium
         }
         else
         {
-          AppPercy.Log($"Driver doesn't have method FindElement by: {by}", "debug");
+          Utils.Log($"Driver doesn't have method FindElement by: {by}", "debug");
         }
       }
       catch (Exception)
       {
-        AppPercy.Log($"Got Error while running FindElement by: {by}", "debug");
+        Utils.Log($"Got Error while running FindElement by: {by}", "debug");
       }
 
       return null;

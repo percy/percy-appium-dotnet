@@ -17,7 +17,7 @@ namespace PercyIO.Appium
     {
       if(!Utils.isValidDriverObject(driver))
       {
-        Log("Driver object is not the type of AndroidDriver or IOSDriver. The percy command may break.", "warn");
+        Utils.Log("Driver object is not the type of AndroidDriver or IOSDriver. The percy command may break.", "warn");
       }
       this.percyAppiumDriver = new PercyAppiumDriver(driver);
       setValues(this.percyAppiumDriver);
@@ -55,9 +55,9 @@ namespace PercyIO.Appium
       {
         if (e is PercyException)
         {
-          Log("The method is not valid for current driver. Please contact us.", "warn");
+          Utils.Log("The method is not valid for current driver. Please contact us.", "warn");
         }
-        Log("Error taking screenshot " + name);
+        Utils.Log("Error taking screenshot " + name);
         if (true)
         {
           throw new Exception("Error taking screenshot " + name, e);
@@ -79,30 +79,6 @@ namespace PercyIO.Appium
       AppPercy.cache.Remove("viewportRect_" + sessionId);
       AppPercy.cache.Remove("session_" + sessionId);
       AppPercy.cache.Remove("caps_" + sessionId);
-    }
-
-    internal static void Log(String message, String logLevel = "info")
-    {
-      if (logLevel == "debug" && DEBUG)
-      {
-        string label = "percy:dotnet";
-        LogMessage(message, label, "91m");
-      }
-      else if (logLevel == "info")
-      {
-        string label = "percy";
-        LogMessage(message, label);
-      }
-      else if (logLevel == "warn")
-      {
-        string label = "percy:dotnet";
-        LogMessage(message, label, "93m");
-      }
-    }
-
-    private static void LogMessage(String message, String label, String color = "39m")
-    {
-      Console.WriteLine($"[\u001b[35m{label}\u001b[{color}] {message}");
     }
   }
 }
