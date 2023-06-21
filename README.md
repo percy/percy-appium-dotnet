@@ -114,14 +114,36 @@ The screenshot method arguments:
         - Parameters:
 
           `Top` (int): Top coordinate of the ignore region.
-
           `Bottom` (int): Bottom coordinate of the ignore region.
-
           `Left` (int): Left coordinate of the ignore region.
-
           `Right` (int): Right coordinate of the ignore region.
         - Raises:ArgumentException: If top, bottom, left, or right is less than 0 or top is greater than or equal to bottom or left is greater than or equal to right.
         - valid: Ignore region should be within the boundaries of the screen.
+
+## Running with Hybrid Apps
+
+For a hybrid app, we need to switch to native context before taking screenshot.
+
+- Add a helper method similar to following for say flutter based hybrid app:
+```csharp
+public void PercyScreenshotFlutter(String name, ScreenshotOptions options) {
+    // switch to native context
+    driver.Context = "NATIVE_APP";
+    percy.Screenshot(name, options);
+    // switch back to flutter context
+    driver.Context = "FLUTTER";
+}
+```
+
+- Call PercyScreenshotFlutter helper function when you want to take screenshot.
+```csharp
+PercyScreenshotFlutter(name, options);
+```
+
+> Note: 
+>
+> For other hybrid apps the `driver.Context = "FLUTTER";` would change to context that it uses like say WEBVIEW etc.
+>
 
 ### Migrating Config
 
