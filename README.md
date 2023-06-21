@@ -126,7 +126,7 @@ For a hybrid app, we need to switch to native context before taking screenshot.
 
 - Add a helper method similar to following for say flutter based hybrid app:
 ```csharp
-public void PercyScreenshotFlutter(String name, ScreenshotOptions options) {
+public void PercyScreenshotFlutter(AndroidDriver<AndroidElement> driver, String name, ScreenshotOptions options) {
     // switch to native context
     driver.Context = "NATIVE_APP";
     percy.Screenshot(name, options);
@@ -137,7 +137,7 @@ public void PercyScreenshotFlutter(String name, ScreenshotOptions options) {
 
 - Call PercyScreenshotFlutter helper function when you want to take screenshot.
 ```csharp
-PercyScreenshotFlutter(name, options);
+PercyScreenshotFlutter(driver, name, options);
 ```
 
 > Note: 
