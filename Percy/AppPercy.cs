@@ -55,7 +55,6 @@ namespace PercyIO.Appium
       {
         return;
       }
-      percyOptions.SetPercyIgnoreErrors();
       try
       {
         GenericProvider provider;
