@@ -19,8 +19,11 @@ namespace PercyIO.Appium
         if(methodObj is T result)
         {
           return result;
+        } else if (methodObj == null) {
+          return default(T);
+        } else {
+          throw new PercyException($"Type does not match for method {methodName}");
         }
-        throw new PercyException($"Type does not match for method {methodName}");
       }
       catch (Exception e)
       {
@@ -41,8 +44,11 @@ namespace PercyIO.Appium
         if (propertyObj is T result)
         {
           return result;
+        } else if (propertyObj == null) {
+          return default(T);
+        } else {
+          throw new PercyException($"Type does not match for property {propertyName}");
         }
-        throw new PercyException($"Type does not match for property {propertyName}");
       }
       catch (Exception e)
       {

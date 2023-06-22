@@ -27,20 +27,12 @@ namespace PercyIO.Appium
       try
       {
         this.percyOptions = new PercyOptions(percyAppiumDriver);
-        percyOptions.SetPercyIgnoreErrors();
         this.isPercyEnabled = CliWrapper.Healthcheck();
         this.sessionId = percyAppiumDriver.sessionId();
       } 
       catch (Exception e)
       {
-        if (e is PercyException)
-        {
-          Log("The method is not valid for current driver.", "warn");
-        }
-        if (!ignoreErrors)
-        {
-          throw new Exception("Error taking screenshot: " + e);
-        }
+        throw new Exception($"Error fetching sessionId: {e.ToString()}");
       }
     }
 
@@ -55,6 +47,7 @@ namespace PercyIO.Appium
       {
         return;
       }
+      percyOptions.SetPercyIgnoreErrors();
       try
       {
         GenericProvider provider;
