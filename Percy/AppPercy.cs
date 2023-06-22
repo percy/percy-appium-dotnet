@@ -24,16 +24,9 @@ namespace PercyIO.Appium
 
     internal void setValues(IPercyAppiumDriver percyAppiumDriver)
     {
-      try
-      {
-        this.percyOptions = new PercyOptions(percyAppiumDriver);
-        this.isPercyEnabled = CliWrapper.Healthcheck();
-        this.sessionId = percyAppiumDriver.sessionId();
-      } 
-      catch (Exception e)
-      {
-        throw new Exception($"Error fetching sessionId: {e.ToString()}");
-      }
+      this.percyOptions = new PercyOptions(percyAppiumDriver);
+      this.isPercyEnabled = CliWrapper.Healthcheck();
+      this.sessionId = percyAppiumDriver.sessionId();
     }
 
     public void Screenshot(String name, ScreenshotOptions? options = null, Boolean fullScreen = false)
