@@ -30,16 +30,26 @@ namespace Percy.Tests
     }
 
     [Fact]
-    public void TestPropertyCall_ReturnDefaultValueForNullProperty()
+    public void TestPropertyCall_ThrowExceptionForInvalidPropertyType()
     {
       // Arrange
       var obj = new TestDummyClass { Name = "John Doe", Age = 30 };
+
+      // Assert
+      Assert.Throws<PercyException>(() => ReflectionUtils.PropertyCall<Boolean>(obj, "Name"));
+    }
+
+    [Fact]
+    public void TestPropertyCall_ReturnDefaultValueForNullProperty()
+    {
+      // Arrange
+      var obj = new TestDummyClass { Name = null, Age = 30 };
 
       // Act
       var result = ReflectionUtils.PropertyCall<String>(obj, "Name");
 
       // Assert
-      Assert.Equal("John Doe", result);
+      Assert.Equal(null, result);
     }
 
     [Fact]
@@ -56,17 +66,27 @@ namespace Percy.Tests
     }
 
     [Fact]
-    public void TestMethodCall_ThrowExceptionForInvalidProperty()
+    public void TestMethodCall_ThrowExceptionForInvalidMethod()
     {
       // Arrange
       var obj = new TestDummyClass { Name = "John Doe", Age = 30 };
 
       // Assert
-      Assert.Throws<PercyException>(() => ReflectionUtils.PropertyCall<String>(obj, "Invalid"));
+      Assert.Throws<PercyException>(() => ReflectionUtils.MethodCall<String>(obj, "Invalid"));
     }
 
     [Fact]
-    public void TestMethodCall_ReturnDefaultValueForNullProperty()
+    public void TestMethodCall_ThrowExceptionForInvalidMethodReturnType()
+    {
+      // Arrange
+      var obj = new TestDummyClass { Name = "John Doe", Age = 30 };
+
+      // Assert
+      Assert.Throws<PercyException>(() => ReflectionUtils.MethodCall<Boolean>(obj, "getName"));
+    }
+
+    [Fact]
+    public void TestMethodCall_ReturnDefaultValueForNullMethodReturn()
     {
       // Arrange
       var obj = new TestDummyClass { Name = null, Age = 30 };
