@@ -24,9 +24,24 @@ namespace PercyIO.Appium
 
     internal void setValues(IPercyAppiumDriver percyAppiumDriver)
     {
-      this.percyOptions = new PercyOptions(percyAppiumDriver);
-      this.isPercyEnabled = CliWrapper.Healthcheck();
-      this.sessionId = percyAppiumDriver.sessionId();
+      try
+      {
+        this.percyOptions = new PercyOptions(percyAppiumDriver);
+        percyOptions.SetPercyIgnoreErrors();
+        this.isPercyEnabled = CliWrapper.Healthcheck();
+        this.sessionId = percyAppiumDriver.sessionId();
+      } 
+      catch (Exception e)
+      {
+        if (e is PercyException)
+        {
+          Log("The method is not valid for current driver.", "warn");
+        }
+        if (!ignoreErrors)
+        {
+          throw new Exception("Error taking screenshot: " + e);
+        }
+      }
     }
 
     public void Screenshot(String name, ScreenshotOptions? options = null, Boolean fullScreen = false)
@@ -57,7 +72,7 @@ namespace PercyIO.Appium
           Log("The method is not valid for current driver. Please contact us.", "warn");
         }
         Log("Error taking screenshot " + name);
-        if (true)
+        if (!ignoreErrors)
         {
           throw new Exception("Error taking screenshot " + name, e);
         }
