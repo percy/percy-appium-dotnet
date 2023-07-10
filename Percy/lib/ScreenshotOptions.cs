@@ -20,5 +20,6 @@ namespace PercyIO.Appium
     public List<IgnoreRegion> CustomIgnoreRegions { get; set; } = new List<IgnoreRegion>();
     public String? ScrollableXpath { get; set; } = null;
     public String? ScrollableId { get; set; } = null;
+    public bool ForceFullPage { get; set; } = false;
   }
 }
