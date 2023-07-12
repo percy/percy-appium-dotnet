@@ -179,7 +179,7 @@ namespace PercyIO.Appium
             numOfTiles = options.ScreenLengths,
             scollableXpath = options.ScrollableXpath,
             scrollableId = options.ScrollableId,
-            FORCE_FULL_PAGE = options.ForceFullPage
+            FORCE_FULL_PAGE = Env.ForceFullPage()
           }
         }
       });
