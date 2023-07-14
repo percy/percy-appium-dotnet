@@ -17,7 +17,7 @@ namespace PercyIO.Appium
     {
       if(!Utils.isValidDriverObject(driver))
       {
-        Utils.Log("Driver object is not the type of AndroidDriver or IOSDriver. The percy command may break.", "warn");
+        Log("Driver object is not the type of AndroidDriver or IOSDriver. The percy command may break.", "warn");
       }
       this.percyAppiumDriver = new PercyAppiumDriver(driver);
       setValues(this.percyAppiumDriver);
@@ -55,7 +55,7 @@ namespace PercyIO.Appium
       {
         if (e is PercyException)
         {
-          Utils.Log("The method is not valid for current driver. Please contact us.", "warn");
+          Log("The method is not valid for current driver. Please contact us.", "warn");
         }
         Log("Error taking screenshot " + name);
         if (!ignoreErrors)
