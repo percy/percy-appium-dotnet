@@ -57,8 +57,8 @@ namespace PercyIO.Appium
         {
           Utils.Log("The method is not valid for current driver. Please contact us.", "warn");
         }
-        Utils.Log("Error taking screenshot " + name);
-        if (true)
+        Log("Error taking screenshot " + name);
+        if (!ignoreErrors)
         {
           throw new Exception("Error taking screenshot " + name, e);
         }

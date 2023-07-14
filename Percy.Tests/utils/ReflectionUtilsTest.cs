@@ -20,16 +20,36 @@ namespace Percy.Tests
     }
 
     [Fact]
-    public void TestPropertyCall_ReturnDefaultValueForInvalidProperty()
+    public void TestPropertyCall_ThrowExceptionForInvalidProperty()
     {
       // Arrange
       var obj = new TestDummyClass { Name = "John Doe", Age = 30 };
 
-      // Act
-      var result = ReflectionUtils.PropertyCall<String>(obj, "Invalid");
+      // Assert
+      Assert.Throws<PercyException>(() => ReflectionUtils.PropertyCall<String>(obj, "Invalid"));
+    }
+
+    [Fact]
+    public void TestPropertyCall_ThrowExceptionForInvalidPropertyType()
+    {
+      // Arrange
+      var obj = new TestDummyClass { Name = "John Doe", Age = 30 };
 
       // Assert
-      Assert.Null(result);
+      Assert.Throws<PercyException>(() => ReflectionUtils.PropertyCall<Boolean>(obj, "Name"));
+    }
+
+    [Fact]
+    public void TestPropertyCall_ReturnDefaultValueForNullProperty()
+    {
+      // Arrange
+      var obj = new TestDummyClass { Name = null, Age = 30 };
+
+      // Act
+      var result = ReflectionUtils.PropertyCall<String>(obj, "Name");
+
+      // Assert
+      Assert.Equal(null, result);
     }
 
     [Fact]
@@ -46,16 +66,36 @@ namespace Percy.Tests
     }
 
     [Fact]
-    public void TestMethodCall_ReturnDefaultValueForInvalidProperty()
+    public void TestMethodCall_ThrowExceptionForInvalidMethod()
     {
       // Arrange
       var obj = new TestDummyClass { Name = "John Doe", Age = 30 };
 
-      // Act
-      var result = ReflectionUtils.MethodCall<String>(obj, "Invalid");
+      // Assert
+      Assert.Throws<PercyException>(() => ReflectionUtils.MethodCall<String>(obj, "Invalid"));
+    }
+
+    [Fact]
+    public void TestMethodCall_ThrowExceptionForInvalidMethodReturnType()
+    {
+      // Arrange
+      var obj = new TestDummyClass { Name = "John Doe", Age = 30 };
 
       // Assert
-      Assert.Null(result);
+      Assert.Throws<PercyException>(() => ReflectionUtils.MethodCall<Boolean>(obj, "getName"));
+    }
+
+    [Fact]
+    public void TestMethodCall_ReturnDefaultValueForNullMethodReturn()
+    {
+      // Arrange
+      var obj = new TestDummyClass { Name = null, Age = 30 };
+
+      // Act
+      var result = ReflectionUtils.MethodCall<String>(obj, "getName");
+
+      // Assert
+      Assert.Equal(null, result);
     }
 
     [Fact]

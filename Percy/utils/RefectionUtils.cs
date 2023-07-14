@@ -12,16 +12,22 @@ namespace PercyIO.Appium
       {
         Type objectType = obj.GetType();
         MethodInfo method = objectType.GetMethod(methodName);
-        var methodObj = method?.Invoke(obj, args);
+        if (method == null) {
+          throw new PercyException($"Method {methodName} not found for class {obj.GetType()}");
+        }
+        var methodObj = method.Invoke(obj, args);
         if(methodObj is T result)
         {
           return result;
+        } else if (methodObj == null) {
+          return default(T);
+        } else {
+          throw new PercyException($"Type does not match for method {methodName}");
         }
-        return default(T);
       }
       catch (Exception e)
       {
-        throw new PercyException($"Method {methodName} not found for class {obj.GetType()}", e);
+        throw new PercyException(e.ToString());
       }
     }
 
@@ -31,16 +37,22 @@ namespace PercyIO.Appium
       {
         Type objectType = obj.GetType();
         PropertyInfo property = objectType.GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
-        var propertyObj = property?.GetValue(obj);
+        if (property == null) {
+          throw new PercyException($"Property {propertyName} not found for class {obj.GetType()}");
+        }
+        var propertyObj = property.GetValue(obj);
         if (propertyObj is T result)
         {
           return result;
+        } else if (propertyObj == null) {
+          return default(T);
+        } else {
+          throw new PercyException($"Type does not match for property {propertyName}");
         }
-        return default(T);
       }
       catch (Exception e)
       {
-        throw new PercyException($"Method {propertyName} not found for class {obj.GetType()}", e);
+        throw new PercyException(e.ToString());
       }
     }
   }

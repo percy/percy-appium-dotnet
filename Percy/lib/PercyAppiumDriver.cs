@@ -59,7 +59,7 @@ namespace PercyIO.Appium
 
     public String sessionId()
     {
-      return ReflectionUtils.PropertyCall<String>(driver, "SessionId");
+      return ReflectionUtils.PropertyCall<Object>(driver, "SessionId").ToString();
     }
 
     public String ExecuteScript(String script)

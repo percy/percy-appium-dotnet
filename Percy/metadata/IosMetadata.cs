@@ -35,7 +35,7 @@ namespace PercyIO.Appium
               this.DeviceName().ToLower());
       if (deviceScreenHeight == 0)
       {
-        return GetViewportRect().TryGetValue("height", out var value) ? (int)(long)value : 0;
+        return GetViewportRect().TryGetValue("height", out var value) ? (int)(long)value + StatBarHeight() : 0;
       }
       return deviceScreenHeight;
     }
@@ -91,7 +91,7 @@ namespace PercyIO.Appium
       object scaleFactor;
       if (driver.GetSessionDetails().TryGetValue("pixelRatio", out scaleFactor))
       {
-        return (int)(long) scaleFactor;
+        return (int)(long)scaleFactor;
       }
       Utils.Log("Failed to get scale factor, full page screenshot might look incorrect");
       return 1;

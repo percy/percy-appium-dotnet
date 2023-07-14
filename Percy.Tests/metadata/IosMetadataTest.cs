@@ -149,7 +149,7 @@ namespace Percy.Tests
     {
       // Arrange
       var expected = 1000;
-      MetadataHelper.ValueFromStaticDevicesInfo = (statusBarHeight, ios) =>
+      MetadataHelper.ValueFromStaticDevicesInfo = (screenHeight, ios) =>
       {
         return 1000;
       };
@@ -166,8 +166,8 @@ namespace Percy.Tests
     {
       // Arrange
       AppPercy.cache.Clear();
-      var expected = 1000;
-      MetadataHelper.ValueFromStaticDevicesInfo = (statusBarHeight, ios) =>
+      var expected = 1100;
+      MetadataHelper.ValueFromStaticDevicesInfo = (screenHeight, ios) =>
       {
         return 0;
       };
