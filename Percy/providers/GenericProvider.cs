@@ -33,7 +33,7 @@ namespace PercyIO.Appium
     {
       if (options.FullPage && !AppAutomate.Supports(percyAppiumDriver))
       {
-        AppPercy.Log("Full page screeshot is only supported on App Automate." +
+        Utils.Log("Full page screeshot is only supported on App Automate." +
           " Falling back to single page screenshot.");
       }
       var statusBar = metadata.StatBarHeight();
@@ -141,8 +141,8 @@ namespace PercyIO.Appium
         }
         catch (Exception e)
         {
-          AppPercy.Log("Appium Element with xpath:" + xpath + " not found. Ignoring this xpath.");
-          AppPercy.Log(e.ToString(), "debug");
+          Utils.Log("Appium Element with xpath:" + xpath + " not found. Ignoring this xpath.");
+          Utils.Log(e.ToString(), "debug");
         }
       }
     }
@@ -161,8 +161,8 @@ namespace PercyIO.Appium
         }
         catch (Exception e)
         {
-          AppPercy.Log("Appium Element with id:" + id + " not found. Ignoring this id.");
-          AppPercy.Log(e.ToString(), "debug");
+          Utils.Log("Appium Element with id:" + id + " not found. Ignoring this id.");
+          Utils.Log(e.ToString(), "debug");
         }
       }
     }
@@ -182,8 +182,8 @@ namespace PercyIO.Appium
         }
         catch (Exception e)
         {
-          AppPercy.Log("Correct Appium Element not passed at index " + index + ".");
-          AppPercy.Log(e.ToString(), "debug");
+          Utils.Log("Correct Appium Element not passed at index " + index + ".");
+          Utils.Log(e.ToString(), "debug");
         }
       }
     }
@@ -216,13 +216,13 @@ namespace PercyIO.Appium
           }
           else
           {
-            AppPercy.Log("Values passed in custom ignored region at index:- " + index + " is not valid");
+            Utils.Log("Values passed in custom ignored region at index:- " + index + " is not valid");
           }
         }
         catch (Exception e)
         {
-          AppPercy.Log("Custom Ignore Region object not valid at index:- " + index);
-          AppPercy.Log(e.ToString(), "debug");
+          Utils.Log("Custom Ignore Region object not valid at index:- " + index);
+          Utils.Log(e.ToString(), "debug");
         }
       }
     }
