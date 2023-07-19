@@ -42,7 +42,7 @@ namespace PercyIO.Appium
 
     internal static String GetClientInfo()
     {
-      return "percy-appium-dotnet/2.1.2";
+      return "percy-appium-dotnet/3.0.1-beta.0";
     }
 
     internal static Boolean ForceFullPage()
