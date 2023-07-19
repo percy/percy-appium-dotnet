@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using Newtonsoft.Json.Linq;
 
 namespace PercyIO.Appium
 {
@@ -21,6 +22,16 @@ namespace PercyIO.Appium
     public String Orientation()
     {
       return ReflectionUtils.PropertyCall<String>(driver, "Orientation");
+    }
+
+    public List<string> GetElementIds(List<object> elements) {
+      List<string> ignoredElementsArray = new List<string>();
+      for (int index = 0; index < elements.Count; index++)
+      {
+        var element = new PercyAppiumElement(elements[index]);
+        ignoredElementsArray.Add(element.id);
+      }
+      return ignoredElementsArray;
     }
 
     public IPercyAppiumCapabilities GetCapabilities()
@@ -55,6 +66,16 @@ namespace PercyIO.Appium
     {
 
       return ExecuteScript(driver, script)?.ToString()!;
+    }
+
+    public string getSessionId()
+    {
+      string sessionId = this.sessionId();
+      if (sessionId == null)
+      {
+        sessionId = ((dynamic) driver).SessionId.ToString();
+      }
+      return sessionId;
     }
 
     public string GetHost()
@@ -119,12 +140,12 @@ namespace PercyIO.Appium
         }
         else
         {
-          AppPercy.Log($"Driver doesn't have method FindElement by: {by}", "debug");
+          Utils.Log($"Driver doesn't have method FindElement by: {by}", "debug");
         }
       }
       catch (Exception)
       {
-        AppPercy.Log($"Got Error while running FindElement by: {by}", "debug");
+        Utils.Log($"Got Error while running FindElement by: {by}", "debug");
       }
 
       return null;

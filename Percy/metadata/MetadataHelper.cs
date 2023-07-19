@@ -29,7 +29,7 @@ namespace PercyIO.Appium
       }
       catch (Exception)
       {
-        AppPercy.Log("Unsupported driver class, " + driverClass);
+        Utils.Log("Unsupported driver class, " + driverClass);
       }
       return null;
     };

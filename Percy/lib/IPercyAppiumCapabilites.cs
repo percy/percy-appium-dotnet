@@ -8,5 +8,7 @@ namespace PercyIO.Appium
     T getValue<T>(string key);
     Dictionary<string, object> GetCapability(Object driver);
     void SetCapability(Dictionary<string, object> capabilities);
+
+    Dictionary<string, object> GetCapabilities();
   }
 }

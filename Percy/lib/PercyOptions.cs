@@ -20,12 +20,12 @@ namespace PercyIO.Appium
       var percyEnabledJsonProtocol = percyAppiumDriver.GetCapabilities().getValue<String>("percy.enabled");
       if (percyOptionsW3CProtocol == null && percyEnabledJsonProtocol == null)
       {
-        AppPercy.Log("Percy options not provided in capabilitiies, considering enabled", "debug");
+        Utils.Log("Percy options not provided in capabilitiies, considering enabled", "debug");
         return true;
       }
       else if (percyEnabledJsonProtocol.IsFalse() || (percyOptionsW3CProtocol?["enabled"].IsFalse() ?? false))
       {
-        AppPercy.Log("App Percy is disabled in capabilities");
+        Utils.Log("App Percy is disabled in capabilities");
         return false;
       }
       return true;
@@ -37,7 +37,7 @@ namespace PercyIO.Appium
       var percyIgnoreErrorsJsonProtocol = percyAppiumDriver.GetCapabilities().getValue<String>("percy.ignoreErrors");
       if (percyOptionsW3CProtocol == null && percyIgnoreErrorsJsonProtocol == null)
       {
-        AppPercy.Log("Percy options not provided in capabilitiies, ignoring errors by default", "debug");
+        Utils.Log("Percy options not provided in capabilitiies, ignoring errors by default", "debug");
         return;
       }
       else if (percyIgnoreErrorsJsonProtocol.IsFalse() || percyOptionsW3CProtocol["ignoreErrors"].IsFalse())
