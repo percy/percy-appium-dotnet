@@ -178,7 +178,8 @@ namespace PercyIO.Appium
             deviceHeight = this.metadata.DeviceScreenHeight(),
             numOfTiles = options.ScreenLengths,
             scollableXpath = options.ScrollableXpath,
-            scrollableId = options.ScrollableId
+            scrollableId = options.ScrollableId,
+            FORCE_FULL_PAGE = Env.ForceFullPage()
           }
         }
       });
@@ -223,8 +224,9 @@ namespace PercyIO.Appium
       int majorVersion = int.Parse(versionArr[0]);
       int minorVersion = int.Parse(versionArr[1]);
 
-      if (majorVersion == 2 || (majorVersion == 1 && minorVersion > 18)) {
-          return true;
+      if (majorVersion == 2 || (majorVersion == 1 && minorVersion > 18))
+      {
+        return true;
       }
       return false;
     }

@@ -45,6 +45,11 @@ namespace PercyIO.Appium
       return "percy-appium-dotnet/2.1.2";
     }
 
+    internal static Boolean ForceFullPage()
+    {
+      return Environment.GetEnvironmentVariable("FORCE_FULL_PAGE") == "true";
+    }
+
     internal static String GetEnvironmentInfo()
     {
       return Regex.Replace(
