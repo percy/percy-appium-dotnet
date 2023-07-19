@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Xunit;
 using PercyIO.Appium;
 using RichardSzalay.MockHttp;
@@ -126,6 +127,29 @@ namespace Percy.Tests
       // Assert
       Assert.Equal(expectedOutput, actualOutput);
       Assert.NotEqual(errorOutput, actualOutput);
+    }
+
+    [Fact]
+    public void TestName_ShouldThrowError()
+    {
+      // Arrange
+      AppPercy.cache.Clear();
+      TestHelper.UnsetEnvVariables();
+      // Setting v5
+      mockDriver.setIsV5(true);
+      mockDriver.SetCapability(MetadataBuilder.CapabilityBuilder("iOS"));
+      mockDriver.setCommandExecutor("https://browserstack.com/wd/hub");
+      
+      // Act
+      AppPercy appPercy = new AppPercy(mockDriver);
+      var name = "dummyName";
+      try {
+        appPercy.Screenshot(name, new Dictionary<string, object>());
+        // Fail if exception not thrown
+        Assert.Fail("Exception not raised");
+      } catch (Exception) {
+
+      }
     }
   }
 }

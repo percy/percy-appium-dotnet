@@ -93,7 +93,7 @@ namespace PercyIO.Appium
       {
         return (int)(long)scaleFactor;
       }
-      AppPercy.Log("Failed to get scale factor, full page screenshot might look incorrect");
+      Utils.Log("Failed to get scale factor, full page screenshot might look incorrect");
       return 1;
     }
   }

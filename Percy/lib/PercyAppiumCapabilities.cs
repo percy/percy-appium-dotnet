@@ -30,6 +30,11 @@ namespace PercyIO.Appium
       this.capabilites = capabilites;
     }
 
+    public Dictionary<string, object> GetCapabilities()
+    {
+      return capabilites;
+    }
+
     public Dictionary<string, object> GetCapability(Object driver)
     {
       var capabilityObject = ReflectionUtils.PropertyCall<object>(driver, "Capabilities");

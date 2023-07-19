@@ -53,6 +53,7 @@ namespace PercyIO.Appium
         dynamic data = DeserializeJson<dynamic>(res.content);
         Env.SetPercyBuildID(data.build.id.ToString());
         Env.SetPercyBuildUrl(data.build.url.ToString());
+        Env.SetSessionType("automate");
         string[] version = res.version.Split('.');
         int majorVersion = int.Parse(version[0]);
         int minorVersion = int.Parse(version[1]);
@@ -64,13 +65,13 @@ namespace PercyIO.Appium
 
         if (majorVersion < 1)
         {
-          AppPercy.Log($"Unsupported Percy CLI version, {res.version}");
+          Utils.Log($"Unsupported Percy CLI version, {res.version}");
           return (bool)(_enabled = false);
         }
         else
         {
           if (minorVersion < 25) {
-            AppPercy.Log($"Percy CLI version, {res.version} " +
+            Utils.Log($"Percy CLI version, {res.version} " +
             "is not the minimum version required, some features might not work as expected.", "warn");
           }
         }
@@ -78,8 +79,8 @@ namespace PercyIO.Appium
       }
       catch (Exception error)
       {
-        AppPercy.Log("Percy is not running, disabling snapshots");
-        AppPercy.Log(error.ToString());
+        Utils.Log("Percy is not running, disabling snapshots");
+        Utils.Log(error.ToString());
         return (bool)(_enabled = false);
       }
     };
@@ -108,9 +109,37 @@ namespace PercyIO.Appium
       }
       catch (Exception error)
       {
-        AppPercy.Log($"Could not take screenshot \"{name}\"");
-        AppPercy.Log(error.ToString(), "debug");
+        Utils.Log($"Could not take screenshot \"{name}\"");
+        Utils.Log(error.ToString(), "debug");
         return null;
+      }
+    }
+
+    internal static void PostPOAScreenshot(string name, string sessionId, string commandExecutorUrl, IPercyAppiumCapabilities capabilities, Dictionary<string, object> options)
+    {
+      try
+      {
+        var screenshotOptions = new
+        {
+          clientInfo = Env.GetClientInfo(),
+          environmentInfo = Env.GetEnvironmentInfo(),
+          sessionId = sessionId,
+          commandExecutorUrl = commandExecutorUrl,
+          capabilities = capabilities.GetCapabilities(),
+          snapshotName = name,
+          options = JObject.FromObject(options)
+        };
+        dynamic res = Request("/percy/automateScreenshot", JObject.FromObject(screenshotOptions));
+        dynamic data = DeserializeJson<dynamic>(res.content);
+        if (data.success.ToString().ToLower() != "true")
+        {
+          throw new Exception(data.error.ToString());
+        }
+      }
+      catch (Exception error)
+      {
+        Utils.Log($"Could not take screenshot \"{name}\"");
+        Utils.Log(error.ToString());
       }
     }
 

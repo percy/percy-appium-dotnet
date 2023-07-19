@@ -60,7 +60,7 @@ namespace PercyIO.Appium
       }
       catch (Exception)
       {
-        AppPercy.Log("BrowserStack executer failed");
+        Utils.Log("BrowserStack executer failed");
       }
       return null;
     }
@@ -98,7 +98,7 @@ namespace PercyIO.Appium
       }
       catch (Exception)
       {
-        AppPercy.Log("BrowserStack executer failed", "debug");
+        Utils.Log("BrowserStack executer failed", "debug");
       }
       return null;
     }
@@ -208,11 +208,11 @@ namespace PercyIO.Appium
       var appiumVersionJsonProtocol = percyAppiumDriver.GetCapabilities().getValue<String>("browserstack.appium_version");
       if (bstackOptions == null && appiumVersionJsonProtocol == null)
       {
-        AppPercy.Log("Unable to fetch Appium version, Appium version should be >= 1.19 for Fullpage Screenshot", "warn");
+        Utils.Log("Unable to fetch Appium version, Appium version should be >= 1.19 for Fullpage Screenshot", "warn");
       }
       else if ((appiumVersionJsonProtocol != null && !AppiumVersionCheck(appiumVersionJsonProtocol)) || (bstackOptions != null && !AppiumVersionCheck(bstackOptions["appiumVersion"].ToString())))
       {
-        AppPercy.Log("Appium version should be >= 1.19 for Fullpage Screenshot, Falling back to single page screenshot.", "warn");
+        Utils.Log("Appium version should be >= 1.19 for Fullpage Screenshot, Falling back to single page screenshot.", "warn");
         return false;
       }
       return true;

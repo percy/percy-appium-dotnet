@@ -8,6 +8,7 @@ namespace PercyIO.Appium
   {
     private static string percyBuildID = null;
     private static string percyBuildUrl = null;
+    private static string sessionType = null;
 
     internal static String GetPercyBuildID()
     {
@@ -19,6 +20,11 @@ namespace PercyIO.Appium
       return percyBuildUrl;
     }
 
+    internal static String GetSessionType()
+    {
+      return sessionType;
+    }
+
     internal static void SetPercyBuildID(String percyBuildIDParam)
     {
       percyBuildID = percyBuildIDParam;
@@ -27,6 +33,11 @@ namespace PercyIO.Appium
     internal static void SetPercyBuildUrl(String percyBuildUrlParam)
     {
       percyBuildUrl = percyBuildUrlParam;
+    }
+
+    internal static void SetSessionType(String type)
+    {
+      sessionType = type;
     }
 
     internal static String GetClientInfo()

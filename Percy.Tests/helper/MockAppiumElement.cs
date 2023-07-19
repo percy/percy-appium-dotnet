@@ -5,6 +5,15 @@ namespace Percy.Tests
 {
   internal class MockAppiumElement
   {
+
+    private String Id
+    {
+      get
+      {
+        return "element_id";
+      }
+    }
+
     public Size Size
     {
       get

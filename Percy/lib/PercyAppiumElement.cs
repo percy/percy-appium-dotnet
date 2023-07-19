@@ -9,11 +9,19 @@ namespace PercyIO.Appium
     public Size Size { get; set; }
     public Point Location { get; set; }
 
+    public string id { get; }
+
     internal PercyAppiumElement(object element)
     {
       this.element = element;
       this.Size = GetSize();
       this.Location = GetLocation();
+      this.id = GetId();
+    }
+
+    private string GetId()
+    {
+      return ReflectionUtils.PropertyCall<string>(element, "Id");
     }
 
     private Size GetSize()
