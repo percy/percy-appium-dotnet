@@ -135,6 +135,9 @@ namespace PercyIO.Appium
       // For single screens just use original approach
       if (Env.DisableRemoteUploads())
       {
+        if (options.FullPage) {
+          Utils.Log("Full page screenshots are only supported when \"isDisableRemoteUpload\" is not set", "warn");
+        }
         return base.CaptureTiles(options);
       }
 
