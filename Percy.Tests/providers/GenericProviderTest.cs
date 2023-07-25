@@ -161,7 +161,7 @@ namespace Percy.Tests
       // Assert
       Assert.Single(elementsArray);
       var region = elementsArray[0];
-      Assert.Equal("custom ignore region 0", region["selector"].ToObject<string>());
+      Assert.Equal("custom region 0", region["selector"].ToObject<string>());
       var co_ordinates = region["co_ordinates"];
       Assert.Equal(10, co_ordinates["top"].ToObject<int>());
       Assert.Equal(100, co_ordinates["bottom"].ToObject<int>());
