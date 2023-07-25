@@ -112,7 +112,7 @@ namespace PercyIO.Appium
       return CliWrapper.PostScreenshot(name, tag, tiles, debugUrl, ignoredElementsData, consideredElementsData);
     }
 
-    public JObject FindRegions(List<String> Xpaths, List<String> AccessibilityIds, List<Object> Elements, List<Region> Locations)
+    public JArray FindRegions(List<String> Xpaths, List<String> AccessibilityIds, List<Object> Elements, List<Region> Locations)
     {
       var elementsArray = new JArray();
       RegionsByXpath(elementsArray, Xpaths);
@@ -212,7 +212,7 @@ namespace PercyIO.Appium
         {
           if (customLocations[index].IsValid(width, height))
           {
-            var selector = "custom ignore region " + index;
+            var selector = "custom region " + index;
             var region = JObject.FromObject(new
             {
               selector = selector,
