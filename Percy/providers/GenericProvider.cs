@@ -120,7 +120,7 @@ namespace PercyIO.Appium
       RegionsByElements(elementsArray, Elements);
       RegionsByLocation(elementsArray, Locations);
 
-      return regions;
+      return elementsArray;
     }
 
     public JObject RegionObject(String selector, PercyAppiumElement element)
