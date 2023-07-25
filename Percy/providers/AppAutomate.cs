@@ -133,8 +133,12 @@ namespace PercyIO.Appium
     internal override List<Tile> CaptureTiles(ScreenshotOptions options)
     {
       // For single screens just use original approach
-      if (!options.FullPage || (options.ScreenLengths != null && options.ScreenLengths < 2) || !VerifyCorrectAppiumVersion())
+      if (Env.DisableRemoteUploads())
       {
+        if (options.FullPage)
+        {
+          Utils.Log("Full page screenshots are only supported when \"isDisableRemoteUpload\" is not set", "warn");
+        }
         return base.CaptureTiles(options);
       }
 
@@ -164,6 +168,17 @@ namespace PercyIO.Appium
 
     internal string ExecutePercyScreenshot(ScreenshotOptions options)
     {
+      var screenshotType = "fullpage";
+      if (!options.FullPage || (options.ScreenLengths != null && options.ScreenLengths < 2) || !VerifyCorrectAppiumVersion())
+      {
+        screenshotType = "singlepage";
+      }
+
+      var projectId = "percy-prod";
+      if (Env.EnablePercyDev())
+      {
+        projectId = "percy-dev";
+      }
       var reqObject = JObject.FromObject(new
       {
         action = "percyScreenshot",
@@ -171,8 +186,9 @@ namespace PercyIO.Appium
         {
           state = "screenshot",
           percyBuildId = Env.GetPercyBuildID(),
-          screenshotType = "fullpage",
+          screenshotType = screenshotType,
           scaleFactor = this.metadata.ScaleFactor(),
+          projectId = projectId,
           options = new
           {
             deviceHeight = this.metadata.DeviceScreenHeight(),

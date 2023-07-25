@@ -62,6 +62,7 @@ namespace Percy.Tests
     public void TestScreenshot()
     {
       // Arrange
+      Environment.SetEnvironmentVariable("PERCY_DISABLE_REMOTE_UPLOADS", "true");
       var response = @"{success:'true', osVersion:'11.2', buildHash:'abc', sessionHash:'def'}";
       _androidPercyAppiumDriver.Setup(x => x.ExecuteScript(It.IsAny<string>()))
         .Returns(response);
@@ -84,6 +85,7 @@ namespace Percy.Tests
     public void TestScreenshot_WhenPercyScreenshotBeginReturnsNull()
     {
       // Arrange
+      Environment.SetEnvironmentVariable("PERCY_DISABLE_REMOTE_UPLOADS", "true");
       _androidPercyAppiumDriver.Setup(x => x.ExecuteScript(It.IsAny<string>()))
         .Throws(new Exception());
       var options = new ScreenshotOptions();
@@ -100,6 +102,7 @@ namespace Percy.Tests
       string actual = appAutomate.Screenshot("temp", options);
       // Assert
       Assert.Equal(actual, "");
+      Environment.SetEnvironmentVariable("PERCY_DISABLE_REMOTE_UPLOADS", "false");
     }
 
     [Fact]
@@ -264,6 +267,7 @@ namespace Percy.Tests
     public void CaptureTiles_ShouldReturnListOfTiles_WhenCalled()
     {
       // Arrange
+      Environment.SetEnvironmentVariable("PERCY_DISABLE_REMOTE_UPLOADS", "false");
       _androidPercyAppiumDriver.Setup(x => x.ExecuteScript(It.IsAny<string>()))
         .Returns(JsonConvert.SerializeObject(new
         {

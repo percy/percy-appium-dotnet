@@ -50,6 +50,16 @@ namespace PercyIO.Appium
       return Environment.GetEnvironmentVariable("FORCE_FULL_PAGE") == "true";
     }
 
+    internal static Boolean DisableRemoteUploads()
+    {
+      return Environment.GetEnvironmentVariable("PERCY_DISABLE_REMOTE_UPLOADS") == "true";
+    }
+
+    internal static Boolean EnablePercyDev()
+    {
+      return Environment.GetEnvironmentVariable("PERCY_ENABLE_DEV") == "true";
+    }
+
     internal static String GetEnvironmentInfo()
     {
       return Regex.Replace(
