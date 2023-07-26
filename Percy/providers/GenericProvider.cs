@@ -88,28 +88,42 @@ namespace PercyIO.Appium
         platformVersion
       );
       var tag = GetTag();
-      var ignoredElementLocation = FindIgnoredRegions(options);
-      var tiles = CaptureTiles(options);
-      return CliWrapper.PostScreenshot(name, tag, tiles, debugUrl, ignoredElementLocation);
-    }
-
-    public JObject FindIgnoredRegions(ScreenshotOptions options)
-    {
-      var ignoredElementsArray = new JArray();
-      IgnoreRegionsByXpaths(ignoredElementsArray, options.IgnoreRegionXpaths);
-      IgnoreRegionsByIds(ignoredElementsArray, options.IgnoreRegionAccessibilityIds);
-      IgnoreRegionsByElement(ignoredElementsArray, options.IgnoreRegionAppiumElements);
-      AddCustomIgnoreRegions(ignoredElementsArray, options.CustomIgnoreRegions);
-
-      var ignoredElementsLocations = JObject.FromObject(new
+      var ignoredRegions = FindRegions(
+        options.IgnoreRegionXpaths,
+        options.IgnoreRegionAccessibilityIds,
+        options.IgnoreRegionAppiumElements,
+        options.CustomIgnoreRegions
+      );
+      var consideredRegions = FindRegions(
+        options.ConsiderRegionXpaths,
+        options.ConsiderRegionAccessibilityIds,
+        options.ConsiderRegionAppiumElements,
+        options.CustomConsiderRegions
+      );
+      var ignoredElementsData = JObject.FromObject(new
       {
-        ignoreElementsData = ignoredElementsArray
+        ignoreElementsData = ignoredRegions
       });
-
-      return ignoredElementsLocations;
+      var consideredElementsData = JObject.FromObject(new
+      {
+        considerElementsData = consideredRegions
+      });
+      var tiles = CaptureTiles(options);
+      return CliWrapper.PostScreenshot(name, tag, tiles, debugUrl, ignoredElementsData, consideredElementsData);
     }
 
-    public JObject IgnoreElementObject(String selector, PercyAppiumElement element)
+    public JArray FindRegions(List<String> Xpaths, List<String> AccessibilityIds, List<Object> Elements, List<Region> Locations)
+    {
+      var elementsArray = new JArray();
+      RegionsByXpath(elementsArray, Xpaths);
+      RegionsByIds(elementsArray, AccessibilityIds);
+      RegionsByElements(elementsArray, Elements);
+      RegionsByLocation(elementsArray, Locations);
+
+      return elementsArray;
+    }
+
+    public JObject RegionObject(String selector, PercyAppiumElement element)
     {
       var scaleFactor = metadata.ScaleFactor();
       var location = element.Location;
@@ -127,7 +141,7 @@ namespace PercyIO.Appium
       });
     }
 
-    public void IgnoreRegionsByXpaths(JArray ignoredElementsArray, List<String> xpaths)
+    public void RegionsByXpath(JArray elementsArray, List<String> xpaths)
     {
       foreach (var xpath in xpaths)
       {
@@ -136,8 +150,8 @@ namespace PercyIO.Appium
           var element = percyAppiumDriver.FindElementByXPath(xpath);
 
           var selector = string.Format("xpath: {0}", xpath);
-          var ignoredRegion = IgnoreElementObject(selector, element);
-          ignoredElementsArray.Add(ignoredRegion);
+          var region = RegionObject(selector, element);
+          elementsArray.Add(region);
         }
         catch (Exception e)
         {
@@ -147,7 +161,7 @@ namespace PercyIO.Appium
       }
     }
 
-    public void IgnoreRegionsByIds(JArray ignoredElementsArray, List<String> ids)
+    public void RegionsByIds(JArray elementsArray, List<String> ids)
     {
       foreach (var id in ids)
       {
@@ -156,8 +170,8 @@ namespace PercyIO.Appium
           var element = percyAppiumDriver.FindElementsByAccessibilityId(id);
 
           var selector = string.Format("id: {0}", id);
-          var ignoredRegion = IgnoreElementObject(selector, element);
-          ignoredElementsArray.Add(ignoredRegion);
+          var region = RegionObject(selector, element);
+          elementsArray.Add(region);
         }
         catch (Exception e)
         {
@@ -167,7 +181,7 @@ namespace PercyIO.Appium
       }
     }
 
-    public void IgnoreRegionsByElement(JArray ignoredElementsArray, List<Object> elements)
+    public void RegionsByElements(JArray elementsArray, List<Object> elements)
     {
       for (var index = 0; index < elements.Count; index++)
       {
@@ -177,8 +191,8 @@ namespace PercyIO.Appium
           string type = element.Type();
           var selector = string.Format("element: {0} {1}", index, type);
 
-          var ignoredRegion = IgnoreElementObject(selector, element);
-          ignoredElementsArray.Add(ignoredRegion);
+          var region = RegionObject(selector, element);
+          elementsArray.Add(region);
         }
         catch (Exception e)
         {
@@ -188,7 +202,7 @@ namespace PercyIO.Appium
       }
     }
 
-    public void AddCustomIgnoreRegions(JArray ignoredElementsArray, List<IgnoreRegion> customLocations)
+    public void RegionsByLocation(JArray elementsArray, List<Region> customLocations)
     {
       var width = metadata.DeviceScreenWidth();
       var height = metadata.DeviceScreenHeight();
@@ -198,8 +212,8 @@ namespace PercyIO.Appium
         {
           if (customLocations[index].IsValid(width, height))
           {
-            var selector = "custom ignore region " + index;
-            var ignoredRegion = JObject.FromObject(new
+            var selector = "custom region " + index;
+            var region = JObject.FromObject(new
             {
               selector = selector,
               co_ordinates = JObject.FromObject(new
@@ -212,11 +226,11 @@ namespace PercyIO.Appium
 
               )
             });
-            ignoredElementsArray.Add(ignoredRegion);
+            elementsArray.Add(region);
           }
           else
           {
-            Utils.Log("Values passed in custom ignored region at index:- " + index + " is not valid");
+            Utils.Log("Values passed in custom region at index:- " + index + " is not valid");
           }
         }
         catch (Exception e)

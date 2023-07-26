@@ -42,12 +42,22 @@ namespace PercyIO.Appium
 
     internal static String GetClientInfo()
     {
-      return "percy-appium-dotnet/2.1.2";
+      return "percy-appium-dotnet/3.0.1-beta.0";
     }
 
     internal static Boolean ForceFullPage()
     {
       return Environment.GetEnvironmentVariable("FORCE_FULL_PAGE") == "true";
+    }
+
+    internal static Boolean DisableRemoteUploads()
+    {
+      return Environment.GetEnvironmentVariable("PERCY_DISABLE_REMOTE_UPLOADS") == "true";
+    }
+
+    internal static Boolean EnablePercyDev()
+    {
+      return Environment.GetEnvironmentVariable("PERCY_ENABLE_DEV") == "true";
     }
 
     internal static String GetEnvironmentInfo()

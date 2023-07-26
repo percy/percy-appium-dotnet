@@ -62,6 +62,7 @@ namespace Percy.Tests
     public void shouldCallAppPercy()
     {
       TestHelper.UnsetEnvVariables();
+      Environment.SetEnvironmentVariable("PERCY_DISABLE_REMOTE_UPLOADS", "true");
       Env.SetSessionType("app-percy");
       mockDriver.SetCapability(MetadataBuilder.CapabilityBuilder("Android"));
       mockDriver.setCommandExecutor("https://browserstack.com/wd/hub");
@@ -79,6 +80,7 @@ namespace Percy.Tests
       
       percy.Screenshot("Screenshot 4");
       mockHttp.VerifyNoOutstandingExpectation();
+      Environment.SetEnvironmentVariable("PERCY_DISABLE_REMOTE_UPLOADS", "false");
     }
   }
 }
