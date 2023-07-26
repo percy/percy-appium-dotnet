@@ -17,7 +17,11 @@ namespace PercyIO.Appium
     public List<String> IgnoreRegionXpaths { get; set; } = new List<string>();
     public List<String> IgnoreRegionAccessibilityIds { get; set; } = new List<string>();
     public List<Object> IgnoreRegionAppiumElements { get; set; } = new List<Object>();
-    public List<IgnoreRegion> CustomIgnoreRegions { get; set; } = new List<IgnoreRegion>();
+    public List<Region> CustomIgnoreRegions { get; set; } = new List<Region>();
+    public List<String> ConsiderRegionXpaths { get; set; } = new List<string>();
+    public List<String> ConsiderRegionAccessibilityIds { get; set; } = new List<string>();
+    public List<Object> ConsiderRegionAppiumElements { get; set; } = new List<Object>();
+    public List<Region> CustomConsiderRegions { get; set; } = new List<Region>();
     public String? ScrollableXpath { get; set; } = null;
     public String? ScrollableId { get; set; } = null;
   }

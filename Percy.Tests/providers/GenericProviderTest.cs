@@ -143,26 +143,26 @@ namespace Percy.Tests
     }
 
     [Fact]
-    public void TestAddCustomIgnoreLocation_ValidLocation_AddsRegionToIgnoredElementsArray()
+    public void TestRegionsByLocation_ValidLocation_AddsRegionElementsArray()
     {
       // Arrange
-      var ignoredElementsArray = new JArray();
-      var ignoreRegion = new IgnoreRegion(10, 100, 20, 200);
-      var customLocations = new List<IgnoreRegion>
+      var elementsArray = new JArray();
+      var customRegion = new Region(10, 100, 20, 200);
+      var customLocations = new List<Region>
       {
-        ignoreRegion
+        customRegion
       };
       var genericProvider = new GenericProvider(_androidPercyAppiumDriver.Object);
       var metadata = MetadataHelper.Resolve(_androidPercyAppiumDriver.Object, "Samsung Galaxy s22", 100, 200, null, null);
       genericProvider.metadata = metadata;
       // Act
-      genericProvider.AddCustomIgnoreRegions(ignoredElementsArray, customLocations);
+      genericProvider.RegionsByLocation(elementsArray, customLocations);
 
       // Assert
-      Assert.Single(ignoredElementsArray);
-      var ignoredRegion = ignoredElementsArray[0];
-      Assert.Equal("custom ignore region 0", ignoredRegion["selector"].ToObject<string>());
-      var co_ordinates = ignoredRegion["co_ordinates"];
+      Assert.Single(elementsArray);
+      var region = elementsArray[0];
+      Assert.Equal("custom region 0", region["selector"].ToObject<string>());
+      var co_ordinates = region["co_ordinates"];
       Assert.Equal(10, co_ordinates["top"].ToObject<int>());
       Assert.Equal(100, co_ordinates["bottom"].ToObject<int>());
       Assert.Equal(20, co_ordinates["left"].ToObject<int>());
@@ -170,23 +170,23 @@ namespace Percy.Tests
     }
 
     [Fact]
-    public void TestAddCustomIgnoreLocation_InvalidLocation_DoesNotAddRegionToIgnoredElementsArray()
+    public void TestRegionsByLocation_InvalidLocation_DoesNotAddRegionToElementsArray()
     {
       // Arrange
-      var ignoredElementsArray = new JArray();
-      var ignoreRegion = new IgnoreRegion(0, 2000, 0, 600);
-      var customLocations = new List<IgnoreRegion>
+      var elementsArray = new JArray();
+      var customRegion = new Region(0, 2000, 0, 600);
+      var customLocations = new List<Region>
       {
-        ignoreRegion
+        customRegion
       };
       var genericProvider = new GenericProvider(_androidPercyAppiumDriver.Object);
       var metadata = MetadataHelper.Resolve(_androidPercyAppiumDriver.Object, "Samsung Galaxy s22", 100, 200, null, null);
       genericProvider.metadata = metadata;
       // Act
-      genericProvider.AddCustomIgnoreRegions(ignoredElementsArray, customLocations);
+      genericProvider.RegionsByLocation(elementsArray, customLocations);
 
       // Assert
-      Assert.Empty(ignoredElementsArray);
+      Assert.Empty(elementsArray);
     }
   }
 }

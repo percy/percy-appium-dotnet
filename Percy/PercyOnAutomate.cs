@@ -10,6 +10,7 @@ namespace PercyIO.Appium
     private IPercyAppiumDriver percyAppiumDriver;
     private Boolean isPercyEnabled;
     private static readonly string ignoreElementKey = "ignore_region_appium_elements";
+    private static readonly string considerElementKey = "consider_region_appium_elements";
 
     public PercyOnAutomate(Object driver)
     {
@@ -37,6 +38,16 @@ namespace PercyIO.Appium
                       List<string> elementIds = percyAppiumDriver.GetElementIds(ignoreElements);
                       userOptions.Remove(ignoreElementKey);
                       userOptions["ignore_region_elements"] = elementIds;
+                  }
+              }
+
+              if(userOptions.ContainsKey(considerElementKey)) {
+                  List<object>? considerElements = userOptions[considerElementKey] as List<object>;
+                  if(considerElements != null)
+                  {
+                      List<string> elementIds = percyAppiumDriver.GetElementIds(considerElements);
+                      userOptions.Remove(considerElementKey);
+                      userOptions["consider_region_elements"] = elementIds;
                   }
               }
           }
