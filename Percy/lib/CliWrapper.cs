@@ -53,7 +53,7 @@ namespace PercyIO.Appium
         dynamic data = DeserializeJson<dynamic>(res.content);
         Env.SetPercyBuildID(data.build.id.ToString());
         Env.SetPercyBuildUrl(data.build.url.ToString());
-        Env.SetSessionType(data.type.ToString());
+        Env.SetSessionType(data?.type?.ToString() ?? null);
         string[] version = res.version.Split('.');
         int majorVersion = int.Parse(version[0]);
         int minorVersion = int.Parse(version[1]);
@@ -70,7 +70,7 @@ namespace PercyIO.Appium
         }
         else
         {
-          if (minorVersion < 26) {
+          if (minorVersion < 27) {
             Utils.Log($"Percy CLI version, {res.version} " +
             "is not minimum version required, Percy on Automate is available from 1.27.0-beta.0.", "warn");
             return (bool)(_enabled = false);
