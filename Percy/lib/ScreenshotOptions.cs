@@ -10,6 +10,8 @@ namespace PercyIO.Appium
     public String? DeviceName { get; set; }
     public int StatusBarHeight { get; set; } = -1;
     public int NavBarHeight { get; set; } = -1;
+    public int TopScrollviewOffset { get; set; } = 0;
+    public int BottomScrollviewOffset { get; set; } = 0;
     public String? Orientation { get; set; }
     public bool FullScreen { get; set; } = false;
     public bool FullPage { get; set; } = false;

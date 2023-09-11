@@ -195,6 +195,8 @@ namespace PercyIO.Appium
             numOfTiles = options.ScreenLengths,
             scollableXpath = options.ScrollableXpath,
             scrollableId = options.ScrollableId,
+            topScrollviewOffset = options.TopScrollviewOffset,
+            bottomScrollviewOffset = options.BottomScrollviewOffset,
             FORCE_FULL_PAGE = Env.ForceFullPage()
           }
         }

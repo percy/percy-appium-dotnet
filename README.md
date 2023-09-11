@@ -94,6 +94,9 @@ The screenshot method arguments:
       - `NavBarHeight` - Height of navigation bar for the device
       - `Orientation` - Orientation of the application
       - `FullPage`: true/false. [Experimental] only supported on App Automate driver sessions [ needs @percy/cli 1.20.2+ ]
+      - In case scrollview is overlapping with other app elements. Offsets can be provided to reduce the area which needs to be considered for scrolling:
+        - `TopScrollviewOffset`: (**optional**) - [Experimental] offset from top of scrollview [ needs @percy/cli 1.20.2+ ]; int
+        - `BottomScrollviewOffset` (**optional**) - [Experimental] offset from bottom of scrollview [ needs @percy/cli 1.20.2+ ]; int
       - `ScreenLengths`: int [Experimental] max screen lengths for fullPage [ needs @percy/cli 1.20.2+ ]
       - `ScrollableXpath` (**optional**) - [Experimental] scrollable element xpath for fullpage [ needs @percy/cli 1.20.2+ ]; string
       - `ScrollableId` (**optional**) - [Experimental] scrollable element accessibility id for fullpage [ needs @percy/cli 1.20.2+ ]; string
