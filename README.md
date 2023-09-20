@@ -99,13 +99,13 @@ The screenshot method arguments:
 | StatusBarHeight | Int  | Height of status bar for the device  |
 | NavBarHeight | Int  | Height of navigation bar for the device  |
 | Orientation | ["portrait"/"landscape"]  | Orientation of the application  |
-| FullPage | Boolean  | Only supported on App Automate driver sessions [ needs @percy/cli 1.20.2+ ]  |
-| ScreenLengths | Int  | Max screen lengths for fullPage [ needs @percy/cli 1.20.2+ ]  |
-| TopScrollviewOffset | Int  | Offset from top of scrollview [ needs @percy/cli 1.20.2+ ]  |
-| BottomScrollviewOffset | Int  | Offset from bottom of scrollview [ needs @percy/cli 1.20.2+ ]  |
+| FullPage | Boolean  | [Alpha] Only supported on App Automate driver sessions [ needs @percy/cli 1.20.2+ ]  |
+| ScreenLengths | Int  | [Alpha] Max screen lengths for fullPage [ needs @percy/cli 1.20.2+ ]  |
+| TopScrollviewOffset | Int  | [Alpha] Offset from top of scrollview [ needs @percy/cli 1.20.2+ ]  |
+| BottomScrollviewOffset | Int  | [Alpha] Offset from bottom of scrollview [ needs @percy/cli 1.20.2+ ]  |
 | FullScreen | Boolean  | Indicate whether app is full screen; boolean  |
-| ScrollableXpath | String  | Scrollable element xpath for fullpage [ needs @percy/cli 1.20.2+ ]  |
-| ScrollableId | String  | Scrollable element accessibility id for fullpage [ needs @percy/cli 1.20.2+ ]  |
+| ScrollableXpath | String  | [Alpha] Scrollable element xpath for fullpage [ needs @percy/cli 1.20.2+ ]  |
+| ScrollableId | String  | [Alpha] Scrollable element accessibility id for fullpage [ needs @percy/cli 1.20.2+ ]  |
 | IgnoreRegionXpaths | list of string  | Elements xpaths that user want to ignore in visual diff [ needs @percy/cli 1.23.0+ ]  |
 | IgnoreRegionAccessibilityIds | list of string  | Elements accessibility_ids that user want to ignore in visual diff [ needs @percy/cli 1.23.0+ ]  |
 | IgnoreRegionAppiumElements | list of appium element object  | Appium elements that user want to ignore in visual diff [ needs @percy/cli 1.23.0+ ]  |
