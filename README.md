@@ -82,46 +82,34 @@ $ percy app:exec -- [your dotnet test command]
 
 The screenshot method arguments:
 
-`percy.screenshot(name, fullScreen)`
+``` csharp
+  ScreenshotOptions options = new ScreenshotOptions();
+  // Set options here
+  percy.screenshot(name, fullScreen, options)
+```
 
 - `name` (**required**) - The screenshot name; must be unique to each screenshot
 - Additional screenshot options (overrides any project options):
-  - `fullScreen ` - It indicates if the app is a full screen
-  - `options` - Optional screenshot params:
-    Use `ScreenshotOptions` to set following params to override
-      - `DeviceName` - Device name on which screenshot is taken
-      - `StatusBarHeight` - Height of status bar for the device
-      - `NavBarHeight` - Height of navigation bar for the device
-      - `Orientation` - Orientation of the application
-      - `FullPage`: true/false. [Experimental] only supported on App Automate driver sessions [ needs @percy/cli 1.20.2+ ]
-      - In case scrollview is overlapping with other app elements. Offsets can be provided to reduce the area which needs to be considered for scrolling:
-        - `TopScrollviewOffset`: (**optional**) - [Experimental] offset from top of scrollview [ needs @percy/cli 1.20.2+ ]; int
-        - `BottomScrollviewOffset` (**optional**) - [Experimental] offset from bottom of scrollview [ needs @percy/cli 1.20.2+ ]; int
-      - `ScreenLengths`: int [Experimental] max screen lengths for fullPage [ needs @percy/cli 1.20.2+ ]
-      - `ScrollableXpath` (**optional**) - [Experimental] scrollable element xpath for fullpage [ needs @percy/cli 1.20.2+ ]; string
-      - `ScrollableId` (**optional**) - [Experimental] scrollable element accessibility id for fullpage [ needs @percy/cli 1.20.2+ ]; string
-      - `IgnoreRegionXpaths` (**optional**) - elements xpaths that user want to ignore in visual diff [ needs @percy/cli 1.23.0+ ]; list of string
-      - `IgnoreRegionAccessibilityIds` (**optional**) - elements accessibility_ids that user want to ignore in visual diff [ needs @percy/cli 1.23.0+ ]; list of string
-      - `IgnoreRegionAppiumElements` (**optional**) - appium elements that user want to ignore in visual diff [ needs @percy/cli 1.23.0+ ]; list of appium element object
-      - `CustomIgnoreRegions` (**optional**) - custom locations that user want to ignore in visual diff [ needs @percy/cli 1.23.0+ ]; list of ignore_region object
-      - IgnoreRegion:-
-        - Description: This class represents a rectangular area on a screen that needs to be ignored for visual diff.
-        - constructor:-
-          ```
-          var ignoreRegion = new IgnoreRegion();
-          ignoreRegion.Top = top;
-          ignoreRegion.Bottom = bottom;
-          ignoreRegion.Left = left;
-          ignoreRegion.Right = right;
-          ```
-        - Parameters:
+  - `fullScreen ` - (**optional**) It indicates if the app is a full screen
+  - `options` - (**optional**) configure screenshot using below options:
 
-          `Top` (int): Top coordinate of the ignore region.
-          `Bottom` (int): Bottom coordinate of the ignore region.
-          `Left` (int): Left coordinate of the ignore region.
-          `Right` (int): Right coordinate of the ignore region.
-        - Raises:ArgumentException: If top, bottom, left, or right is less than 0 or top is greater than or equal to bottom or left is greater than or equal to right.
-        - valid: Ignore region should be within the boundaries of the screen.
+| Screenshot Options | Type  | Description |
+| ------------- | ------------- | ------------- |
+| DeviceName | String  | Device name on which screenshot is taken  |
+| StatusBarHeight | Int  | Height of status bar for the device  |
+| NavBarHeight | Int  | Height of navigation bar for the device  |
+| Orientation | ["portrait"/"landscape"]  | Orientation of the application  |
+| FullPage | Boolean  | Only supported on App Automate driver sessions [ needs @percy/cli 1.20.2+ ]  |
+| ScreenLengths | Int  | Max screen lengths for fullPage [ needs @percy/cli 1.20.2+ ]  |
+| TopScrollviewOffset | Int  | Offset from top of scrollview [ needs @percy/cli 1.20.2+ ]  |
+| BottomScrollviewOffset | Int  | Offset from bottom of scrollview [ needs @percy/cli 1.20.2+ ]  |
+| FullScreen | Boolean  | Indicate whether app is full screen; boolean  |
+| ScrollableXpath | String  | Scrollable element xpath for fullpage [ needs @percy/cli 1.20.2+ ]  |
+| ScrollableId | String  | Scrollable element accessibility id for fullpage [ needs @percy/cli 1.20.2+ ]  |
+| IgnoreRegionXpaths | list of string  | Elements xpaths that user want to ignore in visual diff [ needs @percy/cli 1.23.0+ ]  |
+| IgnoreRegionAccessibilityIds | list of string  | Elements accessibility_ids that user want to ignore in visual diff [ needs @percy/cli 1.23.0+ ]  |
+| IgnoreRegionAppiumElements | list of appium element object  | Appium elements that user want to ignore in visual diff [ needs @percy/cli 1.23.0+ ]  |
+| CustomIgnoreRegions |  list of ignore_region object  | Custom locations that user want to ignore in visual diff [ needs @percy/cli 1.23.0+ ] <br /> - Description: IgnoreRegion class represents a rectangular area on a screen that needs to be ignored for visual diff. <br /> ```var ignoreRegion = new IgnoreRegion();```<br />```ignoreRegion.setTop() = top;``` <br />```ignoreRegion.setBottom = bottom;``` <br />```ignoreRegion.setLeft = left;``` <br />```ignoreRegion.setRight = right;```  |
 
 ## Running with Hybrid Apps
 
@@ -210,9 +198,6 @@ class Program
           `bottom` (int): Bottom coordinate of the ignore region.
           `left` (int): Left coordinate of the ignore region.
           `right` (int): Right coordinate of the ignore region.
-        - Raises:ValueError: If top, bottom, left, or right is less than 0 or top is greater than or equal to bottom or left is greater than or equal to right.
-        - valid: Ignore region should be within the boundaries of the screen.
-
 ### Creating Percy on automate build
 Note: Automate Percy Token starts with `auto` keyword. The command can be triggered using `exec` keyword.
 ```sh-session
