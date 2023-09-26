@@ -16,6 +16,9 @@ namespace Percy.Tests
 
     public AppPercyTest()
     {
+      AppPercy.cache.Clear();
+      TestHelper.UnsetEnvVariables();
+      Environment.SetEnvironmentVariable("PERCY_DISABLE_REMOTE_UPLOADS", "true");
       mockDriver = new MockDriverObject();
       mockDriver.SessionId = "session-1";
       CliWrapper.Healthcheck = () =>
@@ -47,8 +50,6 @@ namespace Percy.Tests
     public void TestName_WithAndroid_V4()
     {
       // Arrange
-      AppPercy.cache.Clear();
-      TestHelper.UnsetEnvVariables();
       mockDriver.SetCapability(MetadataBuilder.CapabilityBuilder("Android"));
       mockDriver.setCommandExecutor("https://browserstack.com/wd/hub");
       // Act
@@ -66,7 +67,6 @@ namespace Percy.Tests
     public void TestName_WithIOS_V4()
     {
       // Arrange
-      AppPercy.cache.Clear();
       mockDriver.SetCapability(MetadataBuilder.CapabilityBuilder("iOS"));
       mockDriver.setCommandExecutor("https://browserstack.com/wd/hub");
       
@@ -85,8 +85,6 @@ namespace Percy.Tests
     public void TestName_WithAndroid_V5()
     {
       // Arrange
-      AppPercy.cache.Clear();
-      TestHelper.UnsetEnvVariables();
       // Setting v5
       mockDriver.setIsV5(true);
       mockDriver.SetCapability(MetadataBuilder.CapabilityBuilder("Android"));
@@ -107,8 +105,6 @@ namespace Percy.Tests
     public void TestName_WithIOS_V5()
     {
       // Arrange
-      AppPercy.cache.Clear();
-      TestHelper.UnsetEnvVariables();
       // Setting v5
       mockDriver.setIsV5(true);
       mockDriver.SetCapability(MetadataBuilder.CapabilityBuilder("iOS"));
@@ -129,8 +125,6 @@ namespace Percy.Tests
     public void TestName_ShouldThrowError()
     {
       // Arrange
-      AppPercy.cache.Clear();
-      TestHelper.UnsetEnvVariables();
       // Setting v5
       mockDriver.setIsV5(true);
       mockDriver.SetCapability(MetadataBuilder.CapabilityBuilder("iOS"));
