@@ -30,7 +30,7 @@ namespace Percy.Tests
           }
         },
         {
-          "pixelRatio", 1
+          "pixelRatio", 1l
         }
       };
     }
@@ -69,7 +69,7 @@ namespace Percy.Tests
       return new Screenshot();
     }
 
-    public Object ExecuteScript(String script, Object obj)
+    public Object ExecuteScript(String script)
     {
       return @"{success:'true', osVersion:'11.2', buildHash:'abc', sessionHash:'def'}";
     }

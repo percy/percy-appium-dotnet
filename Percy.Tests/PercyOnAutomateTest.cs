@@ -23,17 +23,6 @@ namespace Percy.Tests
       {
         return true;
       };
-      mockHttp = new MockHttpMessageHandler();
-      var obj = new
-      {
-        success = true,
-        type = "automate"
-      };
-      CliWrapper.setHttpClient(new HttpClient(mockHttp));
-      // Setup a respond for the user api (including a wildcard in the URL)
-      mockHttp.When("http://localhost:5338/percy/healthcheck")
-        .Respond("application/json", JsonConvert.SerializeObject(obj));
-
       stringWriter = new StringWriter();
       Console.SetOut(stringWriter);
     }
