@@ -131,14 +131,13 @@ namespace PercyIO.Appium
         dynamic data = DeserializeJson<dynamic>(res.content);
         if (data.success.ToString().ToLower() != "true")
         {
-          Console.WriteLine("data: ", data);
           throw new Exception(data.error.ToString());
         }
       }
       catch (Exception error)
       {
-        Utils.Log($"Could not send failed event");
-        Utils.Log(error.ToString());
+        Utils.Log($"Could not send failed event", "debug");
+        Utils.Log(error.ToString(), "debug");
       }
     }
 
