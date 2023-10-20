@@ -136,7 +136,7 @@ namespace PercyIO.Appium
       }
       catch (Exception error)
       {
-        Utils.Log($"Could not send failed event", "debug");
+        Utils.Log("Could not send failed event", "debug");
         Utils.Log(error.ToString(), "debug");
       }
     }
