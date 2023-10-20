@@ -32,7 +32,6 @@ namespace PercyIO.Appium
 
     public void Screenshot(String name, ScreenshotOptions? options = null, Boolean fullScreen = false)
     {
-      Console.WriteLine("screenshot called");
       if (options == null)
       {
         options = new ScreenshotOptions();
