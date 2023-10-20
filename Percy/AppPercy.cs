@@ -32,6 +32,7 @@ namespace PercyIO.Appium
 
     public void Screenshot(String name, ScreenshotOptions? options = null, Boolean fullScreen = false)
     {
+      Console.WriteLine("screenshot called");
       if (options == null)
       {
         options = new ScreenshotOptions();
@@ -53,6 +54,7 @@ namespace PercyIO.Appium
       }
       catch (Exception e)
       {
+        CliWrapper.PostFailedEvent(e.Message);
         if (e is PercyException)
         {
           Utils.Log("The method is not valid for current driver. Please contact us.", "warn");
