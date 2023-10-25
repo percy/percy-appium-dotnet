@@ -125,7 +125,8 @@ namespace PercyIO.Appium
         var screenshotOptions = new
         {
           clientInfo = Env.GetClientInfo(),
-          errorMessage = err
+          message = err,
+          errorKind = "sdk"
         };
         dynamic res = Request("/percy/events", JObject.FromObject(screenshotOptions));
         dynamic data = DeserializeJson<dynamic>(res.content);
