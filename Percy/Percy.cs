@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace PercyIO.Appium
 {
   // This acts as a factory
-  public class Percy
+  internal class Percy
   {
     private IPercy percyClass;
     private Boolean isPercyEnabled;
