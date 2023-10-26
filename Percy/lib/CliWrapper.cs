@@ -70,7 +70,8 @@ namespace PercyIO.Appium
         }
         else
         {
-          if (minorVersion < 27) {
+          if (minorVersion < 27)
+          {
             Utils.Log($"Percy CLI version, {res.version} " +
             "is not minimum version required, Percy on Automate is available from 1.27.0-beta.0.", "warn");
             return (bool)(_enabled = false);
@@ -117,6 +118,30 @@ namespace PercyIO.Appium
       }
     }
 
+    internal static void PostFailedEvent(string err)
+    {
+      try
+      {
+        var screenshotOptions = new
+        {
+          clientInfo = Env.GetClientInfo(),
+          message = err,
+          errorKind = "sdk"
+        };
+        dynamic res = Request("/percy/events", JObject.FromObject(screenshotOptions));
+        dynamic data = DeserializeJson<dynamic>(res.content);
+        if (data.success.ToString().ToLower() != "true")
+        {
+          throw new Exception(data.error.ToString());
+        }
+      }
+      catch (Exception error)
+      {
+        Utils.Log("Could not send failed event", "debug");
+        Utils.Log(error.ToString(), "debug");
+      }
+    }
+
     internal static void PostPOAScreenshot(string name, string sessionId, string commandExecutorUrl, IPercyAppiumCapabilities capabilities, Dictionary<string, object> options)
     {
       try
@@ -147,11 +172,11 @@ namespace PercyIO.Appium
 
     private static T DeserializeJson<T>(string json)
     {
-        JsonSerializer serializer = new JsonSerializer();
-        using (JsonTextReader reader = new JsonTextReader(new StringReader(json)))
-        {
-            return serializer.Deserialize<T>(reader);
-        }
+      JsonSerializer serializer = new JsonSerializer();
+      using (JsonTextReader reader = new JsonTextReader(new StringReader(json)))
+      {
+        return serializer.Deserialize<T>(reader);
+      }
     }
 
     internal static void setHttpClient(HttpClient client)
