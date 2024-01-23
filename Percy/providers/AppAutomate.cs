@@ -103,7 +103,7 @@ namespace PercyIO.Appium
       return null;
     }
 
-    public override String Screenshot(String name, ScreenshotOptions options, String? platformVersion = null)
+    public override JObject Screenshot(String name, ScreenshotOptions options, String? platformVersion = null)
     {
       var result = ExecutePercyScreenshotBegin(name);
       var percyScreenshotUrl = "";
@@ -112,11 +112,16 @@ namespace PercyIO.Appium
       base.SetDebugUrl(GetDebugUrl(result));
       try
       {
-        percyScreenshotUrl = base.Screenshot(
+        dynamic data = base.Screenshot(
           name,
           options,
           OsVersion(result)
         );
+
+        percyScreenshotUrl = data.link.ToString();
+        Console.WriteLine("percyScreenshotUrl");
+        Console.WriteLine(percyScreenshotUrl);
+        return JObject.FromObject(data);
       }
       catch (Exception e)
       {
@@ -127,7 +132,6 @@ namespace PercyIO.Appium
       {
         ExecutePercyScreenshotEnd(name, percyScreenshotUrl, error);
       }
-      return "";
     }
 
     internal override List<Tile> CaptureTiles(ScreenshotOptions options)

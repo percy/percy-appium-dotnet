@@ -87,7 +87,7 @@ namespace PercyIO.Appium
       }
     };
 
-    internal static String PostScreenshot(string name, JObject tag, List<Tile> tiles, String externalDebugUrl, JObject ignoredElementsData, JObject consideredElementsData)
+    internal static dynamic PostScreenshot(string name, JObject tag, List<Tile> tiles, String externalDebugUrl, JObject ignoredElementsData, JObject consideredElementsData, Boolean sync)
     {
       try
       {
@@ -100,7 +100,8 @@ namespace PercyIO.Appium
           externalDebugUrl = externalDebugUrl,
           name = name,
           ignoredElementsData = ignoredElementsData,
-          consideredElementsData = consideredElementsData
+          consideredElementsData = consideredElementsData,
+          sync = sync
         };
         dynamic res = Request("/percy/comparison", JObject.FromObject(screenshotOptions));
         dynamic data = DeserializeJson<dynamic>(res.content);
@@ -108,7 +109,7 @@ namespace PercyIO.Appium
         {
           throw new Exception(data.error.ToString());
         }
-        return data.link.ToString();
+        return data;
       }
       catch (Exception error)
       {
@@ -142,7 +143,7 @@ namespace PercyIO.Appium
       }
     }
 
-    internal static void PostPOAScreenshot(string name, string sessionId, string commandExecutorUrl, IPercyAppiumCapabilities capabilities, Dictionary<string, object> options)
+    internal static JObject PostPOAScreenshot(string name, string sessionId, string commandExecutorUrl, IPercyAppiumCapabilities capabilities, Dictionary<string, object> options)
     {
       try
       {
@@ -162,11 +163,13 @@ namespace PercyIO.Appium
         {
           throw new Exception(data.error.ToString());
         }
+        return JObject.FromObject(data);
       }
       catch (Exception error)
       {
         Utils.Log($"Could not take screenshot \"{name}\"");
         Utils.Log(error.ToString());
+        return null;
       }
     }
 

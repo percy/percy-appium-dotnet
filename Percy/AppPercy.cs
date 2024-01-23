@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
 
 namespace PercyIO.Appium
 {
@@ -30,7 +31,7 @@ namespace PercyIO.Appium
       this.sessionId = percyAppiumDriver.sessionId();
     }
 
-    public void Screenshot(String name, ScreenshotOptions? options = null, Boolean fullScreen = false)
+    public JObject Screenshot(String name, ScreenshotOptions? options = null, Boolean fullScreen = false)
     {
       if (options == null)
       {
@@ -39,14 +40,14 @@ namespace PercyIO.Appium
       options.FullScreen = fullScreen;
       if (!isPercyEnabled || !percyOptions.PercyEnabled())
       {
-        return;
+        return null;
       }
       percyOptions.SetPercyIgnoreErrors();
       try
       {
         GenericProvider provider;
         provider = ProviderResolver.ResolveProvider(percyAppiumDriver);
-        provider.Screenshot(
+        return provider.Screenshot(
           name,
           options
         );
@@ -63,13 +64,13 @@ namespace PercyIO.Appium
         {
           throw new Exception("Error taking screenshot " + name, e);
         }
+        return null;
       }
     }
 
-    public void Screenshot(String name, IEnumerable<KeyValuePair<string, object>>? options) {
+    public JObject Screenshot(String name, IEnumerable<KeyValuePair<string, object>>? options) {
       if (options == null) {
-        Screenshot(name, null, false);
-        return;
+        return Screenshot(name, null, false);
       }
       throw new Exception("Options need to be passed using Sceenshot Options for: " + name);
     }

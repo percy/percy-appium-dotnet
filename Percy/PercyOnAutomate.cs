@@ -11,6 +11,8 @@ namespace PercyIO.Appium
     private Boolean isPercyEnabled;
     private static readonly string ignoreElementKey = "ignore_region_appium_elements";
     private static readonly string considerElementKey = "consider_region_appium_elements";
+    private static readonly string sync = "sync";
+
 
     public PercyOnAutomate(Object driver)
     {
@@ -22,9 +24,9 @@ namespace PercyIO.Appium
       this.isPercyEnabled = CliWrapper.Healthcheck();
     }
 
-    public void Screenshot(String name, IEnumerable<KeyValuePair<string, object>>? options = null) 
+    public JObject Screenshot(String name, IEnumerable<KeyValuePair<string, object>>? options = null) 
     {
-      if(!isPercyEnabled) return;
+      if(!isPercyEnabled) return null;
       try
       {
           Dictionary<string, object> userOptions = new Dictionary<string, object>();
@@ -50,17 +52,21 @@ namespace PercyIO.Appium
                       userOptions["consider_region_elements"] = elementIds;
                   }
               }
+              if(!userOptions.ContainsKey(sync)) {
+                userOptions["sync"] = false;
+              }
           }
 
-          CliWrapper.PostPOAScreenshot(name, percyAppiumDriver.getSessionId(), percyAppiumDriver.GetHost().TrimEnd('/'), percyAppiumDriver.GetCapabilities(), userOptions);
+          return CliWrapper.PostPOAScreenshot(name, percyAppiumDriver.getSessionId(), percyAppiumDriver.GetHost().TrimEnd('/'), percyAppiumDriver.GetCapabilities(), userOptions);
       }
       catch(Exception error)
       {
           Utils.Log($"Could not take Percy Screenshot \"{name}\"");
           Utils.Log(error.ToString(), "debug");
+          return null;
       }
     }
-    public void Screenshot(String name, ScreenshotOptions? options, bool fullScreen) {
+    public JObject Screenshot(String name, ScreenshotOptions? options, bool fullScreen) {
       throw new Exception("Options need to be passed using Dictionary for: " + name);
     }
 
