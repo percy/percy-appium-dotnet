@@ -65,7 +65,7 @@ namespace PercyIO.Appium
       return null;
     }
 
-    internal JObject? ExecutePercyScreenshotEnd(String name, String percyScreenshotUrl, String? error)
+    internal JObject? ExecutePercyScreenshotEnd(String name, String percyScreenshotUrl, bool sync, String? error)
     {
       try
       {
@@ -87,7 +87,8 @@ namespace PercyIO.Appium
               percyScreenshotUrl = percyScreenshotUrl,
               status = status,
               statusMessage = statusMessage,
-              name = name
+              name = name,
+              sync = sync
             }
           });
           var resultString = percyAppiumDriver.ExecuteScript("browserstack_executor:" + obj.ToString());
@@ -112,16 +113,19 @@ namespace PercyIO.Appium
       base.SetDebugUrl(GetDebugUrl(result));
       try
       {
-        dynamic data = base.Screenshot(
+        JObject data = base.Screenshot(
           name,
           options,
           OsVersion(result)
         );
 
-        percyScreenshotUrl = data.link.ToString();
+        percyScreenshotUrl = data?.GetValue("link")?.ToString();
         Console.WriteLine("percyScreenshotUrl");
         Console.WriteLine(percyScreenshotUrl);
-        return JObject.FromObject(data);
+        if (!options.Sync) {
+          return null;
+        }
+        return (JObject)data.GetValue("data");
       }
       catch (Exception e)
       {
@@ -130,7 +134,7 @@ namespace PercyIO.Appium
       }
       finally
       {
-        ExecutePercyScreenshotEnd(name, percyScreenshotUrl, error);
+        ExecutePercyScreenshotEnd(name, percyScreenshotUrl, options.Sync, error);
       }
     }
 
