@@ -17,11 +17,18 @@ namespace PercyIO.Appium
     public static readonly string CLI_API = Environment.GetEnvironmentVariable("PERCY_CLI_API") ?? "http://localhost:5338";
     private static HttpClient _http = new HttpClient();
     private static bool? _enabled = null;
+    public static readonly bool IsRunningFromXUnit = 
+        AppDomain.CurrentDomain.GetAssemblies().Any(
+            a => a.FullName.ToLowerInvariant().StartsWith("xunit.runner"));
 
     private static dynamic Request(string endpoint, JObject? payload = null)
     {
       StringContent? body = payload == null ? null : new StringContent(
                 payload.ToString(), Encoding.UTF8, "application/json");
+      if (!IsRunningFromXUnit) {
+        _http = new HttpClient();
+        _http.Timeout = TimeSpan.FromMinutes(10);
+      }
       Task<HttpResponseMessage> apiTask = body != null
           ? _http.PostAsync($"{CLI_API}{endpoint}", body)
           : _http.GetAsync($"{CLI_API}{endpoint}");

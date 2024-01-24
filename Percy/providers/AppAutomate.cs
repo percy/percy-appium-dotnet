@@ -120,8 +120,6 @@ namespace PercyIO.Appium
         );
 
         percyScreenshotUrl = data?.GetValue("link")?.ToString();
-        Console.WriteLine("percyScreenshotUrl");
-        Console.WriteLine(percyScreenshotUrl);
         if (!options.Sync) {
           return null;
         }
