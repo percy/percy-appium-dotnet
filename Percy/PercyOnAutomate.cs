@@ -11,8 +11,6 @@ namespace PercyIO.Appium
     private Boolean isPercyEnabled;
     private static readonly string ignoreElementKey = "ignore_region_appium_elements";
     private static readonly string considerElementKey = "consider_region_appium_elements";
-    private static readonly string sync = "sync";
-
 
     public PercyOnAutomate(Object driver)
     {
@@ -24,7 +22,7 @@ namespace PercyIO.Appium
       this.isPercyEnabled = CliWrapper.Healthcheck();
     }
 
-    public JObject Screenshot(String name, IEnumerable<KeyValuePair<string, object>>? options = null) 
+    public JObject? Screenshot(String name, IEnumerable<KeyValuePair<string, object>>? options = null) 
     {
       if(!isPercyEnabled) return null;
       try
@@ -52,12 +50,10 @@ namespace PercyIO.Appium
                       userOptions["consider_region_elements"] = elementIds;
                   }
               }
-              if(!userOptions.ContainsKey(sync)) {
-                userOptions["sync"] = false;
-              }
           }
 
-          return CliWrapper.PostPOAScreenshot(name, percyAppiumDriver.getSessionId(), percyAppiumDriver.GetHost().TrimEnd('/'), percyAppiumDriver.GetCapabilities(), userOptions);
+          JObject data = CliWrapper.PostPOAScreenshot(name, percyAppiumDriver.getSessionId(), percyAppiumDriver.GetHost().TrimEnd('/'), percyAppiumDriver.GetCapabilities(), userOptions);
+          return (JObject)data?.GetValue("data");
       }
       catch(Exception error)
       {

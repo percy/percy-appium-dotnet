@@ -31,7 +31,7 @@ namespace PercyIO.Appium
       this.sessionId = percyAppiumDriver.sessionId();
     }
 
-    public JObject Screenshot(String name, ScreenshotOptions? options = null, Boolean fullScreen = false)
+    public JObject? Screenshot(String name, ScreenshotOptions? options = null, Boolean fullScreen = false)
     {
       if (options == null)
       {
@@ -47,10 +47,11 @@ namespace PercyIO.Appium
       {
         GenericProvider provider;
         provider = ProviderResolver.ResolveProvider(percyAppiumDriver);
-        return provider.Screenshot(
+        JObject data =  provider.Screenshot(
           name,
           options
         );
+        return (JObject)data?.GetValue("data");
       }
       catch (Exception e)
       {
@@ -68,7 +69,7 @@ namespace PercyIO.Appium
       }
     }
 
-    public JObject Screenshot(String name, IEnumerable<KeyValuePair<string, object>>? options) {
+    public JObject? Screenshot(String name, IEnumerable<KeyValuePair<string, object>>? options) {
       if (options == null) {
         return Screenshot(name, null, false);
       }

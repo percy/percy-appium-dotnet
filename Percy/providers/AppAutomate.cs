@@ -123,7 +123,7 @@ namespace PercyIO.Appium
         if (!options.Sync) {
           return null;
         }
-        return (JObject)data.GetValue("data");
+        return data;
       }
       catch (Exception e)
       {
