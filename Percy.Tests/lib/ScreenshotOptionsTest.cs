@@ -36,7 +36,7 @@ namespace Percy.Tests
       Assert.Equal(screenshotOptions.ConsiderRegionXpaths.Count, 0);
       Assert.Equal(screenshotOptions.ConsiderRegionXpaths.Count, 0);
       Assert.Equal(screenshotOptions.CustomConsiderRegions.Count, 0);
-      Assert.Equal(screenshotOptions.Sync, false);
+      Assert.Equal(screenshotOptions.Sync, null);
     }
   }
 }

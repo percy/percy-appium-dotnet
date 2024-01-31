@@ -6,6 +6,7 @@ using RichardSzalay.MockHttp;
 using System.Net.Http;
 using Newtonsoft.Json;
 using System.IO;
+using Newtonsoft.Json.Linq;
 
 namespace Percy.Tests
 {
@@ -55,6 +56,37 @@ namespace Percy.Tests
         .Respond("application/json", JsonConvert.SerializeObject(obj));
       CliWrapper.setHttpClient(new HttpClient(mockHttp));
       percy.Screenshot("Screenshot 1");
+
+      mockHttp.VerifyNoOutstandingExpectation();
+    }
+
+    [Fact]
+    public void postScreenshotWithSync()
+    {
+      TestHelper.UnsetEnvVariables();
+      mockDriver.SetCapability(MetadataBuilder.CapabilityBuilder("Android"));
+      mockDriver.setCommandExecutor("https://browserstack.com/wd/hub");
+      PercyOnAutomate percy = new PercyOnAutomate(mockDriver);
+
+
+      var syncData = JObject.Parse("{'name': 'snapshot'}");
+      var mockHttp = new MockHttpMessageHandler();
+      var obj = new
+      {
+        success = true,
+        version = "1.0",
+        data = syncData
+      };
+      mockHttp.Fallback.Respond(new HttpClient());
+      mockHttp.Expect(HttpMethod.Post, "http://localhost:5338/percy/automateScreenshot")
+        .WithPartialContent("https://browserstack.com/wd/hub")
+        .WithPartialContent("session-1")
+        .WithPartialContent(" \"platformName\": \"Android\"")
+        .Respond("application/json", JsonConvert.SerializeObject(obj));
+      CliWrapper.setHttpClient(new HttpClient(mockHttp));
+      Dictionary<string, object> options = new Dictionary<string, object>();
+      options["sync"] = true;
+      Assert.Equal(syncData, percy.Screenshot("Screenshot 1", options));
 
       mockHttp.VerifyNoOutstandingExpectation();
     }

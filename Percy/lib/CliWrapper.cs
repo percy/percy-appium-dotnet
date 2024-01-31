@@ -15,23 +15,17 @@ namespace PercyIO.Appium
   internal class CliWrapper
   {
     public static readonly string CLI_API = Environment.GetEnvironmentVariable("PERCY_CLI_API") ?? "http://localhost:5338";
-    private static HttpClient _http = new HttpClient();
+    private static HttpClient? _http;
     private static bool? _enabled = null;
-    public static readonly bool IsRunningFromXUnit = 
-        AppDomain.CurrentDomain.GetAssemblies().Any(
-            a => a.FullName.ToLowerInvariant().StartsWith("xunit.runner"));
 
     private static dynamic Request(string endpoint, JObject? payload = null)
     {
       StringContent? body = payload == null ? null : new StringContent(
                 payload.ToString(), Encoding.UTF8, "application/json");
-      if (!IsRunningFromXUnit) {
-        _http = new HttpClient();
-        _http.Timeout = TimeSpan.FromMinutes(10);
-      }
+      HttpClient httpClient = getHttpClient();
       Task<HttpResponseMessage> apiTask = body != null
-          ? _http.PostAsync($"{CLI_API}{endpoint}", body)
-          : _http.GetAsync($"{CLI_API}{endpoint}");
+          ? httpClient.PostAsync($"{CLI_API}{endpoint}", body)
+          : httpClient.GetAsync($"{CLI_API}{endpoint}");
       apiTask.Wait();
 
       HttpResponseMessage response = apiTask.Result;
@@ -94,7 +88,7 @@ namespace PercyIO.Appium
       }
     };
 
-    internal static dynamic PostScreenshot(string name, JObject tag, List<Tile> tiles, String externalDebugUrl, JObject ignoredElementsData, JObject consideredElementsData, Boolean sync)
+    internal static dynamic PostScreenshot(string name, JObject tag, List<Tile> tiles, String externalDebugUrl, JObject ignoredElementsData, JObject consideredElementsData, Boolean? sync)
     {
       try
       {
@@ -192,6 +186,16 @@ namespace PercyIO.Appium
     internal static void setHttpClient(HttpClient client)
     {
       _http = client;
+    }
+
+    internal static HttpClient getHttpClient()
+    {
+      if (_http == null) {
+        _http = new HttpClient();
+        _http.Timeout = TimeSpan.FromMinutes(10);
+      }
+
+      return _http;
     }
 
     internal static void resetHttpClient()

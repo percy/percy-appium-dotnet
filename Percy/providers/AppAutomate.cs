@@ -65,7 +65,7 @@ namespace PercyIO.Appium
       return null;
     }
 
-    internal JObject? ExecutePercyScreenshotEnd(String name, String percyScreenshotUrl, bool sync, String? error)
+    internal JObject? ExecutePercyScreenshotEnd(String name, String percyScreenshotUrl, Boolean? sync, String? error)
     {
       try
       {
@@ -120,10 +120,11 @@ namespace PercyIO.Appium
         );
 
         percyScreenshotUrl = data?.GetValue("link")?.ToString();
-        if (!options.Sync) {
-          return null;
+
+        if (data?.TryGetValue("data", out JToken results) == true) {
+          return (JObject)results;
         }
-        return data;
+        return null;
       }
       catch (Exception e)
       {
