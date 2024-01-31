@@ -120,11 +120,7 @@ namespace PercyIO.Appium
         );
 
         percyScreenshotUrl = data?.GetValue("link")?.ToString();
-
-        if (data?.TryGetValue("data", out JToken results) == true) {
-          return (JObject)results;
-        }
-        return null;
+        return data;
       }
       catch (Exception e)
       {

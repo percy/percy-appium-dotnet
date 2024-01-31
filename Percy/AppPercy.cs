@@ -51,7 +51,11 @@ namespace PercyIO.Appium
           name,
           options
         );
-        return (JObject)data?.GetValue("data");
+
+        if (data?.TryGetValue("data", out JToken results) == true) {
+          return (JObject)results;
+        }
+        return null;
       }
       catch (Exception e)
       {
