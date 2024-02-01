@@ -16,6 +16,7 @@ namespace PercyIO.Appium
     public bool FullScreen { get; set; } = false;
     public bool FullPage { get; set; } = false;
     public int? ScreenLengths { get; set; }
+    public Boolean? Sync { get; set; }
     public List<String> IgnoreRegionXpaths { get; set; } = new List<string>();
     public List<String> IgnoreRegionAccessibilityIds { get; set; } = new List<string>();
     public List<Object> IgnoreRegionAppiumElements { get; set; } = new List<Object>();

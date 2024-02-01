@@ -22,9 +22,9 @@ namespace PercyIO.Appium
       this.isPercyEnabled = CliWrapper.Healthcheck();
     }
 
-    public void Screenshot(String name, IEnumerable<KeyValuePair<string, object>>? options = null) 
+    public JObject? Screenshot(String name, IEnumerable<KeyValuePair<string, object>>? options = null) 
     {
-      if(!isPercyEnabled) return;
+      if(!isPercyEnabled) return null;
       try
       {
           Dictionary<string, object> userOptions = new Dictionary<string, object>();
@@ -52,15 +52,17 @@ namespace PercyIO.Appium
               }
           }
 
-          CliWrapper.PostPOAScreenshot(name, percyAppiumDriver.getSessionId(), percyAppiumDriver.GetHost().TrimEnd('/'), percyAppiumDriver.GetCapabilities(), userOptions);
+          JObject data = CliWrapper.PostPOAScreenshot(name, percyAppiumDriver.getSessionId(), percyAppiumDriver.GetHost().TrimEnd('/'), percyAppiumDriver.GetCapabilities(), userOptions);
+          return (JObject)data?.GetValue("data");
       }
       catch(Exception error)
       {
           Utils.Log($"Could not take Percy Screenshot \"{name}\"");
           Utils.Log(error.ToString(), "debug");
+          return null;
       }
     }
-    public void Screenshot(String name, ScreenshotOptions? options, bool fullScreen) {
+    public JObject? Screenshot(String name, ScreenshotOptions? options, bool fullScreen) {
       throw new Exception("Options need to be passed using Dictionary for: " + name);
     }
 

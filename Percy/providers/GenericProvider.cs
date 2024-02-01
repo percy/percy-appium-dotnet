@@ -77,7 +77,7 @@ namespace PercyIO.Appium
       this.debugUrl = debugUrl;
     }
 
-    public virtual String Screenshot(String name, ScreenshotOptions options, String platformVersion = null)
+    public virtual JObject Screenshot(String name, ScreenshotOptions options, String platformVersion = null)
     {
       this.metadata = MetadataHelper.Resolve(
         percyAppiumDriver,
@@ -109,7 +109,7 @@ namespace PercyIO.Appium
         considerElementsData = consideredRegions
       });
       var tiles = CaptureTiles(options);
-      return CliWrapper.PostScreenshot(name, tag, tiles, debugUrl, ignoredElementsData, consideredElementsData);
+      return CliWrapper.PostScreenshot(name, tag, tiles, debugUrl, ignoredElementsData, consideredElementsData, options.Sync);
     }
 
     public JArray FindRegions(List<String> Xpaths, List<String> AccessibilityIds, List<Object> Elements, List<Region> Locations)

@@ -65,7 +65,7 @@ namespace PercyIO.Appium
       return null;
     }
 
-    internal JObject? ExecutePercyScreenshotEnd(String name, String percyScreenshotUrl, String? error)
+    internal JObject? ExecutePercyScreenshotEnd(String name, String percyScreenshotUrl, Boolean? sync, String? error)
     {
       try
       {
@@ -87,7 +87,8 @@ namespace PercyIO.Appium
               percyScreenshotUrl = percyScreenshotUrl,
               status = status,
               statusMessage = statusMessage,
-              name = name
+              name = name,
+              sync = sync
             }
           });
           var resultString = percyAppiumDriver.ExecuteScript("browserstack_executor:" + obj.ToString());
@@ -103,7 +104,7 @@ namespace PercyIO.Appium
       return null;
     }
 
-    public override String Screenshot(String name, ScreenshotOptions options, String? platformVersion = null)
+    public override JObject Screenshot(String name, ScreenshotOptions options, String? platformVersion = null)
     {
       var result = ExecutePercyScreenshotBegin(name);
       var percyScreenshotUrl = "";
@@ -112,11 +113,14 @@ namespace PercyIO.Appium
       base.SetDebugUrl(GetDebugUrl(result));
       try
       {
-        percyScreenshotUrl = base.Screenshot(
+        JObject data = base.Screenshot(
           name,
           options,
           OsVersion(result)
         );
+
+        percyScreenshotUrl = data?.GetValue("link")?.ToString();
+        return data;
       }
       catch (Exception e)
       {
@@ -125,9 +129,8 @@ namespace PercyIO.Appium
       }
       finally
       {
-        ExecutePercyScreenshotEnd(name, percyScreenshotUrl, error);
+        ExecutePercyScreenshotEnd(name, percyScreenshotUrl, options.Sync, error);
       }
-      return "";
     }
 
     internal override List<Tile> CaptureTiles(ScreenshotOptions options)

@@ -5,12 +5,14 @@ using Xunit;
 using PercyIO.Appium;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using System.Runtime.InteropServices.JavaScript;
+using RichardSzalay.MockHttp;
+using System.Net.Http;
 
 namespace Percy.Tests
 {
   public class AppAutomateTest
   {
-    private AndroidMetadata androidMetadata;
     private readonly Mock<IPercyAppiumDriver> _androidPercyAppiumDriver = new Mock<IPercyAppiumDriver>();
 
     public AppAutomateTest()
@@ -62,6 +64,7 @@ namespace Percy.Tests
     public void TestScreenshot()
     {
       // Arrange
+      string expected = "https://percy.io/api/v1/comparisons/redirect?snapshot[name]=test%20screenshot&tag[name]=Samsung&tag[os_name]=Android&tag[os_version]=9&tag[width]=1280&tag[height]=1420&tag[orientation]=landscape";
       Environment.SetEnvironmentVariable("PERCY_DISABLE_REMOTE_UPLOADS", "true");
       var response = @"{success:'true', osVersion:'11.2', buildHash:'abc', sessionHash:'def'}";
       _androidPercyAppiumDriver.Setup(x => x.ExecuteScript(It.IsAny<string>()))
@@ -75,10 +78,26 @@ namespace Percy.Tests
       options.FullScreen = false;
       options.FullPage = false;
       options.ScreenLengths = 0;
+
+      var data = JObject.FromObject(new
+      {
+        snapshotname = "temp",
+        status = "success"
+      });
+
+      var mockHttp = new MockHttpMessageHandler();
+
+      // Setup a respond for the user api (including a wildcard in the URL)
+      mockHttp.When("http://localhost:5338/percy/comparison")
+        .Respond("application/json", "{\"success\": true, \"link\": \"" + expected + "\", \"data\": \"" + data + "\"}");  
+
+      CliWrapper.setHttpClient(new HttpClient(mockHttp));
+
       // Act
-      string actual = appAutomate.Screenshot("temp", options);
+      var actual = appAutomate.Screenshot("temp", options);
       // Assert
-      Assert.Equal(actual, "");
+      Assert.Equal(actual, null);
+      CliWrapper.resetHttpClient();
     }
 
     [Fact]
@@ -99,9 +118,9 @@ namespace Percy.Tests
 
       AppAutomate appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
       // Act
-      string actual = appAutomate.Screenshot("temp", options);
+      var actual = appAutomate.Screenshot("temp", options);
       // Assert
-      Assert.Equal(actual, "");
+      Assert.Equal(true, actual["success"]);
       Environment.SetEnvironmentVariable("PERCY_DISABLE_REMOTE_UPLOADS", "false");
     }
 
@@ -187,7 +206,8 @@ namespace Percy.Tests
           percyScreenshotUrl = percyScreenshotUrl,
           status = "success",
           statusMessage = JValue.CreateNull(),
-          name = name
+          name = name,
+          sync = false
         }
       });
 
@@ -195,7 +215,7 @@ namespace Percy.Tests
         .Returns(response.ToString());
       // Act
       var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
-      var result = appAutomate.ExecutePercyScreenshotEnd(name, percyScreenshotUrl, null);
+      var result = appAutomate.ExecutePercyScreenshotEnd(name, percyScreenshotUrl, false, null);
       var actual = result.GetValue("success").ToString();
       // Assert
       Assert.Equal(actual, "True");
@@ -222,14 +242,15 @@ namespace Percy.Tests
           percyScreenshotUrl = percyScreenshotUrl,
           status = "failure",
           statusMessage = "some error",
-          name = name
+          name = name,
+          sync = false
         }
       });
       _androidPercyAppiumDriver.Setup(x => x.ExecuteScript("browserstack_executor:" + reqObject.ToString()))
         .Returns(response.ToString());
       // Act
       var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
-      string actual = appAutomate.ExecutePercyScreenshotEnd(name, percyScreenshotUrl, "some error").GetValue("success").ToString();
+      string actual = appAutomate.ExecutePercyScreenshotEnd(name, percyScreenshotUrl, false, "some error").GetValue("success").ToString();
       // Assert
       Assert.Equal(actual, "False");
       _androidPercyAppiumDriver.Verify(x => x.ExecuteScript("browserstack_executor:" + reqObject.ToString()), Times.Once);
@@ -259,7 +280,7 @@ namespace Percy.Tests
       // Act
       var app = new AppAutomate(_androidPercyAppiumDriver.Object);
       // Assert
-      Assert.Throws<NullReferenceException>(() => app.ExecutePercyScreenshotEnd(null, null, null).GetValue("success").ToString());
+      Assert.Throws<NullReferenceException>(() => app.ExecutePercyScreenshotEnd(null, null, false, null).GetValue("success").ToString());
       _androidPercyAppiumDriver.Verify(x => x.ExecuteScript("browserstack_executor:" + reqObject.ToString()), Times.Never);
     }
 

@@ -11,8 +11,6 @@ namespace Percy.Tests
 {
   public class GenericProviderTest
   {
-    private readonly AppAutomate appAutomate;
-    private AndroidMetadata androidMetadata;
     private readonly Mock<IPercyAppiumDriver> _androidPercyAppiumDriver = new Mock<IPercyAppiumDriver>();
 
     public GenericProviderTest()
@@ -113,9 +111,9 @@ namespace Percy.Tests
       CliWrapper.setHttpClient(new HttpClient(mockHttp));
       // Act
       GenericProvider genericProvider = new GenericProvider(_androidPercyAppiumDriver.Object);
-      string s = genericProvider.Screenshot("test screenshot", options);
+      var s = genericProvider.Screenshot("test screenshot", options);
       // Assert
-      Assert.Equal(expected, s);
+      Assert.Equal(expected, s.GetValue("link"));
       CliWrapper.resetHttpClient();
     }
 
