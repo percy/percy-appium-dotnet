@@ -106,6 +106,7 @@ The screenshot method arguments:
 | FullScreen | Boolean  | Indicate whether app is full screen; boolean  |
 | ScrollableXpath | String  | [Alpha] Scrollable element xpath for fullpage [ needs @percy/cli 1.20.2+ ]  |
 | ScrollableId | String  | [Alpha] Scrollable element accessibility id for fullpage [ needs @percy/cli 1.20.2+ ]  |
+| Sync | Boolean  | Waits for screenshot to be processed and gives the processed result of screenshot [From CLI v1.28.0-beta.0+]  |
 | IgnoreRegionXpaths | list of string  | Elements xpaths that user want to ignore in visual diff [ needs @percy/cli 1.23.0+ ]  |
 | IgnoreRegionAccessibilityIds | list of string  | Elements accessibility_ids that user want to ignore in visual diff [ needs @percy/cli 1.23.0+ ]  |
 | IgnoreRegionAppiumElements | list of appium element object  | Appium elements that user want to ignore in visual diff [ needs @percy/cli 1.23.0+ ]  |
@@ -180,6 +181,7 @@ class Program
 - `driver` (**required**) - A appium driver instance
 - `name` (**required**) - The screenshot name; must be unique to each screenshot
 - `options` (**optional**) - There are various options supported by percy_screenshot to server further functionality.
+    - `sync` - Boolean value by default it falls back to `false`, Gives the processed result around screenshot [From CLI v1.28.0-beta.0+].
     - `freezeAnimatedImage` - Boolean value by default it falls back to `false`, you can pass `true` and percy will freeze image based animations.
     - `freezeImageBySelectors` - List of selectors. Images will be freezed which are passed using selectors. For this to work `freezeAnimatedImage` must be set to true.
     - `freezeImageByXpaths` - List of xpaths. Images will be freezed which are passed using xpaths. For this to work `freezeAnimatedImage` must be set to true.
