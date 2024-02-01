@@ -88,7 +88,7 @@ namespace PercyIO.Appium
       }
     };
 
-    internal static dynamic PostScreenshot(string name, JObject tag, List<Tile> tiles, String externalDebugUrl, JObject ignoredElementsData, JObject consideredElementsData, Boolean? sync)
+    internal static JObject PostScreenshot(string name, JObject tag, List<Tile> tiles, String externalDebugUrl, JObject ignoredElementsData, JObject consideredElementsData, Boolean? sync)
     {
       try
       {
@@ -110,7 +110,7 @@ namespace PercyIO.Appium
         {
           throw new Exception(data.error.ToString());
         }
-        return data;
+        return JObject.FromObject(data);
       }
       catch (Exception error)
       {

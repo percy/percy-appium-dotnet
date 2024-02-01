@@ -62,7 +62,7 @@ namespace PercyIO.Appium
           return null;
       }
     }
-    public JObject Screenshot(String name, ScreenshotOptions? options, bool fullScreen) {
+    public JObject? Screenshot(String name, ScreenshotOptions? options, bool fullScreen) {
       throw new Exception("Options need to be passed using Dictionary for: " + name);
     }
 
