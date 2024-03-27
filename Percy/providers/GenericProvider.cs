@@ -109,7 +109,7 @@ namespace PercyIO.Appium
         considerElementsData = consideredRegions
       });
       var tiles = CaptureTiles(options);
-      return CliWrapper.PostScreenshot(name, tag, tiles, debugUrl, ignoredElementsData, consideredElementsData, options.Sync);
+      return CliWrapper.PostScreenshot(name, tag, tiles, debugUrl, ignoredElementsData, consideredElementsData, options.Sync, options.TestCase, options.ThTestCaseExecutionId);
     }
 
     public JArray FindRegions(List<String> Xpaths, List<String> AccessibilityIds, List<Object> Elements, List<Region> Locations)

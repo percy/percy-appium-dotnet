@@ -17,6 +17,8 @@ namespace PercyIO.Appium
     public bool FullPage { get; set; } = false;
     public int? ScreenLengths { get; set; }
     public Boolean? Sync { get; set; }
+    public String? TestCase { get; set; }
+    public String? ThTestCaseExecutionId { get; set; }
     public List<String> IgnoreRegionXpaths { get; set; } = new List<string>();
     public List<String> IgnoreRegionAccessibilityIds { get; set; } = new List<string>();
     public List<Object> IgnoreRegionAppiumElements { get; set; } = new List<Object>();

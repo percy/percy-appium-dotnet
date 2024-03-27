@@ -88,7 +88,7 @@ namespace PercyIO.Appium
       }
     };
 
-    internal static JObject PostScreenshot(string name, JObject tag, List<Tile> tiles, String externalDebugUrl, JObject ignoredElementsData, JObject consideredElementsData, Boolean? sync)
+    internal static JObject PostScreenshot(string name, JObject tag, List<Tile> tiles, String externalDebugUrl, JObject ignoredElementsData, JObject consideredElementsData, Boolean? sync, String? testCase, String? thTestCaseExecutionId)
     {
       try
       {
@@ -102,7 +102,9 @@ namespace PercyIO.Appium
           name = name,
           ignoredElementsData = ignoredElementsData,
           consideredElementsData = consideredElementsData,
-          sync = sync
+          sync = sync,
+          testCase = testCase,
+          thTestCaseExecutionId = thTestCaseExecutionId
         };
         dynamic res = Request("/percy/comparison", JObject.FromObject(screenshotOptions));
         dynamic data = DeserializeJson<dynamic>(res.content);
