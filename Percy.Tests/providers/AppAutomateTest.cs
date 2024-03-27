@@ -120,7 +120,7 @@ namespace Percy.Tests
       // Act
       var actual = appAutomate.Screenshot("temp", options);
       // Assert
-      Assert.Equal(null, actual);
+      Assert.Equal(true, actual["success"]);
       Environment.SetEnvironmentVariable("PERCY_DISABLE_REMOTE_UPLOADS", "false");
     }
 
