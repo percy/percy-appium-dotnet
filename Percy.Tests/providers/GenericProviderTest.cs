@@ -146,13 +146,19 @@ namespace Percy.Tests
       // Arrange
       var elementsArray = new JArray();
       var customRegion = new Region(10, 100, 20, 200);
+      Region invaliCustomRegion1 = new Region(1400, 1500, 200, 250);
+      Region invaliCustomRegion2 = new Region(50, 100, 1270, 1300);
       var customLocations = new List<Region>
       {
-        customRegion
+        customRegion,
+        invaliCustomRegion1,
+        invaliCustomRegion2
       };
       var genericProvider = new GenericProvider(_androidPercyAppiumDriver.Object);
       var metadata = MetadataHelper.Resolve(_androidPercyAppiumDriver.Object, "Samsung Galaxy s22", 100, 200, null, null);
       genericProvider.metadata = metadata;
+      Assert.Equal(1280, metadata.DeviceScreenWidth());
+      Assert.Equal(1420, metadata.DeviceScreenHeight());
       // Act
       genericProvider.RegionsByLocation(elementsArray, customLocations);
 
