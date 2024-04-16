@@ -210,7 +210,7 @@ namespace PercyIO.Appium
       {
         try
         {
-          if (customLocations[index].IsValid(width, height))
+          if (customLocations[index].IsValid(height, width))
           {
             var selector = "custom region " + index;
             var region = JObject.FromObject(new
