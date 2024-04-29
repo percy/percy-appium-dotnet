@@ -64,8 +64,20 @@ namespace PercyIO.Appium
 
     public String ExecuteScript(String script)
     {
-
       return ExecuteScript(driver, script)?.ToString()!;
+    }
+
+    public object Execute(String script)
+    {
+      return ExecuteScript(driver, script);
+    }
+
+    public int DownscaledWidth()
+    {
+      var manage = ReflectionUtils.MethodCall<Object>(driver, "Manage");
+      var window = ReflectionUtils.PropertyCall<Object>(manage, "Window");
+      var size = ReflectionUtils.PropertyCall<Object>(window, "Size");
+      return (int)ReflectionUtils.PropertyCall<Object>(size, "Width");
     }
 
     public string getSessionId()

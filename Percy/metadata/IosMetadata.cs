@@ -79,8 +79,7 @@ namespace PercyIO.Appium
     {
       if (AppPercy.cache.Get("viewportRect_" + sessionId) == null)
       {
-        object viewportRect;
-        driver.GetSessionDetails().TryGetValue("viewportRect", out viewportRect);
+        object viewportRect = driver.Execute("mobile: viewportRect");
         AppPercy.cache.Store("viewportRect_" + sessionId, viewportRect);
       }
       return (Dictionary<string, object>)AppPercy.cache.Get("viewportRect_" + sessionId);
@@ -88,13 +87,17 @@ namespace PercyIO.Appium
 
     internal override int ScaleFactor()
     {
-      object scaleFactor;
-      if (driver.GetSessionDetails().TryGetValue("pixelRatio", out scaleFactor))
+      try
       {
-        return (int)(long)scaleFactor;
+        int actualWidth = (int)(long)GetViewportRect()["width"];
+        int width = driver.DownscaledWidth();
+        return (int)(long)(actualWidth/width);
       }
-      Utils.Log("Failed to get scale factor, full page screenshot might look incorrect");
-      return 1;
+      catch (Exception e)
+      {
+        Utils.Log("Failed to get scale factor, full page screenshot might look incorrect");
+        return 1;
+      }
     }
   }
 }

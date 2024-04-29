@@ -14,11 +14,13 @@ namespace PercyIO.Appium
     String sessionId();
     String getSessionId();
     String ExecuteScript(String script);
+    object Execute(String script);
     String GetHost();
 
     PercyAppiumElement FindElementsByAccessibilityId(String id);
 
     PercyAppiumElement FindElementByXPath(String xpath);
     String GetScreenshot();
+    int DownscaledWidth();
   }
 }
