@@ -45,18 +45,6 @@ namespace PercyIO.Appium
       return (PercyAppiumCapabilities)AppPercy.cache.Get(key);
     }
 
-    public IDictionary<string, object> GetSessionDetails()
-    {
-
-      var key = "session_" + sessionId();
-      if (AppPercy.cache.Get(key) == null)
-      {
-        var sess = ReflectionUtils.PropertyCall<IDictionary<string, object>>(driver, "SessionDetails");
-        AppPercy.cache.Store(key, sess);
-      }
-      return (IDictionary<string, object>)AppPercy.cache.Get(key);
-    }
-
     public String sessionId()
     {
       return ReflectionUtils.PropertyCall<Object>(driver, "SessionId").ToString();
@@ -66,6 +54,19 @@ namespace PercyIO.Appium
     {
 
       return ExecuteScript(driver, script)?.ToString()!;
+    }
+
+    public int DownscaledWidth()
+    {
+      var manage = ReflectionUtils.MethodCall<Object>(driver, "Manage");
+      var window = ReflectionUtils.PropertyCall<Object>(manage, "Window");
+      var size = ReflectionUtils.PropertyCall<Object>(window, "Size");
+      return (int)ReflectionUtils.PropertyCall<Object>(size, "Width");
+    }
+
+    public object ExecuteDriverScript(String script)
+    {
+      return ExecuteScript(driver, script);
     }
 
     public string getSessionId()

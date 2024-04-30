@@ -114,13 +114,12 @@ namespace Percy.Tests
       {
         return 0;
       };
-      var info = new Dictionary<string, object>(){
-        { "viewportRect", new Dictionary<string, object> {
-          {"top", 100l},
-          {"height", 1000l},
-          {"width", 400l},
-      }}};
-      _iPhonePercyAppiumDriver.Setup(x => x.GetSessionDetails())
+      var info = new Dictionary<string, object> {
+        {"top", 100l},
+        {"height", 1000l},
+        {"width", 400l},
+      };
+      _iPhonePercyAppiumDriver.Setup(x => x.ExecuteDriverScript("mobile: viewportRect"))
         .Returns(info);
       iosMetadata = new IosMetadata(_iPhonePercyAppiumDriver.Object, "iPhone_11", -1, -1, null, null);
       // Act
@@ -171,13 +170,12 @@ namespace Percy.Tests
       {
         return 0;
       };
-      var info = new Dictionary<string, object>(){
-        { "viewportRect", new Dictionary<string, object> {
-          {"top", 100l},
-          {"height", 1000l},
-          {"width", 400l},
-      }}};
-      _iPhonePercyAppiumDriver.Setup(x => x.GetSessionDetails())
+      var info = new Dictionary<string, object> {
+        {"top", 100l},
+        {"height", 1000l},
+        {"width", 400l},
+      };
+      _iPhonePercyAppiumDriver.Setup(x => x.ExecuteDriverScript("mobile: viewportRect"))
         .Returns(info);
       iosMetadata = new IosMetadata(_iPhonePercyAppiumDriver.Object, "iPhone_11", -1, -1, null, null);
       // Act
@@ -197,13 +195,12 @@ namespace Percy.Tests
       {
         return 0;
       };
-      var info = new Dictionary<string, object>(){
-        {"viewportRect", new Dictionary<string, object> {
-          {"top", 100l},
-          {"height", 1000l},
-          {"width", 400l},
-      }}};
-      _iPhonePercyAppiumDriver.Setup(x => x.GetSessionDetails())
+      var info = new Dictionary<string, object> {
+        {"top", 100l},
+        {"height", 1000l},
+        {"width", 400l},
+      };
+      _iPhonePercyAppiumDriver.Setup(x => x.ExecuteDriverScript("mobile: viewportRect"))
         .Returns(info);
       iosMetadata = new IosMetadata(_iPhonePercyAppiumDriver.Object, "iPhone_11", -1, -1, null, null);
       // Act
@@ -225,6 +222,41 @@ namespace Percy.Tests
       iosMetadata = new IosMetadata(_iPhonePercyAppiumDriver.Object, "iPhone_11", -1, -1, null, null);
       // Act
       int actual = iosMetadata.DeviceScreenWidth();
+
+      // Assert
+      Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void TestScaleFactor()
+    {
+      // Arrange
+      int expected = 2;
+      var info = new Dictionary<string, object> {
+        {"top", 100l},
+        {"height", 1000l},
+        {"width", 400l},
+      };
+      _iPhonePercyAppiumDriver.Setup(x => x.ExecuteDriverScript("mobile: viewportRect"))
+        .Returns(info);
+      _iPhonePercyAppiumDriver.Setup(x => x.DownscaledWidth())
+        .Returns(200);
+      iosMetadata = new IosMetadata(_iPhonePercyAppiumDriver.Object, "iPhone_11", -1, -1, null, null);
+      // Act
+      int actual = iosMetadata.ScaleFactor();
+
+      // Assert
+      Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void TestScaleFactorDefault()
+    {
+      // Arrange
+      int expected = 1;
+      iosMetadata = new IosMetadata(_iPhonePercyAppiumDriver.Object, "iPhone_11", -1, -1, null, null);
+      // Act
+      int actual = iosMetadata.ScaleFactor();
 
       // Assert
       Assert.Equal(expected, actual);
