@@ -226,5 +226,40 @@ namespace Percy.Tests
       // Assert
       Assert.Equal(expected, actual);
     }
+
+    [Fact]
+    public void TestScaleFactor()
+    {
+      // Arrange
+      int expected = 2;
+      var info = new Dictionary<string, object> {
+        {"top", 100l},
+        {"height", 1000l},
+        {"width", 400l},
+      };
+      _iPhonePercyAppiumDriver.Setup(x => x.Execute("mobile: viewportRect"))
+        .Returns(info);
+      _iPhonePercyAppiumDriver.Setup(x => x.DownscaledWidth())
+        .Returns(200);
+      iosMetadata = new IosMetadata(_iPhonePercyAppiumDriver.Object, "iPhone_11", -1, -1, null, null);
+      // Act
+      int actual = iosMetadata.ScaleFactor();
+
+      // Assert
+      Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void TestScaleFactorDefault()
+    {
+      // Arrange
+      int expected = 1;
+      iosMetadata = new IosMetadata(_iPhonePercyAppiumDriver.Object, "iPhone_11", -1, -1, null, null);
+      // Act
+      int actual = iosMetadata.ScaleFactor();
+
+      // Assert
+      Assert.Equal(expected, actual);
+    }
   }
 }

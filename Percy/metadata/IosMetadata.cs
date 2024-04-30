@@ -93,7 +93,7 @@ namespace PercyIO.Appium
         int width = driver.DownscaledWidth();
         return (int)(long)(actualWidth/width);
       }
-      catch (Exception e)
+      catch (Exception)
       {
         Utils.Log("Failed to get scale factor, full page screenshot might look incorrect");
         return 1;
