@@ -114,13 +114,12 @@ namespace Percy.Tests
       {
         return 0;
       };
-      var info = new Dictionary<string, object>(){
-        { "viewportRect", new Dictionary<string, object> {
-          {"top", 100l},
-          {"height", 1000l},
-          {"width", 400l},
-      }}};
-      _iPhonePercyAppiumDriver.Setup(x => x.GetSessionDetails())
+      var info = new Dictionary<string, object> {
+        {"top", 100l},
+        {"height", 1000l},
+        {"width", 400l},
+      };
+      _iPhonePercyAppiumDriver.Setup(x => x.Execute("mobile: viewportRect"))
         .Returns(info);
       iosMetadata = new IosMetadata(_iPhonePercyAppiumDriver.Object, "iPhone_11", -1, -1, null, null);
       // Act
@@ -171,13 +170,12 @@ namespace Percy.Tests
       {
         return 0;
       };
-      var info = new Dictionary<string, object>(){
-        { "viewportRect", new Dictionary<string, object> {
-          {"top", 100l},
-          {"height", 1000l},
-          {"width", 400l},
-      }}};
-      _iPhonePercyAppiumDriver.Setup(x => x.GetSessionDetails())
+      var info = new Dictionary<string, object> {
+        {"top", 100l},
+        {"height", 1000l},
+        {"width", 400l},
+      };
+      _iPhonePercyAppiumDriver.Setup(x => x.Execute("mobile: viewportRect"))
         .Returns(info);
       iosMetadata = new IosMetadata(_iPhonePercyAppiumDriver.Object, "iPhone_11", -1, -1, null, null);
       // Act
@@ -197,13 +195,12 @@ namespace Percy.Tests
       {
         return 0;
       };
-      var info = new Dictionary<string, object>(){
-        {"viewportRect", new Dictionary<string, object> {
-          {"top", 100l},
-          {"height", 1000l},
-          {"width", 400l},
-      }}};
-      _iPhonePercyAppiumDriver.Setup(x => x.GetSessionDetails())
+      var info = new Dictionary<string, object> {
+        {"top", 100l},
+        {"height", 1000l},
+        {"width", 400l},
+      };
+      _iPhonePercyAppiumDriver.Setup(x => x.Execute("mobile: viewportRect"))
         .Returns(info);
       iosMetadata = new IosMetadata(_iPhonePercyAppiumDriver.Object, "iPhone_11", -1, -1, null, null);
       // Act

@@ -10,17 +10,16 @@ namespace PercyIO.Appium
     String Orientation();
     List<string> GetElementIds(List<object> elements);
     IPercyAppiumCapabilities GetCapabilities();
-    IDictionary<string, object> GetSessionDetails();
     String sessionId();
     String getSessionId();
     String ExecuteScript(String script);
-    object Execute(String script);
     String GetHost();
 
     PercyAppiumElement FindElementsByAccessibilityId(String id);
 
     PercyAppiumElement FindElementByXPath(String xpath);
     String GetScreenshot();
+    object Execute(String script);
     int DownscaledWidth();
   }
 }
