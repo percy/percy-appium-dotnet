@@ -19,7 +19,7 @@ namespace PercyIO.Appium
 
     PercyAppiumElement FindElementByXPath(String xpath);
     String GetScreenshot();
-    object Execute(String script);
+    object ExecuteDriverScript(String script);
     int DownscaledWidth();
   }
 }

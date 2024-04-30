@@ -119,7 +119,7 @@ namespace Percy.Tests
         {"height", 1000l},
         {"width", 400l},
       };
-      _iPhonePercyAppiumDriver.Setup(x => x.Execute("mobile: viewportRect"))
+      _iPhonePercyAppiumDriver.Setup(x => x.ExecuteDriverScript("mobile: viewportRect"))
         .Returns(info);
       iosMetadata = new IosMetadata(_iPhonePercyAppiumDriver.Object, "iPhone_11", -1, -1, null, null);
       // Act
@@ -175,7 +175,7 @@ namespace Percy.Tests
         {"height", 1000l},
         {"width", 400l},
       };
-      _iPhonePercyAppiumDriver.Setup(x => x.Execute("mobile: viewportRect"))
+      _iPhonePercyAppiumDriver.Setup(x => x.ExecuteDriverScript("mobile: viewportRect"))
         .Returns(info);
       iosMetadata = new IosMetadata(_iPhonePercyAppiumDriver.Object, "iPhone_11", -1, -1, null, null);
       // Act
@@ -200,7 +200,7 @@ namespace Percy.Tests
         {"height", 1000l},
         {"width", 400l},
       };
-      _iPhonePercyAppiumDriver.Setup(x => x.Execute("mobile: viewportRect"))
+      _iPhonePercyAppiumDriver.Setup(x => x.ExecuteDriverScript("mobile: viewportRect"))
         .Returns(info);
       iosMetadata = new IosMetadata(_iPhonePercyAppiumDriver.Object, "iPhone_11", -1, -1, null, null);
       // Act
@@ -237,7 +237,7 @@ namespace Percy.Tests
         {"height", 1000l},
         {"width", 400l},
       };
-      _iPhonePercyAppiumDriver.Setup(x => x.Execute("mobile: viewportRect"))
+      _iPhonePercyAppiumDriver.Setup(x => x.ExecuteDriverScript("mobile: viewportRect"))
         .Returns(info);
       _iPhonePercyAppiumDriver.Setup(x => x.DownscaledWidth())
         .Returns(200);

@@ -64,7 +64,7 @@ namespace PercyIO.Appium
       return (int)ReflectionUtils.PropertyCall<Object>(size, "Width");
     }
 
-    public object Execute(String script)
+    public object ExecuteDriverScript(String script)
     {
       return ExecuteScript(driver, script);
     }

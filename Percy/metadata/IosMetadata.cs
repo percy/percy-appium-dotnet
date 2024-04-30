@@ -79,7 +79,7 @@ namespace PercyIO.Appium
     {
       if (AppPercy.cache.Get("viewportRect_" + sessionId) == null)
       {
-        object viewportRect = driver.Execute("mobile: viewportRect");
+        object viewportRect = driver.ExecuteDriverScript("mobile: viewportRect");
         AppPercy.cache.Store("viewportRect_" + sessionId, viewportRect);
       }
       return (Dictionary<string, object>)AppPercy.cache.Get("viewportRect_" + sessionId);
