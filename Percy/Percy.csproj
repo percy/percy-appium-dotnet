@@ -14,7 +14,7 @@
     <Copyright>Copyright Perceptual Inc</Copyright>
     <Authors>percy-admin</Authors>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageProjectUrl>https://docs.percy.io/docs/appium-dotnet</PackageProjectUrl>
+    <PackageProjectUrl>https://www.browserstack.com/docs/app-percy/integrate/appium-dotnet</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/percy/percy-appium-dotnet</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
