@@ -38,6 +38,7 @@ namespace Percy.Tests
       Assert.Equal(screenshotOptions.CustomConsiderRegions.Count, 0);
       Assert.Equal(screenshotOptions.Sync, null);
       Assert.Equal(screenshotOptions.TestCase, null);
+      Assert.Equal(screenshotOptions.Labels, null);
       Assert.Equal(screenshotOptions.ThTestCaseExecutionId, null);
     }
   }
