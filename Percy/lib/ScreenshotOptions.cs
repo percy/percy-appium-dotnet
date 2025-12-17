@@ -15,6 +15,7 @@ namespace PercyIO.Appium
     public String? Orientation { get; set; }
     public bool FullScreen { get; set; } = false;
     public bool FullPage { get; set; } = false;
+    public bool IosOptimizedFullpage { get; set; } = false;
     public int? ScreenLengths { get; set; }
     public Boolean? Sync { get; set; }
     public String? TestCase { get; set; }

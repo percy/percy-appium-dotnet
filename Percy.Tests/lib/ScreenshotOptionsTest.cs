@@ -28,6 +28,8 @@ namespace Percy.Tests
       Assert.Equal(screenshotOptions.ScrollableXpath, "some/xpath");
       screenshotOptions.ScrollableId = "someId";
       Assert.Equal(screenshotOptions.ScrollableId, "someId");
+      screenshotOptions.IosOptimizedFullpage = true;
+      Assert.True(screenshotOptions.IosOptimizedFullpage);
       Assert.Equal(screenshotOptions.IgnoreRegionAccessibilityIds.Count, 0);
       Assert.Equal(screenshotOptions.IgnoreRegionXpaths.Count, 0);
       Assert.Equal(screenshotOptions.IgnoreRegionXpaths.Count, 0);

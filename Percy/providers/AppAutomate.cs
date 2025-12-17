@@ -200,6 +200,7 @@ namespace PercyIO.Appium
             scrollableId = options.ScrollableId,
             topScrollviewOffset = options.TopScrollviewOffset,
             bottomScrollviewOffset = options.BottomScrollviewOffset,
+            iosOptimizedFullpage = options.IosOptimizedFullpage,
             FORCE_FULL_PAGE = Env.ForceFullPage()
           }
         }
