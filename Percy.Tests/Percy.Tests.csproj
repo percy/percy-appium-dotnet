@@ -10,7 +10,7 @@
     <ProjectReference Include="..\Percy\Percy.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Faker.Net" Version="2.0.154" />
+    <PackageReference Include="Faker.Net" Version="2.0.163" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.3" />
     <PackageReference Include="RichardSzalay.MockHttp" Version="6.0.0" />
     <PackageReference Include="xunit" Version="2.5.0" />
