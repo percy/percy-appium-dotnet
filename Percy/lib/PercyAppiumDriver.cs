@@ -121,11 +121,34 @@ namespace PercyIO.Appium
 
     private Object? GetHostV5(Object obj)
     {
-      var commandExecutor = ReflectionUtils.PropertyCall<Object>(obj, "CommandExecutor");
-      var field = commandExecutor?.GetType().GetField("RealExecutor", BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
-      var realExecutor = field?.GetValue(commandExecutor);
-      var remoteServerUri = realExecutor?.GetType().GetField("remoteServerUri", BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
-      return remoteServerUri?.GetValue(realExecutor);
+        var commandExecutor = ReflectionUtils.PropertyCall<Object>(obj, "CommandExecutor");
+        if (commandExecutor == null) return null;
+
+        Object? realExecutor = null;
+        var realExecutorField = commandExecutor.GetType()
+            .GetField("RealExecutor", BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
+            
+        if (realExecutorField != null)
+        {
+            realExecutor = realExecutorField.GetValue(commandExecutor);
+        }
+        if (realExecutor == null)
+        {
+            var internalExecutorField = commandExecutor.GetType()
+                .GetField("internalExecutor", BindingFlags.Instance | BindingFlags.NonPublic);
+
+            if (internalExecutorField != null)
+            {
+                realExecutor = internalExecutorField.GetValue(commandExecutor);
+            }
+            else
+            {
+                realExecutor = commandExecutor;
+            }
+        }
+        var remoteServerUriField = realExecutor?.GetType().GetField("remoteServerUri", BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
+
+        return remoteServerUriField?.GetValue(realExecutor);
     }
 
     // FindElement method is overloaded so creating separate method

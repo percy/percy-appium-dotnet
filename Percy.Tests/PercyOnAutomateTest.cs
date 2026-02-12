@@ -149,5 +149,103 @@ namespace Percy.Tests
       Assert.Contains(LogMessage("percy", $"Could not take screenshot \"Screenshot 1\"\n"), stringWriter.ToString());
       mockHttp.VerifyNoOutstandingExpectation();
     }
+
+    [Fact]
+    public void TestGetHostV5_WithRealExecutor()
+    {
+      // Arrange
+      var testDriver = new MockDriverObject();
+      testDriver.SessionId = "session123";
+      testDriver.SetCapability(MetadataBuilder.CapabilityBuilder("Android"));
+      testDriver.setIsV5(true);
+      testDriver.setCommandExecutor("https://hub-cloud.browserstack.com/wd/hub");
+
+      // Act
+      var percyAppiumDriver = new PercyAppiumDriver(testDriver);
+      var host = percyAppiumDriver.GetHost();
+
+      // Assert
+      Assert.NotNull(host);
+      Assert.Equal("https://hub-cloud.browserstack.com/wd/hub", host);
+    }
+
+    [Fact]
+    public void TestGetHostV5_WithInternalExecutor()
+    {
+      // Arrange
+      var testDriver = new MockDriverObject();
+      testDriver.SessionId = "session456";
+      testDriver.SetCapability(MetadataBuilder.CapabilityBuilder("iOS"));
+      testDriver.setIsV5(true);
+      testDriver.setUseInternalExecutor(true);
+      testDriver.setCommandExecutor("https://hub-cloud.browserstack.com/wd/hub/internal");
+
+      // Act
+      var percyAppiumDriver = new PercyAppiumDriver(testDriver);
+      var host = percyAppiumDriver.GetHost();
+
+      // Assert
+      Assert.NotNull(host);
+      Assert.Equal("https://hub-cloud.browserstack.com/wd/hub/internal", host);
+    }
+
+    [Fact]
+    public void TestGetHostV5_FallbackToCommandExecutor()
+    {
+      // Arrange
+      var testDriver = new MockDriverObject();
+      testDriver.SessionId = "session789";
+      testDriver.SetCapability(MetadataBuilder.CapabilityBuilder("Android"));
+      testDriver.setIsV5(true);
+      testDriver.setUseDirectCommandExecutor(true);
+      testDriver.setCommandExecutor("https://localhost:4723/wd/hub");
+
+      // Act
+      var percyAppiumDriver = new PercyAppiumDriver(testDriver);
+      var host = percyAppiumDriver.GetHost();
+
+      // Assert
+      Assert.NotNull(host);
+      Assert.Equal("https://localhost:4723/wd/hub", host);
+    }
+
+    [Fact]
+    public void TestGetHostV4_WithURL()
+    {
+      // Arrange
+      var testDriver = new MockDriverObject();
+      testDriver.SessionId = "session111";
+      testDriver.SetCapability(MetadataBuilder.CapabilityBuilder("Android"));
+      testDriver.setIsV5(false);
+      testDriver.setCommandExecutor("https://hub.lambdatest.com/wd/hub");
+
+      // Act
+      var percyAppiumDriver = new PercyAppiumDriver(testDriver);
+      var host = percyAppiumDriver.GetHost();
+
+      // Assert
+      Assert.NotNull(host);
+      Assert.Equal("https://hub.lambdatest.com/wd/hub", host);
+    }
+
+    [Fact]
+    public void TestGetHostV4_WithRemoteServerUri()
+    {
+      // Arrange
+      var testDriver = new MockDriverObject();
+      testDriver.SessionId = "session222";
+      testDriver.SetCapability(MetadataBuilder.CapabilityBuilder("iOS"));
+      testDriver.setIsV5(false);
+      testDriver.setUseRemoteServerUri(true);
+      testDriver.setCommandExecutor("https://remote.appium.com/wd/hub");
+
+      // Act
+      var percyAppiumDriver = new PercyAppiumDriver(testDriver);
+      var host = percyAppiumDriver.GetHost();
+
+      // Assert
+      Assert.NotNull(host);
+      Assert.Equal("https://remote.appium.com/wd/hub", host);
+    }
   }
 }

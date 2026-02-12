@@ -37,15 +37,33 @@ namespace Percy.Tests
     public Dictionary<string, object> SessionDetails { get; set; }
 
     private Boolean isV5 = false;
+    private Boolean useRemoteServerUri = false;
+    private Boolean useInternalExecutor = false;
+    private Boolean useDirectCommandExecutor = false;
 
     public void setIsV5(Boolean isV5)
     {
       this.isV5 = isV5;
     }
 
+    public void setUseRemoteServerUri(Boolean useRemoteServerUri)
+    {
+      this.useRemoteServerUri = useRemoteServerUri;
+    }
+
+    public void setUseInternalExecutor(Boolean useInternalExecutor)
+    {
+      this.useInternalExecutor = useInternalExecutor;
+    }
+
+    public void setUseDirectCommandExecutor(Boolean useDirectCommandExecutor)
+    {
+      this.useDirectCommandExecutor = useDirectCommandExecutor;
+    }
+
     private CommandExecutor commandExecutor;
 
-    CommandExecutor CommandExecutor
+    public CommandExecutor CommandExecutor
     {
       get
       {
@@ -60,6 +78,12 @@ namespace Percy.Tests
       if (isV5)
       {
         commandExecutor.setIsV5(isV5);
+        commandExecutor.setUseInternalExecutor(useInternalExecutor);
+        commandExecutor.setUseDirectCommandExecutor(useDirectCommandExecutor);
+      }
+      else
+      {
+        commandExecutor.setUseRemoteServerUri(useRemoteServerUri);
       }
       commandExecutor.SetUrl(url);
     }
