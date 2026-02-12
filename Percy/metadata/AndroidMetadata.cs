@@ -25,8 +25,12 @@ namespace PercyIO.Appium
       var device = driver.GetCapabilities().getValue<String>("device");
       if (device == null)
       {
-        Dictionary<string, object> desiredCaps = driver.GetCapabilities().getValue<Dictionary<string, object>>("desired")!;
-        return desiredCaps.TryGetValue("deviceName", out var value) ? value.ToString() : "";
+        Dictionary<string, object> desiredCaps = driver.GetCapabilities().getValue<Dictionary<string, object>>("desired");
+        if (desiredCaps != null)
+        {
+          return desiredCaps.TryGetValue("deviceName", out var value) ? value.ToString() : "";
+        }
+        return "";
       }
       return device;
     }
@@ -34,6 +38,7 @@ namespace PercyIO.Appium
     internal override int DeviceScreenHeight()
     {
       var deviceScreenSize = driver.GetCapabilities().getValue<String>("deviceScreenSize");
+      if (deviceScreenSize == null) return 0;
       return Int16.Parse(deviceScreenSize.Split('x')[1]);
     }
 
@@ -44,6 +49,7 @@ namespace PercyIO.Appium
     internal override int DeviceScreenWidth()
     {
       var deviceScreenSize = driver.GetCapabilities().getValue<String>("deviceScreenSize");
+      if (deviceScreenSize == null) return 0;
       return Int16.Parse(deviceScreenSize.Split('x')[0]);
     }
 
@@ -73,7 +79,11 @@ namespace PercyIO.Appium
     {
       if (AppPercy.cache.Get("viewportRect_" + sessionId) == null)
       {
-        var viewportRect = driver.GetCapabilities().getValue<Dictionary<string, object>>("viewportRect")!;
+        var viewportRect = driver.GetCapabilities().getValue<Dictionary<string, object>>("viewportRect");
+        if (viewportRect == null)
+        {
+          viewportRect = new Dictionary<string, object>();
+        }
         AppPercy.cache.Store("viewportRect_" + sessionId, viewportRect);
       }
       return (Dictionary<string, object>)AppPercy.cache.Get("viewportRect_" + sessionId);

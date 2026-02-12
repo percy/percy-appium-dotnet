@@ -21,7 +21,7 @@ namespace PercyIO.Appium
       {
         return deviceName;
       }
-      return driver.GetCapabilities().getValue<String>("deviceName")!;
+      return driver.GetCapabilities().getValue<String>("deviceName") ?? "";
     }
 
     internal override string OsName()
@@ -80,6 +80,10 @@ namespace PercyIO.Appium
       if (AppPercy.cache.Get("viewportRect_" + sessionId) == null)
       {
         object viewportRect = driver.ExecuteDriverScript("mobile: viewportRect");
+        if (viewportRect == null)
+        {
+           viewportRect = new Dictionary<string, object>();
+        }
         AppPercy.cache.Store("viewportRect_" + sessionId, viewportRect);
       }
       return (Dictionary<string, object>)AppPercy.cache.Get("viewportRect_" + sessionId);

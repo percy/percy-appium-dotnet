@@ -39,8 +39,32 @@ namespace PercyIO.Appium
     {
       var capabilityObject = ReflectionUtils.PropertyCall<object>(driver, "Capabilities");
       var type = capabilityObject.GetType();
-      var fieldInfo = type.GetField("capabilities", BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
-      return (Dictionary<string, object>)fieldInfo.GetValue(capabilityObject);
+      
+      FieldInfo fieldInfo = type.GetField("capabilities", BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
+      if (fieldInfo == null)
+      {
+        fieldInfo = type.GetField("_capabilities", BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
+      }
+      
+      if (fieldInfo == null)
+      {
+         // Fallback: check for 'caps'
+         fieldInfo = type.GetField("caps", BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
+      }
+
+      if (fieldInfo != null)
+      {
+         var res = fieldInfo.GetValue(capabilityObject);
+         if (res is Dictionary<string, object> dict)
+         {
+             return dict;
+         }
+      }
+
+      // If still fails, try checking if property exposes dictionary
+      // This is a last resort fallback
+      Utils.Log("Could not reflectively find capabilities dictionary. Percy options might be missing.", "debug");
+      return new Dictionary<string, object>();
     }
   }
 }

@@ -16,7 +16,8 @@ namespace PercyIO.Appium
 
     public new String GetType()
     {
-      return GetCapabilities().getValue<String>("platformName")!;
+      var type = GetCapabilities().getValue<String>("platformName");
+      return type ?? "";
     }
 
     public String Orientation()
@@ -81,7 +82,12 @@ namespace PercyIO.Appium
 
     public string GetHost()
     {
-      return GetHostV5(driver)?.ToString()! ?? GetHostV4(driver)?.ToString()!;
+      var host = GetHostV5(driver)?.ToString() ?? GetHostV4(driver)?.ToString();
+      if (host == null)
+      {
+        Utils.Log("Unable to extract remote server URI from driver. This may be due to driver implementation changes.", "debug");
+      }
+      return host;
     }
 
     public String GetScreenshot()
@@ -112,20 +118,53 @@ namespace PercyIO.Appium
 
     private Object? GetHostV4(Object obj)
     {
-      var commandExecutor = ReflectionUtils.PropertyCall<Object>(obj, "CommandExecutor");
-      var uri = commandExecutor?.GetType().GetField("URL", BindingFlags.Instance | BindingFlags.NonPublic);
-      var remoteServerUri = commandExecutor?.GetType().GetField("remoteServerUri", BindingFlags.Instance | BindingFlags.NonPublic);
-      var value = uri?.GetValue(commandExecutor) ?? remoteServerUri?.GetValue(commandExecutor);
-      return value;
+      try
+      {
+        var commandExecutor = ReflectionUtils.PropertyCall<Object>(obj, "CommandExecutor");
+        if (commandExecutor == null) return null;
+
+        var uri = commandExecutor?.GetType().GetField("URL", BindingFlags.Instance | BindingFlags.NonPublic);
+        var remoteServerUri = commandExecutor?.GetType().GetField("remoteServerUri", BindingFlags.Instance | BindingFlags.NonPublic);
+        var remoteServerAddress = commandExecutor?.GetType().GetField("remoteServerAddress", BindingFlags.Instance | BindingFlags.NonPublic); // Added backward compatibility
+        var addressOfRemoteServer = commandExecutor?.GetType().GetField("addressOfRemoteServer", BindingFlags.Instance | BindingFlags.NonPublic); // For some variants
+
+        var value = uri?.GetValue(commandExecutor) 
+                    ?? remoteServerUri?.GetValue(commandExecutor)
+                    ?? remoteServerAddress?.GetValue(commandExecutor)
+                    ?? addressOfRemoteServer?.GetValue(commandExecutor);
+        return value;
+      }
+      catch (Exception e)
+      {
+         Utils.Log($"Failed to get host V4: {e.Message}", "debug");
+         return null;
+      }
     }
 
     private Object? GetHostV5(Object obj)
     {
-      var commandExecutor = ReflectionUtils.PropertyCall<Object>(obj, "CommandExecutor");
-      var field = commandExecutor?.GetType().GetField("RealExecutor", BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
-      var realExecutor = field?.GetValue(commandExecutor);
-      var remoteServerUri = realExecutor?.GetType().GetField("remoteServerUri", BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
-      return remoteServerUri?.GetValue(realExecutor);
+      try
+      {
+        var commandExecutor = ReflectionUtils.PropertyCall<Object>(obj, "CommandExecutor");
+        if (commandExecutor == null) return null;
+
+        var field = commandExecutor?.GetType().GetField("RealExecutor", BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
+        var realExecutor = field?.GetValue(commandExecutor);
+        if (realExecutor == null) return null;
+
+        var remoteServerUri = realExecutor?.GetType().GetField("remoteServerUri", BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
+        var remoteServerAddress = realExecutor?.GetType().GetField("remoteServerAddress", BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic); // Appium v5 compatibility
+        var addressOfRemoteServer = realExecutor?.GetType().GetField("addressOfRemoteServer", BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic); 
+
+        return remoteServerUri?.GetValue(realExecutor) 
+               ?? remoteServerAddress?.GetValue(realExecutor)
+               ?? addressOfRemoteServer?.GetValue(realExecutor);
+      }
+      catch (Exception e)
+      {
+        Utils.Log($"Failed to get host V5: {e.Message}", "debug");
+        return null;
+      }
     }
 
     // FindElement method is overloaded so creating separate method

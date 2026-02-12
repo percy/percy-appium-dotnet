@@ -47,6 +47,18 @@ namespace Percy.Tests
     }
 
     [Fact]
+    public void TestSupports_WhenGetHostReturnsNull()
+    {
+      // Arrange
+      _androidPercyAppiumDriver.Setup(x => x.GetHost())
+        .Returns((string)null);
+      // Act
+      bool actual = AppAutomate.Supports(_androidPercyAppiumDriver.Object);
+      // Assert
+      Assert.False(actual);
+    }
+
+    [Fact]
     public void TestGetDebugUrl()
     {
       // Arrange
@@ -105,6 +117,17 @@ namespace Percy.Tests
     {
       // Arrange
       Environment.SetEnvironmentVariable("PERCY_DISABLE_REMOTE_UPLOADS", "true");
+      
+      var mockHttp = new MockHttpMessageHandler();
+      var obj = new
+      {
+        success = true,
+        link = "htt://dummy"
+      };
+      mockHttp.When("http://localhost:5338/percy/comparison")
+        .Respond("application/json", JsonConvert.SerializeObject(obj));
+      CliWrapper.setHttpClient(new HttpClient(mockHttp));
+
       _androidPercyAppiumDriver.Setup(x => x.ExecuteScript(It.IsAny<string>()))
         .Throws(new Exception());
       var options = new ScreenshotOptions();
@@ -122,6 +145,7 @@ namespace Percy.Tests
       // Assert
       Assert.Equal(true, actual["success"]);
       Environment.SetEnvironmentVariable("PERCY_DISABLE_REMOTE_UPLOADS", "false");
+      CliWrapper.resetHttpClient();
     }
 
     [Fact]

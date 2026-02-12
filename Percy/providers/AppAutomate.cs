@@ -17,7 +17,7 @@ namespace PercyIO.Appium
     internal static bool Supports(IPercyAppiumDriver percyAppiumDriver)
     {
       string remoteAddress = percyAppiumDriver.GetHost();
-      if (remoteAddress.Contains(Environment.GetEnvironmentVariable("AA_DOMAIN") != null
+      if (remoteAddress != null && remoteAddress.Contains(Environment.GetEnvironmentVariable("AA_DOMAIN") != null
           ? Environment.GetEnvironmentVariable("AA_DOMAIN") : "browserstack"))
       {
         return true;
@@ -125,7 +125,7 @@ namespace PercyIO.Appium
       catch (Exception e)
       {
         error = e.Message;
-        throw e;
+        throw;
       }
       finally
       {
