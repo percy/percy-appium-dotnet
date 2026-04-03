@@ -34,7 +34,7 @@ namespace Percy.Tests
     }
 
     [Fact]
-    public void TestSupports_WhenNull()
+    public void TestSupports_WhenNonBrowserStack()
     {
       // Arrange
       String url = "http://hub-cloud.abc.com/wd/hub";
@@ -43,6 +43,19 @@ namespace Percy.Tests
       // Act
       bool actual = AppAutomate.Supports(_androidPercyAppiumDriver.Object);
       // Assert
+      Assert.False(actual);
+    }
+
+    [Fact]
+    public void TestSupports_WhenGetHostReturnsNull()
+    {
+      // Arrange — simulates Appium 8.x where GetHost() returns null
+      // due to reflection failing to find remoteServerUri on derived type
+      _androidPercyAppiumDriver.Setup(x => x.GetHost())
+        .Returns((string)null);
+      // Act
+      bool actual = AppAutomate.Supports(_androidPercyAppiumDriver.Object);
+      // Assert — should return false, not throw NullReferenceException
       Assert.False(actual);
     }
 

@@ -110,11 +110,32 @@ namespace PercyIO.Appium
       return null;
     }
 
+    // Walks the type hierarchy to find a private/non-public instance field.
+    // Type.GetField() with BindingFlags.NonPublic only returns fields declared
+    // on the exact type, not inherited private fields from base classes.
+    // This is needed because Appium.WebDriver 8.x introduced AppiumHttpCommandExecutor
+    // which extends HttpCommandExecutor — the remoteServerUri field is declared on
+    // HttpCommandExecutor (base class), not on AppiumHttpCommandExecutor (derived type).
+    // See: https://learn.microsoft.com/en-us/dotnet/api/system.type.getfield
+    private FieldInfo? FindFieldInHierarchy(Type? type, string fieldName)
+    {
+      while (type != null)
+      {
+        var field = type.GetField(fieldName,
+            BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+        if (field != null) return field;
+        type = type.BaseType;
+      }
+      return null;
+    }
+
     private Object? GetHostV4(Object obj)
     {
       var commandExecutor = ReflectionUtils.PropertyCall<Object>(obj, "CommandExecutor");
-      var uri = commandExecutor?.GetType().GetField("URL", BindingFlags.Instance | BindingFlags.NonPublic);
-      var remoteServerUri = commandExecutor?.GetType().GetField("remoteServerUri", BindingFlags.Instance | BindingFlags.NonPublic);
+      if (commandExecutor == null) return null;
+
+      var uri = FindFieldInHierarchy(commandExecutor.GetType(), "URL");
+      var remoteServerUri = FindFieldInHierarchy(commandExecutor.GetType(), "remoteServerUri");
       var value = uri?.GetValue(commandExecutor) ?? remoteServerUri?.GetValue(commandExecutor);
       return value;
     }
@@ -122,9 +143,29 @@ namespace PercyIO.Appium
     private Object? GetHostV5(Object obj)
     {
       var commandExecutor = ReflectionUtils.PropertyCall<Object>(obj, "CommandExecutor");
-      var field = commandExecutor?.GetType().GetField("RealExecutor", BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
-      var realExecutor = field?.GetValue(commandExecutor);
-      var remoteServerUri = realExecutor?.GetType().GetField("remoteServerUri", BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
+      if (commandExecutor == null) return null;
+
+      Object? realExecutor = null;
+      var realExecutorField = FindFieldInHierarchy(commandExecutor.GetType(), "RealExecutor");
+
+      if (realExecutorField != null)
+      {
+        realExecutor = realExecutorField.GetValue(commandExecutor);
+      }
+      if (realExecutor == null)
+      {
+        var internalExecutorField = FindFieldInHierarchy(commandExecutor.GetType(), "internalExecutor");
+
+        if (internalExecutorField != null)
+        {
+          realExecutor = internalExecutorField.GetValue(commandExecutor);
+        }
+        else
+        {
+          realExecutor = commandExecutor;
+        }
+      }
+      var remoteServerUri = FindFieldInHierarchy(realExecutor?.GetType(), "remoteServerUri");
       return remoteServerUri?.GetValue(realExecutor);
     }
 
