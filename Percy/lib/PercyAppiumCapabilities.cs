@@ -7,6 +7,15 @@ namespace PercyIO.Appium
   internal class PercyAppiumCapabilities : IPercyAppiumCapabilities
   {
     private Dictionary<string, object> capabilites;
+
+    // W3C WebDriver standard capabilities that never need vendor prefix
+    private static readonly HashSet<string> W3CStandardCaps = new HashSet<string>
+    {
+      "browserName", "browserVersion", "platformName",
+      "acceptInsecureCerts", "pageLoadStrategy", "proxy",
+      "timeouts", "unhandledPromptBehavior"
+    };
+
     internal PercyAppiumCapabilities()
     {
 
@@ -18,10 +27,25 @@ namespace PercyIO.Appium
 
     public T getValue<T>(String key)
     {
-      if(capabilites.ContainsKey(key) && capabilites[key] is T result)
+      if (capabilites == null) return default(T);
+
+      // W3C standard caps only use bare key
+      if (W3CStandardCaps.Contains(key))
       {
-        return result;
+        if (capabilites.ContainsKey(key) && capabilites[key] is T result)
+          return result;
+        return default(T);
       }
+
+      // Try bare key first (Appium 1.x or already-resolved)
+      if (capabilites.ContainsKey(key) && capabilites[key] is T bareResult)
+        return bareResult;
+
+      // Then try appium: prefixed key (Appium 2.x W3C protocol)
+      string prefixedKey = "appium:" + key;
+      if (capabilites.ContainsKey(prefixedKey) && capabilites[prefixedKey] is T prefixedResult)
+        return prefixedResult;
+
       return default(T);
     }
 

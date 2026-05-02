@@ -232,7 +232,7 @@ namespace PercyIO.Appium
       {
         Utils.Log("Unable to fetch Appium version, Appium version should be >= 1.19 for Fullpage Screenshot", "warn");
       }
-      else if ((appiumVersionJsonProtocol != null && !AppiumVersionCheck(appiumVersionJsonProtocol)) || (bstackOptions != null && !AppiumVersionCheck(bstackOptions["appiumVersion"].ToString())))
+      else if ((appiumVersionJsonProtocol != null && !AppiumVersionCheck(appiumVersionJsonProtocol)) || (bstackOptions != null && bstackOptions.TryGetValue("appiumVersion", out var appiumVer) && appiumVer != null && !AppiumVersionCheck(appiumVer.ToString())))
       {
         Utils.Log("Appium version should be >= 1.19 for Fullpage Screenshot, Falling back to single page screenshot.", "warn");
         return false;
