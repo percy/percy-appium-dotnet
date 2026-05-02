@@ -25,8 +25,14 @@ namespace PercyIO.Appium
       var device = driver.GetCapabilities().getValue<String>("device");
       if (device == null)
       {
-        Dictionary<string, object> desiredCaps = driver.GetCapabilities().getValue<Dictionary<string, object>>("desired")!;
-        return desiredCaps.TryGetValue("deviceName", out var value) ? value.ToString() : "";
+        // Try "desired" caps (Appium 1.x JSONWP protocol); may be null in Appium 2.x W3C protocol
+        Dictionary<string, object> desiredCaps = driver.GetCapabilities().getValue<Dictionary<string, object>>("desired");
+        if (desiredCaps != null && desiredCaps.TryGetValue("deviceName", out var value))
+          return value.ToString();
+
+        // Fallback: try deviceName directly from capabilities (Appium 2.x)
+        var capsDeviceName = driver.GetCapabilities().getValue<String>("deviceName");
+        return capsDeviceName ?? "";
       }
       return device;
     }
@@ -34,7 +40,10 @@ namespace PercyIO.Appium
     internal override int DeviceScreenHeight()
     {
       var deviceScreenSize = driver.GetCapabilities().getValue<String>("deviceScreenSize");
-      return Int16.Parse(deviceScreenSize.Split('x')[1]);
+      if (deviceScreenSize != null)
+        return Int16.Parse(deviceScreenSize.Split('x')[1]);
+      var viewportRect = GetViewportRect();
+      return viewportRect != null && viewportRect.TryGetValue("height", out var value) ? (int)(long)value : 0;
     }
 
     internal override string OsName()
@@ -44,7 +53,10 @@ namespace PercyIO.Appium
     internal override int DeviceScreenWidth()
     {
       var deviceScreenSize = driver.GetCapabilities().getValue<String>("deviceScreenSize");
-      return Int16.Parse(deviceScreenSize.Split('x')[0]);
+      if (deviceScreenSize != null)
+        return Int16.Parse(deviceScreenSize.Split('x')[0]);
+      var viewportRect = GetViewportRect();
+      return viewportRect != null && viewportRect.TryGetValue("width", out var value) ? (int)(long)value : 0;
     }
 
     internal override int NavBarHeight()
@@ -73,7 +85,7 @@ namespace PercyIO.Appium
     {
       if (AppPercy.cache.Get("viewportRect_" + sessionId) == null)
       {
-        var viewportRect = driver.GetCapabilities().getValue<Dictionary<string, object>>("viewportRect")!;
+        var viewportRect = driver.GetCapabilities().getValue<Dictionary<string, object>>("viewportRect");
         AppPercy.cache.Store("viewportRect_" + sessionId, viewportRect);
       }
       return (Dictionary<string, object>)AppPercy.cache.Get("viewportRect_" + sessionId);
