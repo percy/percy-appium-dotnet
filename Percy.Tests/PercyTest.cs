@@ -77,10 +77,34 @@ namespace Percy.Tests
       mockHttp.Expect("http://localhost:5338/percy/comparison")
               .Respond("application/json", JsonConvert.SerializeObject(obj));
       CliWrapper.setHttpClient(new HttpClient(mockHttp));
-      
+
       percy.Screenshot("Screenshot 4");
       mockHttp.VerifyNoOutstandingExpectation();
       Environment.SetEnvironmentVariable("PERCY_DISABLE_REMOTE_UPLOADS", "false");
+    }
+
+    [Fact]
+    public void shouldSkipWhenPercyNotEnabled()
+    {
+      // Arrange — healthcheck disabled means the factory returns early without
+      // resolving a percy class, and Screenshot is a no-op.
+      TestHelper.UnsetEnvVariables();
+      CliWrapper.Healthcheck = () =>
+      {
+        return false;
+      };
+      mockDriver.SetCapability(MetadataBuilder.CapabilityBuilder("Android"));
+      mockDriver.setCommandExecutor("https://browserstack.com/wd/hub");
+
+      var mockHttp = new MockHttpMessageHandler();
+      CliWrapper.setHttpClient(new HttpClient(mockHttp));
+
+      // Act — constructor returns at the disabled guard, Screenshot returns at its guard.
+      var percy = new PercyIO.Appium.Percy(mockDriver);
+      percy.Screenshot("Screenshot 4");
+
+      // Assert — no screenshot request was ever made.
+      mockHttp.VerifyNoOutstandingExpectation();
     }
   }
 }

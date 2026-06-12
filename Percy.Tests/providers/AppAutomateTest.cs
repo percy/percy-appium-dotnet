@@ -442,5 +442,146 @@ namespace Percy.Tests
       // Assert
       Assert.Equal(actual, expected);
     }
+
+    [Fact]
+    public void TestExecutePercyScreenshotBegin_WhenSessionNotMarked()
+    {
+      // Arrange — first begin returns success=false, flipping markedPercySession to false
+      var name = "First";
+      var failureResponse = JObject.FromObject(new { success = false });
+      _androidPercyAppiumDriver.Setup(x => x.ExecuteScript(It.IsAny<string>()))
+        .Returns(failureResponse.ToString());
+      var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
+      // First call marks the session as not a Percy session
+      appAutomate.ExecutePercyScreenshotBegin(name);
+      // Act — second call should skip the executor block and return null (covers line 60)
+      var result = appAutomate.ExecutePercyScreenshotBegin(name);
+      // Assert
+      Assert.Null(result);
+      _androidPercyAppiumDriver.Verify(x => x.ExecuteScript(It.IsAny<string>()), Times.Once);
+    }
+
+    [Fact]
+    public void TestExecutePercyScreenshotEnd_WhenSessionNotMarked()
+    {
+      // Arrange — begin returns success=false so markedPercySession becomes false
+      Environment.SetEnvironmentVariable("PERCY_LOGLEVEL", "debug");
+      var name = "First";
+      var failureResponse = JObject.FromObject(new { success = false });
+      _androidPercyAppiumDriver.Setup(x => x.ExecuteScript(It.IsAny<string>()))
+        .Returns(failureResponse.ToString());
+      var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
+      appAutomate.ExecutePercyScreenshotBegin(name);
+      // Act — end should skip the executor block and return null (covers line 99)
+      var result = appAutomate.ExecutePercyScreenshotEnd(name, "", false, null);
+      // Assert
+      Assert.Null(result);
+      _androidPercyAppiumDriver.Verify(x => x.ExecuteScript(It.IsAny<string>()), Times.Once);
+    }
+
+    [Fact]
+    public void TestScreenshot_WhenBaseScreenshotThrows()
+    {
+      // Arrange — begin succeeds (response has success + metadata fields) but the
+      // executor response has no "result" key, so ExecutePercyScreenshot (invoked from
+      // CaptureTiles inside base.Screenshot) throws, hitting the catch block (lines 125-128).
+      Environment.SetEnvironmentVariable("PERCY_DISABLE_REMOTE_UPLOADS", "false");
+      Environment.SetEnvironmentVariable("PERCY_LOGLEVEL", "debug");
+      var response = @"{success:'true', osVersion:'11.2', buildHash:'abc', sessionHash:'def', deviceName:'Samsung'}";
+      _androidPercyAppiumDriver.Setup(x => x.ExecuteScript(It.IsAny<string>()))
+        .Returns(response);
+      var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
+      var options = new ScreenshotOptions();
+      options.DeviceName = "Samsung";
+      options.StatusBarHeight = 100;
+      options.NavBarHeight = 100;
+      options.Orientation = "potrait";
+      options.FullScreen = false;
+      options.FullPage = true;
+      options.ScreenLengths = 2;
+      // Act + Assert — the exception is re-thrown after being captured for the end event
+      Assert.ThrowsAny<Exception>(() => appAutomate.Screenshot("temp", options));
+      Environment.SetEnvironmentVariable("PERCY_DISABLE_REMOTE_UPLOADS", "false");
+    }
+
+    [Fact]
+    public void TestCaptureTiles_WhenDisableRemoteUploadsAndFullPage()
+    {
+      // Arrange — remote uploads disabled + FullPage true logs a warning and falls back
+      // to base.CaptureTiles (covers lines 142-144).
+      Environment.SetEnvironmentVariable("PERCY_DISABLE_REMOTE_UPLOADS", "true");
+      Environment.SetEnvironmentVariable("PERCY_LOGLEVEL", "debug");
+      _androidPercyAppiumDriver.Setup(x => x.GetScreenshot())
+        .Returns("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=");
+      _androidPercyAppiumDriver.Setup(x => x.GetHost())
+        .Returns("http://hub-cloud.browserstack.com/wd/hub");
+      var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
+      var metadata = new AndroidMetadata(_androidPercyAppiumDriver.Object, "Samsung Galaxy s22", 100, 200, null, null);
+      appAutomate.metadata = metadata;
+      var options = new ScreenshotOptions();
+      options.FullScreen = false;
+      options.FullPage = true;
+      options.ScreenLengths = 2;
+      // Act
+      var result = appAutomate.CaptureTiles(options);
+      // Assert — base.CaptureTiles returns a single tile
+      Assert.IsType<System.Collections.Generic.List<Tile>>(result);
+      Assert.Single(result);
+      Environment.SetEnvironmentVariable("PERCY_DISABLE_REMOTE_UPLOADS", "false");
+    }
+
+    [Fact]
+    public void TestCaptureTiles_WhenInvalidJsonThrows()
+    {
+      // Arrange — ExecutePercyScreenshot returns a non-array "result", so JArray.Parse
+      // throws and is wrapped into a new Exception (covers lines 156-159).
+      Environment.SetEnvironmentVariable("PERCY_DISABLE_REMOTE_UPLOADS", "false");
+      _androidPercyAppiumDriver.Setup(x => x.ExecuteScript(It.IsAny<string>()))
+        .Returns(JsonConvert.SerializeObject(new
+        {
+          success = true,
+          result = "not-a-json-array"
+        }));
+      var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
+      var metadata = new AndroidMetadata(_androidPercyAppiumDriver.Object, "Samsung Galaxy s22", 100, 200, null, null);
+      appAutomate.metadata = metadata;
+      var options = new ScreenshotOptions();
+      options.FullScreen = false;
+      options.FullPage = true;
+      options.ScreenLengths = 2;
+      // Act + Assert
+      var ex = Assert.Throws<Exception>(() => appAutomate.CaptureTiles(options));
+      Assert.Equal("Error", ex.Message);
+    }
+
+    [Fact]
+    public void TestExecutePercyScreenshot_WhenPercyDevEnabled()
+    {
+      // Arrange — PERCY_ENABLE_DEV switches projectId to "percy-dev" (covers lines 182-184)
+      Environment.SetEnvironmentVariable("PERCY_ENABLE_DEV", "true");
+      var response = JsonConvert.SerializeObject(new
+      {
+        success = true,
+        result = JsonConvert.SerializeObject(new List<object> {
+            new { sha = "abcd-1234", header_height = 50, footer_height = 30 }
+          })
+      });
+      string captured = null;
+      _androidPercyAppiumDriver.Setup(x => x.ExecuteScript(It.IsAny<string>()))
+        .Callback<string>(s => captured = s)
+        .Returns(response);
+      var options = new ScreenshotOptions();
+      options.ScreenLengths = 2;
+      options.ScrollableXpath = "xapth/dummy/scrollable";
+      // Act
+      var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
+      var metadata = new AndroidMetadata(_androidPercyAppiumDriver.Object, "Samsung Galaxy s22", 100, 200, null, null);
+      appAutomate.metadata = metadata;
+      var actual = appAutomate.ExecutePercyScreenshot(options);
+      // Assert — the request payload carries the dev project id
+      Assert.Contains("percy-dev", captured);
+      Assert.Contains("abcd-1234", actual);
+      Environment.SetEnvironmentVariable("PERCY_ENABLE_DEV", "false");
+    }
   }
 }
