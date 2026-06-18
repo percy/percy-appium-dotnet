@@ -1,5 +1,4 @@
 using System;
-using OpenQA.Selenium.Appium.Android;
 using Moq;
 using Xunit;
 using PercyIO.Appium;
@@ -7,7 +6,12 @@ namespace Percy.Tests
 {
   public class MetadataTest
   {
-    AndroidDriver<AndroidElement> _androidDriver;
+    // Typed as Object so the test compiles against every major Appium.WebDriver
+    // release: AndroidDriver was generic (AndroidDriver<AndroidElement>) up to 4.x
+    // and became non-generic in 5.x+ (AndroidElement was removed). This field is
+    // only ever passed as a null placeholder to the reflection-based
+    // PercyAppiumDriver(Object) constructor, so the concrete type is irrelevant.
+    Object _androidDriver = null;
 
     [Fact]
     public void GetType_ShouldGetAndroidValue_WhenAndroid()
