@@ -10,14 +10,6 @@
     <ProjectReference Include="..\Percy\Percy.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <!--
-      These tests redirect the process-global Console.Out to capture log output.
-      That is incompatible with xUnit's default parallel test-collection runner,
-      so collection parallelization is disabled to keep runs deterministic.
-    -->
-    <None Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="Faker.Net" Version="2.0.154" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.3" />
     <PackageReference Include="RichardSzalay.MockHttp" Version="6.0.0" />
@@ -34,7 +26,7 @@
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="DotNetSeleniumExtras.WaitHelpers" Version="3.11.0" />
-    <PackageReference Include="System.Text.Json" Version="8.0.5" />
-    <PackageReference Include="Appium.WebDriver" Version="8.2.0" />
+    <PackageReference Include="System.Text.Json" Version="7.0.0" />
+    <PackageReference Include="Appium.WebDriver" Version="4.0.0" />
   </ItemGroup>
 </Project>
