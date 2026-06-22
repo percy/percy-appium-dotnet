@@ -91,5 +91,35 @@ namespace Percy.Tests
       // Assert
       Assert.False(isValid);
     }
+
+    [Fact]
+    public void IsValid_ReturnsFalse_WhenTopIsNotLessThanBottom()
+    {
+      // Arrange — top >= bottom, so the region is inverted/degenerate.
+      IgnoreRegion region = new IgnoreRegion(20, 10, 5, 50);
+      var width = 1080;
+      var height = 2500;
+
+      // Act
+      bool isValid = region.IsValid(height, width);
+
+      // Assert
+      Assert.False(isValid);
+    }
+
+    [Fact]
+    public void IsValid_ReturnsFalse_WhenLeftIsNotLessThanRight()
+    {
+      // Arrange — left >= right, so the region is inverted/degenerate.
+      IgnoreRegion region = new IgnoreRegion(10, 20, 60, 40);
+      var width = 1080;
+      var height = 2500;
+
+      // Act
+      bool isValid = region.IsValid(height, width);
+
+      // Assert
+      Assert.False(isValid);
+    }
   }
 }

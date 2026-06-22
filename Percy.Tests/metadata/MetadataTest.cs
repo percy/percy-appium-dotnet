@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using OpenQA.Selenium.Appium.Android;
 using Moq;
 using Xunit;
@@ -114,6 +115,60 @@ namespace Percy.Tests
       String actual = metadata.PlatformVersion();
       // Assert
       Assert.Equal(actual, expected);
+    }
+
+    [Fact]
+    public void TestOrientaion_WhenOrientationIsNull_AndCapabilityIsPresent()
+    {
+      // Arrange: screenOrientation is null but the "orientation" capability is set,
+      // so it should be returned lower-cased (Metadata lines 59-62)
+      var caps = new PercyAppiumCapabilities();
+      caps.SetCapability(new Dictionary<string, object>(){
+        {"orientation", "LANDSCAPE"}
+      });
+      Mock<IPercyAppiumDriver> _androidPercyAppiumDriver = new Mock<IPercyAppiumDriver>();
+      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities()).Returns(caps);
+      var metadata = new Mock<Metadata>(_androidPercyAppiumDriver.Object, "Android", 0, 0, null, null).Object;
+      var expected = "landscape";
+      // Act
+      var actual = metadata.Orientation();
+      // Assert
+      Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void TestPlatformVersion_WhenPlatformVersionMissing_FallsBackToOsVersion()
+    {
+      // Arrange: platVersion arg null and "platformVersion" cap absent, so it should
+      // fall back to the "os_version" capability (Metadata lines 80-81, 86)
+      var caps = new PercyAppiumCapabilities();
+      caps.SetCapability(new Dictionary<string, object>(){
+        {"os_version", "13"}
+      });
+      Mock<IPercyAppiumDriver> _androidPercyAppiumDriver = new Mock<IPercyAppiumDriver>();
+      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities()).Returns(caps);
+      var metadata = new Mock<Metadata>(_androidPercyAppiumDriver.Object, "Android", 0, 0, null, null).Object;
+      String expected = "13";
+      // Act
+      String actual = metadata.PlatformVersion();
+      // Assert
+      Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void TestPlatformVersion_WhenBothPlatformVersionAndOsVersionMissing_ReturnsNull()
+    {
+      // Arrange: platVersion arg null and neither "platformVersion" nor "os_version"
+      // caps are present, so it should return null (Metadata lines 82-84)
+      var caps = new PercyAppiumCapabilities();
+      caps.SetCapability(new Dictionary<string, object>());
+      Mock<IPercyAppiumDriver> _androidPercyAppiumDriver = new Mock<IPercyAppiumDriver>();
+      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities()).Returns(caps);
+      var metadata = new Mock<Metadata>(_androidPercyAppiumDriver.Object, "Android", 0, 0, null, null).Object;
+      // Act
+      String actual = metadata.PlatformVersion();
+      // Assert
+      Assert.Null(actual);
     }
   }
 }

@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using OpenQA.Selenium;
 using Moq;
 using Xunit;
@@ -126,6 +128,50 @@ namespace Percy.Tests
     {
       androidMetadata = new AndroidMetadata(_androidPercyAppiumDriver.Object, "Samsung_gs22u", 0, 100, null, null);
       Assert.Equal(androidMetadata.OsName(), "Android");
+    }
+
+    [Fact]
+    public void TestGetDeviceName_WhenNameAndDeviceCapAreNull_FallsBackToDesired()
+    {
+      // Arrange: name is null and the "device" capability is absent, so it should
+      // fall back to the "deviceName" entry under "desired" (AndroidMetadata lines 27-29)
+      var caps = new PercyAppiumCapabilities();
+      var desired = new Dictionary<string, object>(){
+        {"deviceName", "Pixel_6"}
+      };
+      caps.SetCapability(new Dictionary<string, object>(){
+        {"desired", desired}
+      });
+      var percyAppiumDriver = new Mock<IPercyAppiumDriver>();
+      percyAppiumDriver.Setup(x => x.GetCapabilities()).Returns(caps);
+      percyAppiumDriver.Setup(x => x.sessionId()).Returns("session-1");
+      var expected = "Pixel_6";
+      androidMetadata = new AndroidMetadata(percyAppiumDriver.Object, null, 0, 0, null, null);
+      // Act
+      var actual = androidMetadata.DeviceName();
+      // Assert
+      Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void TestGetDeviceName_WhenNameAndDeviceCapAreNull_AndDesiredHasNoDeviceName()
+    {
+      // Arrange: name null, no "device" cap, and "desired" lacks "deviceName"
+      // so TryGetValue fails and an empty string is returned (AndroidMetadata line 29 false branch)
+      var caps = new PercyAppiumCapabilities();
+      var desired = new Dictionary<string, object>();
+      caps.SetCapability(new Dictionary<string, object>(){
+        {"desired", desired}
+      });
+      var percyAppiumDriver = new Mock<IPercyAppiumDriver>();
+      percyAppiumDriver.Setup(x => x.GetCapabilities()).Returns(caps);
+      percyAppiumDriver.Setup(x => x.sessionId()).Returns("session-1");
+      var expected = "";
+      androidMetadata = new AndroidMetadata(percyAppiumDriver.Object, null, 0, 0, null, null);
+      // Act
+      var actual = androidMetadata.DeviceName();
+      // Assert
+      Assert.Equal(expected, actual);
     }
   }
 }
