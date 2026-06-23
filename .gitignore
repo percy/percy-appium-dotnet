@@ -6,3 +6,8 @@ obj
 .DS_Store?
 coveragereport
 TestResults
+
+# coverlet msbuild output
+coverage.cobertura.xml
+coverage.json
+coverage.*.json

@@ -6,14 +6,25 @@ using System.Collections.Generic;
 
 namespace Percy.Tests
 {
-  public class IosMetadataTest
+  public class IosMetadataTest : IDisposable
   {
     private IosMetadata iosMetadata;
     private readonly Mock<IPercyAppiumDriver> _iPhonePercyAppiumDriver = new Mock<IPercyAppiumDriver>();
 
+    // Several tests below replace the shared static MetadataHelper.ValueFromStaticDevicesInfo
+    // delegate with stubs. Capture the original and restore it after each test so the
+    // mutation does not leak into other test classes (e.g. MetadataHelperTest).
+    private readonly Func<string, string, int> _originalValueFromStaticDevicesInfo;
+
     public IosMetadataTest()
     {
       _iPhonePercyAppiumDriver = MetadataBuilder.mockDriver("iOS");
+      _originalValueFromStaticDevicesInfo = MetadataHelper.ValueFromStaticDevicesInfo;
+    }
+
+    public void Dispose()
+    {
+      MetadataHelper.ValueFromStaticDevicesInfo = _originalValueFromStaticDevicesInfo;
     }
 
     [Fact]
