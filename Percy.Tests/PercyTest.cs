@@ -12,11 +12,23 @@ using OpenQA.Selenium.Support.UI;
 
 namespace Percy.Tests
 {
-  public class PercyTest
+  public class PercyTest : IDisposable
   {
     private readonly MockDriverObject mockDriver;
+
+    // Reset the static HttpClient after every test so a mock handler set here
+    // cannot leak into subsequent test classes (cross-class test pollution).
+    public void Dispose()
+    {
+      CliWrapper.resetHttpClient();
+    }
+
     public PercyTest()
     {
+      // The AppPercy.cache is static and keyed by sessionId. Tests across classes
+      // all reuse "session-1", so a cached (possibly percy-disabled) PercyOptions
+      // entry can leak in and short-circuit Screenshot. Clear it like AppPercyTest does.
+      AppPercy.cache.Clear();
       mockDriver = new MockDriverObject();
       mockDriver.SessionId = "session-1";
       var mockHttp = new MockHttpMessageHandler();
