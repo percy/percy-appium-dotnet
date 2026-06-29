@@ -10,10 +10,19 @@ using System.IO;
 
 namespace Percy.Tests
 {
-  public class AppPercyTest
+  public class AppPercyTest : IDisposable
   {
     private readonly MockDriverObject mockDriver;
     private readonly StringWriter stringWriter;
+
+    // Reset shared static state after every test so the mock HttpClient and the
+    // PERCY_DISABLE_REMOTE_UPLOADS env var set here cannot leak into other test
+    // classes (cross-class test pollution).
+    public void Dispose()
+    {
+      CliWrapper.resetHttpClient();
+      Environment.SetEnvironmentVariable("PERCY_DISABLE_REMOTE_UPLOADS", null);
+    }
 
     public AppPercyTest()
     {

@@ -10,14 +10,27 @@ using Newtonsoft.Json.Linq;
 
 namespace Percy.Tests
 {
-  public class PercyOnAutomateTest
+  public class PercyOnAutomateTest : IDisposable
   {
     private readonly MockDriverObject mockDriver;
     private readonly StringWriter stringWriter;
     private readonly MockHttpMessageHandler mockHttp;
 
+    // Reset the static HttpClient after every test so a mock handler set here
+    // cannot leak into subsequent test classes (cross-class test pollution).
+    public void Dispose()
+    {
+      CliWrapper.resetHttpClient();
+    }
+
     public PercyOnAutomateTest()
     {
+      // PercyAppiumDriver.GetCapabilities() caches the capabilities object in the
+      // static AppPercy.cache keyed by sessionId ("caps_session-1"). Every test
+      // reuses "session-1", so a capabilities object cached by a previously-run
+      // test class would be reused here and produce the wrong request body,
+      // breaking the WithPartialContent matchers. Clear it like AppPercyTest does.
+      AppPercy.cache.Clear();
       mockDriver = new MockDriverObject();
       mockDriver.SessionId = "session-1";
       CliWrapper.Healthcheck = () =>

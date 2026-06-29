@@ -11,13 +11,22 @@ using System.Net.Http;
 
 namespace Percy.Tests
 {
-  public class AppAutomateTest
+  public class AppAutomateTest : IDisposable
   {
     private readonly Mock<IPercyAppiumDriver> _androidPercyAppiumDriver = new Mock<IPercyAppiumDriver>();
 
     public AppAutomateTest()
     {
       _androidPercyAppiumDriver = MetadataBuilder.mockDriver("Android");
+    }
+
+    // Reset shared static state after every test so the mock HttpClient and the
+    // PERCY_DISABLE_REMOTE_UPLOADS env var set here cannot leak into other test
+    // classes (cross-class test pollution).
+    public void Dispose()
+    {
+      CliWrapper.resetHttpClient();
+      Environment.SetEnvironmentVariable("PERCY_DISABLE_REMOTE_UPLOADS", null);
     }
 
     [Fact]
@@ -130,10 +139,19 @@ namespace Percy.Tests
       options.ScreenLengths = 0;
 
       AppAutomate appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
+
+      // Set up an explicit mock for the comparison endpoint so this test does not
+      // depend on a leaked static HttpClient from a previously-executed test class.
+      var mockHttp = new MockHttpMessageHandler();
+      mockHttp.When("http://localhost:5338/percy/comparison")
+        .Respond("application/json", "{\"success\": true}");
+      CliWrapper.setHttpClient(new HttpClient(mockHttp));
+
       // Act
       var actual = appAutomate.Screenshot("temp", options);
       // Assert
       Assert.Equal(true, actual["success"]);
+      CliWrapper.resetHttpClient();
       Environment.SetEnvironmentVariable("PERCY_DISABLE_REMOTE_UPLOADS", "false");
     }
 
