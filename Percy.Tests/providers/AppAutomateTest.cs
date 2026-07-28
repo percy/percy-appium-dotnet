@@ -479,6 +479,37 @@ namespace Percy.Tests
     }
 
     [Fact]
+    public void TestVerifyCorrectAppiumVersion_WhenAppiumThree()
+    {
+      // PER-10219 — the gate is "Appium >= 1.19", but it was written as `major == 2` before 3.x
+      // existed, so a pinned `appiumVersion: 3.1.0` silently downgraded fullpage to single page.
+      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities().getValue<Dictionary<string, object>>("bstack:options")).Returns(
+        new Dictionary<string, object> {
+          {"appiumVersion", "3.1.0"},
+        }
+      );
+      // Act
+      var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
+      var actual = appAutomate.VerifyCorrectAppiumVersion();
+      // Assert
+      Assert.True(actual);
+    }
+
+    [Fact]
+    public void TestAppiumVersionCheck_AcrossMajors()
+    {
+      var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
+      // Below the 1.19 floor
+      Assert.False(appAutomate.AppiumVersionCheck("1.18.0"));
+      // The floor and everything above it, including majors that did not exist when
+      // the check was written
+      Assert.True(appAutomate.AppiumVersionCheck("1.19.0"));
+      Assert.True(appAutomate.AppiumVersionCheck("2.0.0"));
+      Assert.True(appAutomate.AppiumVersionCheck("3.1.0"));
+      Assert.True(appAutomate.AppiumVersionCheck("4.0.0"));
+    }
+
+    [Fact]
     public void TestVerifyCorrectAppiumVersion_WhenMajorOnlyVersion()
     {
       // "appiumVersion: 2" is a legal pin — a missing minor must not throw IndexOutOfRange

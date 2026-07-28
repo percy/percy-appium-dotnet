@@ -280,7 +280,11 @@ namespace PercyIO.Appium
         int.TryParse(versionArr[1], out minorVersion);
       }
 
-      if (majorVersion == 2 || (majorVersion == 1 && minorVersion > 18))
+      // The gate is "Appium >= 1.19". This was written as `== 2` when 2.x was the newest major,
+      // so Appium 3.x — which BrowserStack now offers and defaults to on newer devices — failed a
+      // check it comfortably satisfies, silently downgrading every fullpage request to single
+      // page. Compare as >= 2 so future majors don't regress the same way.
+      if (majorVersion >= 2 || (majorVersion == 1 && minorVersion > 18))
       {
         return true;
       }
