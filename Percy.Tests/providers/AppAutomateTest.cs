@@ -496,6 +496,27 @@ namespace Percy.Tests
     }
 
     [Fact]
+    public void TestVerifyCorrectAppiumVersion_WhenCapabilityLookupThrows()
+    {
+      // Version detection must not be able to take the screenshot down with it
+      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities()).Throws(new Exception("caps unavailable"));
+      // Act
+      var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
+      var actual = appAutomate.VerifyCorrectAppiumVersion();
+      // Assert — falls back to single page instead of propagating
+      Assert.False(actual);
+    }
+
+    [Fact]
+    public void TestAppiumVersionCheck_WhenVersionIsEmpty()
+    {
+      var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
+      Assert.False(appAutomate.AppiumVersionCheck(null));
+      Assert.False(appAutomate.AppiumVersionCheck(""));
+      Assert.False(appAutomate.AppiumVersionCheck("   "));
+    }
+
+    [Fact]
     public void TestAppiumVersionCheck_AcrossMajors()
     {
       var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
