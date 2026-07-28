@@ -444,6 +444,163 @@ namespace Percy.Tests
     }
 
     [Fact]
+    public void TestVerifyCorrectAppiumVersion_WhenW3CWithoutAppiumVersionKey()
+    {
+      // `bstack:options` is always injected on a BrowserStack SDK session, but
+      // `appiumVersion` is only in it when the user pins one. Indexing the missing key threw
+      // KeyNotFoundException, which propagated all the way out as a silent null screenshot.
+      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities().getValue<Dictionary<string, object>>("bstack:options")).Returns(
+        new Dictionary<string, object> {
+          {"userName", "someuser"},
+          {"deviceName", "Samsung Galaxy S22"},
+          {"osVersion", "12.0"},
+        }
+      );
+      // Act
+      var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
+      var actual = appAutomate.VerifyCorrectAppiumVersion();
+      // Assert — unknown version must not block fullpage, and must not throw
+      Assert.True(actual);
+    }
+
+    [Fact]
+    public void TestVerifyCorrectAppiumVersion_WhenW3CAppiumVersionIsNull()
+    {
+      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities().getValue<Dictionary<string, object>>("bstack:options")).Returns(
+        new Dictionary<string, object> {
+          {"appiumVersion", null},
+        }
+      );
+      // Act
+      var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
+      var actual = appAutomate.VerifyCorrectAppiumVersion();
+      // Assert
+      Assert.True(actual);
+    }
+
+    [Fact]
+    public void TestVerifyCorrectAppiumVersion_WhenAppiumThree()
+    {
+      // The gate is "Appium >= 1.19", but it was written as `major == 2` before 3.x
+      // existed, so a pinned `appiumVersion: 3.1.0` silently downgraded fullpage to single page.
+      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities().getValue<Dictionary<string, object>>("bstack:options")).Returns(
+        new Dictionary<string, object> {
+          {"appiumVersion", "3.1.0"},
+        }
+      );
+      // Act
+      var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
+      var actual = appAutomate.VerifyCorrectAppiumVersion();
+      // Assert
+      Assert.True(actual);
+    }
+
+    [Fact]
+    public void TestVerifyCorrectAppiumVersion_WhenCapabilityLookupThrows()
+    {
+      // Version detection must not be able to take the screenshot down with it
+      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities()).Throws(new Exception("caps unavailable"));
+      // Act
+      var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
+      var actual = appAutomate.VerifyCorrectAppiumVersion();
+      // Assert — falls back to single page instead of propagating
+      Assert.False(actual);
+    }
+
+    [Fact]
+    public void TestAppiumVersionCheck_WhenVersionIsEmpty()
+    {
+      var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
+      Assert.False(appAutomate.AppiumVersionCheck(null));
+      Assert.False(appAutomate.AppiumVersionCheck(""));
+      Assert.False(appAutomate.AppiumVersionCheck("   "));
+    }
+
+    [Fact]
+    public void TestAppiumVersionCheck_AcrossMajors()
+    {
+      var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
+      // Below the 1.19 floor
+      Assert.False(appAutomate.AppiumVersionCheck("1.18.0"));
+      // The floor and everything above it, including majors that did not exist when
+      // the check was written
+      Assert.True(appAutomate.AppiumVersionCheck("1.19.0"));
+      Assert.True(appAutomate.AppiumVersionCheck("2.0.0"));
+      Assert.True(appAutomate.AppiumVersionCheck("3.1.0"));
+      Assert.True(appAutomate.AppiumVersionCheck("4.0.0"));
+    }
+
+    [Fact]
+    public void TestVerifyCorrectAppiumVersion_WhenMajorOnlyVersion()
+    {
+      // "appiumVersion: 2" is a legal pin — a missing minor must not throw IndexOutOfRange
+      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities().getValue<Dictionary<string, object>>("bstack:options")).Returns(
+        new Dictionary<string, object> {
+          {"appiumVersion", "2"},
+        }
+      );
+      // Act
+      var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
+      var actual = appAutomate.VerifyCorrectAppiumVersion();
+      // Assert
+      Assert.True(actual);
+    }
+
+    [Fact]
+    public void TestVerifyCorrectAppiumVersion_WhenVersionIsUnparseable()
+    {
+      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities().getValue<String>("browserstack.appium_version")).Returns("not-a-version");
+      // Act
+      var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
+      var actual = appAutomate.VerifyCorrectAppiumVersion();
+      // Assert — falls back to single page rather than throwing
+      Assert.False(actual);
+    }
+
+    [Fact]
+    public void TestExecutePercyScreenshot_FullPageWhenW3CWithoutAppiumVersionKey()
+    {
+      // End-to-end regression: FullPage=true + ScreenLengths>=2 is the only path that
+      // evaluates VerifyCorrectAppiumVersion(), which is why FullPage=false kept working while
+      // fullpage silently produced no snapshot at all.
+      Environment.SetEnvironmentVariable("PERCY_DISABLE_REMOTE_UPLOADS", "false");
+      // Real capability lookup (not a stubbed getValue) so the missing-key path is genuinely
+      // exercised — `bstack:options` present, `appiumVersion` absent, as the BrowserStack SDK
+      // sends it whenever the user has not pinned a version.
+      var caps = new PercyAppiumCapabilities();
+      var capsDict = MetadataBuilder.CapabilityBuilder("Android");
+      capsDict.Add("bstack:options", new Dictionary<string, object> {
+        {"userName", "someuser"},
+        {"deviceName", "Samsung Galaxy S22"},
+      });
+      caps.SetCapability(capsDict);
+      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities()).Returns(caps);
+      var response = JsonConvert.SerializeObject(new
+      {
+        success = true,
+        result = JsonConvert.SerializeObject(new List<object> {
+            new { sha = "abcd-1234", header_height = 50, footer_height = 30 }
+          })
+      });
+      string captured = null;
+      _androidPercyAppiumDriver.Setup(x => x.ExecuteScript(It.IsAny<string>()))
+        .Callback<string>(s => captured = s)
+        .Returns(response);
+      var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
+      appAutomate.metadata = new AndroidMetadata(_androidPercyAppiumDriver.Object, "Samsung Galaxy s22", 100, 200, null, null);
+      var options = new ScreenshotOptions();
+      options.FullPage = true;
+      options.ScreenLengths = 4;
+      // Act
+      var result = appAutomate.ExecutePercyScreenshot(options);
+      // Assert — the executor is actually reached, and asked for a fullpage capture
+      Assert.NotNull(result);
+      Assert.Contains("abcd-1234", result);
+      Assert.Contains("fullpage", captured);
+      Assert.DoesNotContain("singlepage", captured);
+    }
+
+    [Fact]
     public void TestExecutePercyScreenshotBegin_WhenSessionNotMarked()
     {
       // Arrange — first begin returns success=false, flipping markedPercySession to false
@@ -551,7 +708,9 @@ namespace Percy.Tests
       options.ScreenLengths = 2;
       // Act + Assert
       var ex = Assert.Throws<Exception>(() => appAutomate.CaptureTiles(options));
-      Assert.Equal("Error", ex.Message);
+      // The message must identify the stage that failed, not just say "Error"
+      Assert.Contains("percyScreenshot executor", ex.Message);
+      Assert.NotNull(ex.InnerException);
     }
 
     [Fact]

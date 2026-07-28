@@ -58,9 +58,10 @@ namespace PercyIO.Appium
           return result;
         }
       }
-      catch (Exception)
+      catch (Exception e)
       {
         Utils.Log("BrowserStack executer failed");
+        Utils.Log(e.ToString(), "debug");
       }
       return null;
     }
@@ -155,8 +156,9 @@ namespace PercyIO.Appium
       }
       catch (Exception e)
       {
-        var error = e.Message;
-        throw new Exception("Error", e);
+        // "Error" told a reader nothing about which stage failed; say what could not be parsed.
+        throw new Exception(
+          $"Could not parse tile data returned by the percyScreenshot executor: {e.Message}", e);
       }
       List<Tile> tiles = new List<Tile>();
       foreach (JObject jsonobject in jsonarray)
@@ -226,27 +228,65 @@ namespace PercyIO.Appium
 
     internal Boolean VerifyCorrectAppiumVersion()
     {
-      var bstackOptions = percyAppiumDriver.GetCapabilities().getValue<Dictionary<string, object>>("bstack:options");
-      var appiumVersionJsonProtocol = percyAppiumDriver.GetCapabilities().getValue<String>("browserstack.appium_version");
-      if (bstackOptions == null && appiumVersionJsonProtocol == null)
+      try
       {
-        Utils.Log("Unable to fetch Appium version, Appium version should be >= 1.19 for Fullpage Screenshot", "warn");
+        var bstackOptions = percyAppiumDriver.GetCapabilities().getValue<Dictionary<string, object>>("bstack:options");
+        var appiumVersionJsonProtocol = percyAppiumDriver.GetCapabilities().getValue<String>("browserstack.appium_version");
+        if (bstackOptions == null && appiumVersionJsonProtocol == null)
+        {
+          Utils.Log("Unable to fetch Appium version, Appium version should be >= 1.19 for Fullpage Screenshot", "warn");
+        }
+        // `bstack:options` is present on every W3C session — the BrowserStack SDK always injects
+        // it — but `appiumVersion` is only inside it when the user pins one, so the key has to be
+        // probed rather than indexed. Indexing a missing key threw KeyNotFoundException out of
+        // this fullpage-only branch and surfaced to users as Screenshot() returning null with no
+        // snapshot ever posted.
+        else if ((appiumVersionJsonProtocol != null && !AppiumVersionCheck(appiumVersionJsonProtocol))
+          || (bstackOptions != null
+              && bstackOptions.ContainsKey("appiumVersion")
+              && bstackOptions["appiumVersion"] != null
+              && !AppiumVersionCheck(bstackOptions["appiumVersion"].ToString())))
+        {
+          Utils.Log("Appium version should be >= 1.19 for Fullpage Screenshot, Falling back to single page screenshot.", "warn");
+          return false;
+        }
+        return true;
       }
-      else if ((appiumVersionJsonProtocol != null && !AppiumVersionCheck(appiumVersionJsonProtocol)) || (bstackOptions != null && !AppiumVersionCheck(bstackOptions["appiumVersion"].ToString())))
+      catch (Exception e)
       {
-        Utils.Log("Appium version should be >= 1.19 for Fullpage Screenshot, Falling back to single page screenshot.", "warn");
+        // Version detection must never take the screenshot down with it — an unverifiable
+        // version means the same thing as an unsupported one: fall back to single page.
+        Utils.Log("Unable to verify Appium version, Falling back to single page screenshot.", "warn");
+        Utils.Log(e.ToString(), "debug");
         return false;
       }
-      return true;
     }
 
     internal Boolean AppiumVersionCheck(String version)
     {
-      string[] versionArr = version.Split('.');
-      int majorVersion = int.Parse(versionArr[0]);
-      int minorVersion = int.Parse(versionArr[1]);
+      if (String.IsNullOrWhiteSpace(version))
+      {
+        return false;
+      }
 
-      if (majorVersion == 2 || (majorVersion == 1 && minorVersion > 18))
+      // A pinned version can legitimately be major-only ("2"), so treat a missing minor as 0
+      // instead of indexing past the end of the array.
+      string[] versionArr = version.Split('.');
+      if (!int.TryParse(versionArr[0], out int majorVersion))
+      {
+        return false;
+      }
+      int minorVersion = 0;
+      if (versionArr.Length > 1)
+      {
+        int.TryParse(versionArr[1], out minorVersion);
+      }
+
+      // The gate is "Appium >= 1.19". This was written as `== 2` when 2.x was the newest major,
+      // so Appium 3.x — which BrowserStack now offers and defaults to on newer devices — failed a
+      // check it comfortably satisfies, silently downgrading every fullpage request to single
+      // page. Compare as >= 2 so future majors don't regress the same way.
+      if (majorVersion >= 2 || (majorVersion == 1 && minorVersion > 18))
       {
         return true;
       }

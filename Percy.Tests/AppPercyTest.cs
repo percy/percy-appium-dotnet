@@ -65,6 +65,28 @@ namespace Percy.Tests
     }
 
     [Fact]
+    public void TestScreenshot_LogsTheExceptionDetail_WhenSwallowed()
+    {
+      // Screenshot() swallows and returns null, and percy-api redacts the message
+      // it receives from PostFailedEvent. If this log line does not name the exception, the
+      // failure becomes invisible to everyone downstream.
+      // Capabilities with nothing in them, so metadata resolution throws from inside
+      // Screenshot's try block. Deterministic, and touches no process-global state.
+      mockDriver.SetCapability(new Dictionary<string, object>());
+      mockDriver.setCommandExecutor("https://browserstack.com/wd/hub");
+
+      var name = "dummyName";
+      AppPercy appPercy = new AppPercy(mockDriver);
+      var result = appPercy.Screenshot(name, null);
+
+      var output = stringWriter.ToString();
+      Assert.Null(result);
+      // The exception type and message must both survive to the log — a bare
+      // "Error taking screenshot <name>" leaves the failure undiagnosable.
+      Assert.Matches($@"Error taking screenshot {name} - \w*Exception: .+", output);
+    }
+
+    [Fact]
     public void TestName_WithIOS_V4()
     {
       // Arrange
