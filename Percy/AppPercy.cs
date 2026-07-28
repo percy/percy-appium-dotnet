@@ -64,7 +64,12 @@ namespace PercyIO.Appium
         {
           Utils.Log("The method is not valid for current driver. Please contact us.", "warn");
         }
-        Utils.Log("Error taking screenshot " + name);
+        // Name the exception on the default log line. Screenshot() swallows and returns null
+        // here, and percy-api redacts the message it receives via PostFailedEvent, so if this
+        // line drops the detail the only surviving copy is the executor's statusMessage in the
+        // App Automate hub log — which is where PER-10219 finally had to be read from.
+        Utils.Log($"Error taking screenshot {name} - {e.GetType().Name}: {e.Message}");
+        Utils.Log(e.ToString(), "debug");
         if (!ignoreErrors)
         {
           throw new Exception("Error taking screenshot " + name, e);

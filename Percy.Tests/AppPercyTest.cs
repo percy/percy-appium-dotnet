@@ -65,6 +65,36 @@ namespace Percy.Tests
     }
 
     [Fact]
+    public void TestScreenshot_LogsTheExceptionDetail_WhenSwallowed()
+    {
+      // PER-10219 — Screenshot() swallows and returns null, and percy-api redacts the message
+      // it receives from PostFailedEvent. If this log line does not name the exception, the
+      // failure becomes invisible to everyone downstream.
+      // /dev/null is a character device, so creating a directory under it fails on both
+      // Linux and macOS — a deterministic throw from inside Screenshot's try block.
+      Environment.SetEnvironmentVariable("PERCY_TMP_DIR", "/dev/null/nope");
+      try
+      {
+        mockDriver.SetCapability(MetadataBuilder.CapabilityBuilder("Android"));
+        mockDriver.setCommandExecutor("https://browserstack.com/wd/hub");
+
+        var name = "dummyName";
+        AppPercy appPercy = new AppPercy(mockDriver);
+        var result = appPercy.Screenshot(name, null);
+
+        var output = stringWriter.ToString();
+        Assert.Null(result);
+        // The exception type and message must both survive to the log — a bare
+        // "Error taking screenshot <name>" is what made PER-10219 undiagnosable.
+        Assert.Matches($@"Error taking screenshot {name} - \w*Exception: .+", output);
+      }
+      finally
+      {
+        Environment.SetEnvironmentVariable("PERCY_TMP_DIR", null);
+      }
+    }
+
+    [Fact]
     public void TestName_WithIOS_V4()
     {
       // Arrange

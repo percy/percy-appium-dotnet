@@ -708,7 +708,9 @@ namespace Percy.Tests
       options.ScreenLengths = 2;
       // Act + Assert
       var ex = Assert.Throws<Exception>(() => appAutomate.CaptureTiles(options));
-      Assert.Equal("Error", ex.Message);
+      // The message must identify the stage that failed, not just say "Error"
+      Assert.Contains("percyScreenshot executor", ex.Message);
+      Assert.NotNull(ex.InnerException);
     }
 
     [Fact]

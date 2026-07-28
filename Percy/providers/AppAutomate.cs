@@ -58,9 +58,10 @@ namespace PercyIO.Appium
           return result;
         }
       }
-      catch (Exception)
+      catch (Exception e)
       {
         Utils.Log("BrowserStack executer failed");
+        Utils.Log(e.ToString(), "debug");
       }
       return null;
     }
@@ -155,8 +156,9 @@ namespace PercyIO.Appium
       }
       catch (Exception e)
       {
-        var error = e.Message;
-        throw new Exception("Error", e);
+        // "Error" told a reader nothing about which stage failed; say what could not be parsed.
+        throw new Exception(
+          $"Could not parse tile data returned by the percyScreenshot executor: {e.Message}", e);
       }
       List<Tile> tiles = new List<Tile>();
       foreach (JObject jsonobject in jsonarray)
