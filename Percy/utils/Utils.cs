@@ -25,16 +25,22 @@ namespace PercyIO.Appium
     // Appium/Selenium exception text routinely embeds the command-executor URI, and App Automate
     // users commonly supply that as https://user:accesskey@hub-cloud.browserstack.com/wd/hub.
     // Applied inside LogMessage so every call site — present and future — is covered.
+    // Both halves of the userinfo pattern are load-bearing. Without the `://` anchor it matches
+    // a bare XPath, and `://` alone is not enough either — GenericProvider logs
+    // "xpath:" + "//android.widget.Button[@text='OK']", which contains `://` too. Restricting
+    // userinfo to characters legal in a URL means the bracket in an XPath predicate ends the
+    // match before any `@`. Element-not-found is the most common Appium failure text that
+    // passes through here, so over-redaction costs as much as under-redaction.
     private static readonly Regex UrlUserInfo =
-      new Regex(@"//[^/@\s]+@", RegexOptions.Compiled);
+      new Regex(@"://[A-Za-z0-9._~%+\-:]+@", RegexOptions.Compiled);
     private static readonly Regex CredentialQuery =
-      new Regex(@"([?&](?:access[_-]?key|accesskey|auth[_-]?token|token|password|secret)=)[^&\s""']+",
+      new Regex(@"([?&](?:access[_-]?key|auth[_-]?token|token|password|secret)=)[^&\s""']+",
         RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
     public static String RedactCredentials(String message)
     {
       if (String.IsNullOrEmpty(message)) return message;
-      message = UrlUserInfo.Replace(message, "//***@");
+      message = UrlUserInfo.Replace(message, "://***@");
       return CredentialQuery.Replace(message, "$1***");
     }
 

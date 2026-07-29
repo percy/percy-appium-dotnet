@@ -61,7 +61,7 @@ namespace PercyIO.Appium
       }
       catch (Exception e)
       {
-        Utils.Log("BrowserStack executer failed at percyScreenshot begin");
+        Utils.Log("BrowserStack executor failed at percyScreenshot begin");
         Utils.Log(e.ToString(), "debug");
       }
       return null;
@@ -103,7 +103,7 @@ namespace PercyIO.Appium
       {
         // End is what reports failure status back to the hub, and that statusMessage is often
         // the last surviving record of a failed screenshot — so do not lose why End itself failed.
-        Utils.Log("BrowserStack executer failed at percyScreenshot end");
+        Utils.Log("BrowserStack executor failed at percyScreenshot end");
         Utils.Log(e.ToString(), "debug");
       }
       return null;
@@ -255,17 +255,30 @@ namespace PercyIO.Appium
 
         // Both protocols are consulted: either one known to be below the gate downgrades. Taking
         // only the first non-null would let an unparseable JWP value hide a usable W3C one.
+        // Track whether anything was seen but could not be judged, so the reassurance is emitted
+        // once after the loop rather than promised per-iteration and then contradicted by a
+        // later downgrade.
+        bool undetermined = false;
+
         foreach (var raw in new object?[] { appiumVersionJsonProtocol, bstackAppiumVersion })
         {
           if (raw == null) continue;
 
-          // Only a string is trustworthy here. An unquoted `appiumVersion: 1.20` deserializes to
-          // the double 1.2, and rebuilding "1.2" would compare minor 2 against the gate and
-          // wrongly downgrade a version that is above it.
-          if (!(raw is string declaredVersion))
+          // Integral types convert losslessly, so accept them: `appiumVersion: 2` unquoted in the
+          // yml is a long, and rejecting it would both warn on every fullpage snapshot and stop
+          // the gate being enforced for `appiumVersion: 1`. Floating point is the lossy case —
+          // `appiumVersion: 1.20` arrives as the double 1.2, and rebuilding "1.2" would compare
+          // minor 2 against the gate and wrongly downgrade a version well above it.
+          String? declaredVersion = raw as string;
+          if (declaredVersion == null && IsIntegral(raw))
+          {
+            declaredVersion = Convert.ToString(raw, CultureInfo.InvariantCulture);
+          }
+          if (declaredVersion == null)
           {
             Utils.Log($"Ignoring non-string Appium version capability '{Convert.ToString(raw, CultureInfo.InvariantCulture)}'" +
-              " — quote appiumVersion in browserstack.yml. Attempting Fullpage Screenshot anyway.", "warn");
+              " — quote appiumVersion in browserstack.yml.", "warn");
+            undetermined = true;
             continue;
           }
 
@@ -274,7 +287,8 @@ namespace PercyIO.Appium
           {
             // Say what could not be parsed. Reporting this as "should be >= 1.19" sent users
             // looking for a version problem they did not have.
-            Utils.Log($"Could not parse Appium version '{declaredVersion}', attempting Fullpage Screenshot anyway.", "warn");
+            Utils.Log($"Could not parse Appium version '{declaredVersion}'.", "warn");
+            undetermined = true;
             continue;
           }
           if (meetsGate == false)
@@ -282,6 +296,14 @@ namespace PercyIO.Appium
             Utils.Log("Appium version should be >= 1.19 for Fullpage Screenshot, Falling back to single page screenshot.", "warn");
             return false;
           }
+          // A usable version settles it; nothing undetermined needs reporting.
+          undetermined = false;
+          break;
+        }
+
+        if (undetermined)
+        {
+          Utils.Log("Attempting Fullpage Screenshot anyway.", "warn");
         }
 
         // Only when the session exposes no capabilities at all. Not pinning `appiumVersion` is
@@ -303,6 +325,12 @@ namespace PercyIO.Appium
         Utils.Log(e.ToString(), "debug");
         return true;
       }
+    }
+
+    private static Boolean IsIntegral(object value)
+    {
+      return value is sbyte || value is byte || value is short || value is ushort
+          || value is int || value is uint || value is long || value is ulong;
     }
 
     // null when the version cannot be determined, otherwise whether it meets the >= 1.19 gate.

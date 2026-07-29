@@ -567,32 +567,61 @@ namespace Percy.Tests
     }
 
     [Fact]
-    public void TestVerifyCorrectAppiumVersion_WhenValueIsNumericUnderCommaDecimalCulture()
+    public void TestVerifyCorrectAppiumVersion_WhenValueIsLossyFloatingPoint()
     {
-      // An unquoted `appiumVersion: 1.20` in browserstack.yml arrives as a double. Rebuilding a
-      // string from it is lossy (1.2), so the value is not trusted at all — and the outcome must
-      // not depend on the agent's locale.
-      var previous = CultureInfo.CurrentCulture;
+      // An unquoted `appiumVersion: 1.20` in browserstack.yml arrives as the double 1.2.
+      // Rebuilding a string from it is lossy, so the value is not trusted at all rather than
+      // being range-compared as minor 2 and wrongly downgraded.
       var stdout = new StringWriter();
       var originalOut = Console.Out;
       Console.SetOut(stdout);
       try
       {
-        CultureInfo.CurrentCulture = new CultureInfo("de-DE");
         _androidPercyAppiumDriver.Setup(x => x.GetCapabilities().getValue<Dictionary<string, object>>("bstack:options")).Returns(
           new Dictionary<string, object> { { "appiumVersion", 1.20d } }
         );
         var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
-        // Must attempt fullpage, never a silent downgrade off a lossily-formatted number
         Assert.True(appAutomate.VerifyCorrectAppiumVersion());
-        Assert.Contains("Ignoring non-string Appium version capability", stdout.ToString());
-        Assert.DoesNotContain("should be >= 1.19", stdout.ToString());
+        var output = stdout.ToString();
+        Assert.Contains("Ignoring non-string Appium version capability '1.2'", output);
+        Assert.DoesNotContain("should be >= 1.19", output);
       }
       finally
       {
-        CultureInfo.CurrentCulture = previous;
         Console.SetOut(originalOut);
       }
+    }
+
+    [Fact]
+    public void TestVerifyCorrectAppiumVersion_WhenValueIsUnquotedInteger()
+    {
+      // `appiumVersion: 2` unquoted is a long. It converts losslessly, so it must be used —
+      // not rejected, which would warn on every fullpage snapshot...
+      var stdout = new StringWriter();
+      var originalOut = Console.Out;
+      Console.SetOut(stdout);
+      try
+      {
+        _androidPercyAppiumDriver.Setup(x => x.GetCapabilities().getValue<Dictionary<string, object>>("bstack:options")).Returns(
+          new Dictionary<string, object> { { "appiumVersion", 2L } }
+        );
+        Assert.True(new AppAutomate(_androidPercyAppiumDriver.Object).VerifyCorrectAppiumVersion());
+        Assert.Equal("", stdout.ToString());
+      }
+      finally
+      {
+        Console.SetOut(originalOut);
+      }
+    }
+
+    [Fact]
+    public void TestVerifyCorrectAppiumVersion_WhenValueIsUnquotedIntegerBelowGate()
+    {
+      // ...and rejecting it would also stop the gate being enforced for `appiumVersion: 1`.
+      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities().getValue<Dictionary<string, object>>("bstack:options")).Returns(
+        new Dictionary<string, object> { { "appiumVersion", 1L } }
+      );
+      Assert.False(new AppAutomate(_androidPercyAppiumDriver.Object).VerifyCorrectAppiumVersion());
     }
 
     [Fact]
@@ -610,7 +639,10 @@ namespace Percy.Tests
         );
         var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
         Assert.True(appAutomate.VerifyCorrectAppiumVersion());
-        Assert.Equal("", stdout.ToString());
+        // State the intent rather than demanding total silence, so an unrelated future log
+        // does not fail this for the wrong reason.
+        Assert.DoesNotContain("Unable to fetch", stdout.ToString());
+        Assert.DoesNotContain("should be >= 1.19", stdout.ToString());
       }
       finally
       {
@@ -627,8 +659,20 @@ namespace Percy.Tests
       _androidPercyAppiumDriver.Setup(x => x.GetCapabilities().getValue<Dictionary<string, object>>("bstack:options")).Returns(
         new Dictionary<string, object> { { "appiumVersion", "1.16" } }
       );
-      var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
-      Assert.False(appAutomate.VerifyCorrectAppiumVersion());
+      var stdout = new StringWriter();
+      var originalOut = Console.Out;
+      Console.SetOut(stdout);
+      try
+      {
+        Assert.False(new AppAutomate(_androidPercyAppiumDriver.Object).VerifyCorrectAppiumVersion());
+        // Must not promise a fullpage attempt and then downgrade two lines later
+        Assert.DoesNotContain("Attempting Fullpage Screenshot anyway", stdout.ToString());
+        Assert.Contains("Falling back to single page", stdout.ToString());
+      }
+      finally
+      {
+        Console.SetOut(originalOut);
+      }
     }
 
     [Fact]

@@ -16,7 +16,7 @@ namespace Percy.Tests
       var actual = Utils.RedactCredentials(msg);
       Assert.DoesNotContain("s3cr3tkey", actual);
       Assert.DoesNotContain("myuser", actual);
-      Assert.Contains("//***@hub-cloud.browserstack.com/wd/hub", actual);
+      Assert.Contains("://***@hub-cloud.browserstack.com/wd/hub", actual);
     }
 
     [Fact]
@@ -24,7 +24,7 @@ namespace Percy.Tests
     {
       var actual = Utils.RedactCredentials("connect to https://sometoken@hub.browserstack.com/wd/hub failed");
       Assert.DoesNotContain("sometoken", actual);
-      Assert.Contains("//***@hub.browserstack.com", actual);
+      Assert.Contains("://***@hub.browserstack.com", actual);
     }
 
     [Fact]
@@ -52,6 +52,31 @@ namespace Percy.Tests
       {
         Console.SetOut(original);
       }
+    }
+
+    [Fact]
+    public void LeavesXpathAndOrdinaryTextUntouched()
+    {
+      // Redaction runs on every log line, so over-redaction is as damaging as under-redaction.
+      // Element-not-found is the most common Appium failure text, and an unanchored pattern
+      // mangled it into "//***@text='OK']".
+      var xpath = "Appium Element with xpath://android.widget.Button[@text='OK'] not found.";
+      Assert.Equal(xpath, Utils.RedactCredentials(xpath));
+      Assert.Equal("//XCUIElementTypeButton[@name=\"Login\"]",
+        Utils.RedactCredentials("//XCUIElementTypeButton[@name=\"Login\"]"));
+      Assert.Equal("//example.com/a@b", Utils.RedactCredentials("//example.com/a@b"));
+      Assert.Equal("?csrf_token_name=safe", Utils.RedactCredentials("?csrf_token_name=safe"));
+      Assert.Equal("?tokens=3", Utils.RedactCredentials("?tokens=3"));
+    }
+
+    [Fact]
+    public void StripsTheOtherCredentialQueryKeys()
+    {
+      Assert.Contains("access-key=***", Utils.RedactCredentials("?access-key=abc123"));
+      Assert.Contains("auth_token=***", Utils.RedactCredentials("?auth_token=abc123"));
+      Assert.Contains("password=***", Utils.RedactCredentials("?password=abc123"));
+      Assert.Contains("secret=***", Utils.RedactCredentials("?secret=abc123"));
+      Assert.DoesNotContain("abc123", Utils.RedactCredentials("?secret=abc123"));
     }
 
     [Fact]
