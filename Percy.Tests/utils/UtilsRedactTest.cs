@@ -73,6 +73,8 @@ namespace Percy.Tests
         Utils.RedactCredentials("xpath://a[@id='x,y' and @n=\"1\"]"));
       Assert.Equal("//android.widget.EditText/@text",
         Utils.RedactCredentials("//android.widget.EditText/@text"));
+      Assert.Equal("xpath://*[@resource-id='x']", Utils.RedactCredentials("xpath://*[@resource-id='x']"));
+      Assert.Equal("id:com.example:id/btn", Utils.RedactCredentials("id:com.example:id/btn"));
     }
 
     [Fact]
@@ -97,6 +99,37 @@ namespace Percy.Tests
       Assert.Equal("https://***@hub.example.com/wd/hub", redacted);
       Assert.DoesNotContain("pa$$w&rd", redacted);
       Assert.DoesNotContain("my.user!", redacted);
+    }
+
+    [Fact]
+    public void RedactsPasswordsOutsideTheUrlCharacterSet()
+    {
+      // The failure mode of an allow-list is that it fails open: the whole userinfo run has to
+      // match, so one unlisted character prints username and password in full. Brackets are the
+      // reachable case — `Uri` rejects `#` and `\` and percent-encodes space and quotes, but
+      // preserves brackets verbatim — and they are common in generated strong passwords.
+      var bracketed = Utils.RedactCredentials("https://user:p[a]ss@grid.corp.local:4444/wd/hub");
+      Assert.Equal("https://***@grid.corp.local:4444/wd/hub", bracketed);
+      Assert.DoesNotContain("p[a]ss", bracketed);
+
+      var hashed = Utils.RedactCredentials("http://user:p#ssword@hub.example.com/wd/hub");
+      Assert.Equal("http://***@hub.example.com/wd/hub", hashed);
+      Assert.DoesNotContain("p#ssword", hashed);
+    }
+
+    [Fact]
+    public void RedactsRegardlessOfSchemeCasingAndCount()
+    {
+      // The scheme is what the pattern keys on, so casing must not decide whether a credential
+      // is redacted, and one URL in a message must not consume the rest of the line.
+      Assert.Equal("HTTPS://***@hub.example.com/wd/hub",
+        Utils.RedactCredentials("HTTPS://user:secret@hub.example.com/wd/hub"));
+
+      var two = Utils.RedactCredentials(
+        "tried https://a:one@h1.example.com/wd/hub then wss://b:two@h2.example.com/ws");
+      Assert.DoesNotContain("one", two);
+      Assert.DoesNotContain("two", two);
+      Assert.Equal("tried https://***@h1.example.com/wd/hub then wss://***@h2.example.com/ws", two);
     }
 
     [Fact]

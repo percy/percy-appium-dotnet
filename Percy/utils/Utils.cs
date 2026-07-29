@@ -25,24 +25,30 @@ namespace PercyIO.Appium
     // Appium/Selenium exception text routinely embeds the command-executor URI, and App Automate
     // users commonly supply that as https://user:accesskey@hub-cloud.browserstack.com/wd/hub.
     // Applied inside LogMessage so every call site — present and future — is covered.
-    // Both halves of the userinfo pattern are load-bearing. Without the `://` anchor it matches
-    // a bare XPath, and `://` alone is not enough either — GenericProvider logs
-    // "xpath:" + "//android.widget.Button[@text='OK']", which contains `://` too. Restricting
-    // userinfo to characters legal in a URL means the bracket in an XPath predicate ends the
-    // match before any `@`. Element-not-found is the most common Appium failure text that
-    // passes through here, so over-redaction costs as much as under-redaction.
-    // The class is the full RFC 3986 userinfo set (unreserved + sub-delims + `:`), because a
-    // character outside it makes the match fail outright and leak the whole URL rather than
-    // degrade — a self-hosted grid using basic auth with a symbol-bearing password would
-    // otherwise print username and secret. `[` and `/` stay excluded, which is what preserves
-    // the XPath property: an XPath can only reach an `@` through one of them.
-    // Deliberately unbounded: a `{1,512}` cap was tried and fails open — a longer userinfo (a JWT
-    // in the basic-auth password position reaches ~680 chars) matches nothing and the entire URL
-    // prints verbatim. No bound is needed for ReDoS either, since there is no nested quantifier
-    // or alternation and `/` is excluded, so candidate runs are delimited by the `//` and cannot
-    // overlap.
+    //
+    // The hard part is not matching credentials, it is not mangling locators: GenericProvider
+    // logs "xpath:" + "//android.widget.Button[@text='OK']", which contains `://` and an `@`,
+    // and element-not-found is the most common Appium failure text to pass through here. So
+    // over-redaction costs as much as under-redaction.
+    //
+    // Discriminate on the scheme, not on what a password may contain. Two earlier attempts both
+    // failed open — the only failure mode that matters, since a non-match prints the credential
+    // in full rather than degrading:
+    //   - a `{1,512}` bound on the userinfo run: a JWT in the password position reaches ~680
+    //     characters and matched nothing.
+    //   - an allow-list of the RFC 3986 userinfo set: the whole run has to match, so one
+    //     character outside the set leaked everything. `[` is the reachable one — .NET's `Uri`
+    //     rejects `#` and `\` and percent-encodes space and quotes, but preserves brackets
+    //     verbatim, and brackets are common in generated passwords.
+    // Inverting the class does not fix that either, because `[` and `/` must stay excluded for
+    // the locator property to hold. Requiring an http/ws scheme is what makes the exclusion
+    // unnecessary: a locator is logged as `xpath://…` or `id:…` and never carries one.
+    // Excluding `/` from the userinfo run is RFC-correct — a `/` ends the authority — so a match
+    // cannot bridge into a path. A literal space in userinfo is the one case skipped, and it
+    // cannot appear in a URL; `Uri` percent-encodes it to `%20`, which does match.
+    // No bound is needed for ReDoS: single quantifier, no nesting, no alternation inside the run.
     private static readonly Regex UrlUserInfo =
-      new Regex(@"://[A-Za-z0-9._~%+\-:!$&'()*,;=]+@", RegexOptions.Compiled);
+      new Regex(@"\b(https?|wss?)://[^\s@/]+@", RegexOptions.Compiled | RegexOptions.IgnoreCase);
     private static readonly Regex CredentialQuery =
       new Regex(@"([?&](?:access[_-]?key|auth[_-]?token|token|password|secret)=)[^&\s""']+",
         RegexOptions.Compiled | RegexOptions.IgnoreCase);
@@ -50,7 +56,7 @@ namespace PercyIO.Appium
     public static String RedactCredentials(String message)
     {
       if (String.IsNullOrEmpty(message)) return message;
-      message = UrlUserInfo.Replace(message, "://***@");
+      message = UrlUserInfo.Replace(message, "$1://***@");
       return CredentialQuery.Replace(message, "$1***");
     }
 

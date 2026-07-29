@@ -291,19 +291,13 @@ namespace PercyIO.Appium
         {
           if (raw == null) continue;
 
-          // Integral types convert losslessly, so accept them: `appiumVersion: 2` unquoted in the
-          // yml is a long, and rejecting it would both warn on every fullpage snapshot and stop
-          // the gate being enforced for `appiumVersion: 1`. Floating point is the lossy case —
-          // `appiumVersion: 1.20` arrives as the double 1.2, and rebuilding "1.2" would compare
-          // minor 2 against the gate and wrongly downgrade a version well above it.
-          String? declaredVersion = raw as string;
-          if (declaredVersion == null && IsIntegral(raw))
-          {
-            declaredVersion = Convert.ToString(raw, CultureInfo.InvariantCulture);
-          }
+          String? declaredVersion = raw as string ?? RebuildVersion(raw);
           if (declaredVersion == null)
           {
-            Utils.Log($"Ignoring non-string Appium version capability '{Convert.ToString(raw, CultureInfo.InvariantCulture)}'" +
+            // Not "ignoring a non-string": most numbers are judged now, so naming the type would
+            // send users looking for the wrong thing. This is reached only when the value cannot
+            // be turned back into the version that was written — quoting it is the actual fix.
+            Utils.Log($"Could not use Appium version capability '{Convert.ToString(raw, CultureInfo.InvariantCulture)}'" +
               " — quote appiumVersion in browserstack.yml.", "warn");
             undetermined = true;
             continue;
@@ -361,6 +355,34 @@ namespace PercyIO.Appium
     {
       return value is sbyte || value is byte || value is short || value is ushort
           || value is int || value is uint || value is long || value is ulong;
+    }
+
+    // Rebuild a non-string capability into a comparable version string, or null when it cannot be
+    // trusted. An unquoted `appiumVersion:` in browserstack.yml is deserialized as a number, so
+    // refusing to judge numbers means not enforcing the gate at all: `main` compared
+    // `bstackOptions["appiumVersion"].ToString()` and did downgrade a below-gate 1.18, so the
+    // exclusion has to stay narrow or it is a regression on the very gate this fixes.
+    //
+    // Integral types are exact. Floating point is lossy in exactly one detectable shape: a
+    // dropped trailing zero. `1.20` arrives as the double 1.2 and renders "1.2", which is
+    // indistinguishable from a genuine 1.2 — and minor 2 versus minor 20 straddles the gate, so
+    // that shape alone stays undetermined. Every other rendering ("1.18", "1.22", "2") round-trips
+    // unambiguously and is judged. `decimal` keeps its trailing zeros ("1.20" stays "1.20"), so
+    // the ambiguity cannot arise there.
+    private static String? RebuildVersion(object value)
+    {
+      if (IsIntegral(value) || value is decimal)
+      {
+        return Convert.ToString(value, CultureInfo.InvariantCulture);
+      }
+      if (value is float || value is double)
+      {
+        String rendered = Convert.ToString(value, CultureInfo.InvariantCulture) ?? "";
+        int dot = rendered.IndexOf('.');
+        // One digit after the point is the ambiguous case; none or two-plus is exact.
+        return (dot >= 0 && rendered.Length - dot == 2) ? null : rendered;
+      }
+      return null;
     }
 
     // null when the version cannot be determined, otherwise whether it meets the >= 1.19 gate.

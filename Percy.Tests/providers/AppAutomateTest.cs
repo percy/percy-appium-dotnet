@@ -458,11 +458,25 @@ namespace Percy.Tests
           {"osVersion", "12.0"},
         }
       );
-      // Act
-      var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
-      var actual = appAutomate.VerifyCorrectAppiumVersion();
-      // Assert — unknown version must not block fullpage, and must not throw
-      Assert.True(actual);
+      var stdout = new StringWriter();
+      var originalOut = Console.Out;
+      Console.SetOut(stdout);
+      try
+      {
+        // Act
+        var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
+        var actual = appAutomate.VerifyCorrectAppiumVersion();
+        // Assert — unknown version must not block fullpage, and must not throw
+        Assert.True(actual);
+        // `true` alone cannot tell "the key was probed" from "indexing it threw and the catch-all
+        // returned true", which is the bug this test is named for. That message is reachable only
+        // from the catch-all, so its absence is what proves the intended path ran.
+        Assert.DoesNotContain("Unable to verify Appium version", stdout.ToString());
+      }
+      finally
+      {
+        Console.SetOut(originalOut);
+      }
     }
 
     [Fact]
@@ -586,7 +600,7 @@ namespace Percy.Tests
         var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
         Assert.True(appAutomate.VerifyCorrectAppiumVersion());
         var output = stdout.ToString();
-        Assert.Contains("Ignoring non-string Appium version capability '1.2'", output);
+        Assert.Contains("Could not use Appium version capability '1.2'", output);
         Assert.Contains("Attempting Fullpage Screenshot anyway", output);
         Assert.DoesNotContain("should be >= 1.19", output);
       }
@@ -614,7 +628,7 @@ namespace Percy.Tests
         // the sibling quiet-assertions so an unrelated future log cannot fail this for the
         // wrong reason.
         var output = stdout.ToString();
-        Assert.DoesNotContain("Ignoring non-string", output);
+        Assert.DoesNotContain("Could not use Appium version capability", output);
         Assert.DoesNotContain("Attempting Fullpage Screenshot anyway", output);
         Assert.DoesNotContain("should be >= 1.19", output);
       }
@@ -641,7 +655,7 @@ namespace Percy.Tests
         // downgrade message and not the "cannot determine" one.
         var output = stdout.ToString();
         Assert.Contains("should be >= 1.19", output);
-        Assert.DoesNotContain("Ignoring non-string", output);
+        Assert.DoesNotContain("Could not use Appium version capability", output);
       }
       finally
       {
@@ -735,12 +749,84 @@ namespace Percy.Tests
       Console.SetOut(stdout);
       try
       {
-        // Lossy as a double, so it cannot be range-compared — but it must be reported as
-        // undetermined, not silently ignored.
+        // "1.16" round-trips exactly, so it is judged rather than waved through — refusing to
+        // read numbers at all would mean the gate is not enforced for the unquoted form.
+        Assert.False(new AppAutomate(_androidPercyAppiumDriver.Object).VerifyCorrectAppiumVersion());
+        var output = stdout.ToString();
+        Assert.Contains("Falling back to single page", output);
+        Assert.DoesNotContain("Could not use Appium version capability", output);
+      }
+      finally
+      {
+        Console.SetOut(originalOut);
+      }
+    }
+
+    [Theory]
+    [InlineData(1.18d)]
+    [InlineData(1.17d)]
+    public void TestVerifyCorrectAppiumVersion_BelowGateFloatingPointStillDowngrades(double pinned)
+    {
+      // Regression guard against `main`, which compared bstackOptions["appiumVersion"].ToString()
+      // and did downgrade these. Treating all floating point as undetermined would have quietly
+      // attempted fullpage on a version the hub cannot serve it for.
+      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities().getValue<Dictionary<string, object>>("bstack:options")).Returns(
+        new Dictionary<string, object> { { "appiumVersion", pinned } }
+      );
+      var stdout = new StringWriter();
+      var originalOut = Console.Out;
+      Console.SetOut(stdout);
+      try
+      {
+        Assert.False(new AppAutomate(_androidPercyAppiumDriver.Object).VerifyCorrectAppiumVersion());
+        Assert.Contains("Falling back to single page", stdout.ToString());
+      }
+      finally
+      {
+        Console.SetOut(originalOut);
+      }
+    }
+
+    [Fact]
+    public void TestVerifyCorrectAppiumVersion_AboveGateFloatingPointIsSilent()
+    {
+      // VerifyCorrectAppiumVersion runs once per fullpage snapshot, so an above-gate value that
+      // the code can read exactly must not emit the undetermined pair on every one of them.
+      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities().getValue<Dictionary<string, object>>("bstack:options")).Returns(
+        new Dictionary<string, object> { { "appiumVersion", 1.22d } }
+      );
+      var stdout = new StringWriter();
+      var originalOut = Console.Out;
+      Console.SetOut(stdout);
+      try
+      {
         Assert.True(new AppAutomate(_androidPercyAppiumDriver.Object).VerifyCorrectAppiumVersion());
         var output = stdout.ToString();
-        Assert.Contains("Ignoring non-string Appium version capability", output);
-        Assert.Contains("Attempting Fullpage Screenshot anyway", output);
+        Assert.DoesNotContain("Could not use Appium version capability", output);
+        Assert.DoesNotContain("Attempting Fullpage Screenshot anyway", output);
+        Assert.DoesNotContain("should be >= 1.19", output);
+      }
+      finally
+      {
+        Console.SetOut(originalOut);
+      }
+    }
+
+    [Fact]
+    public void TestVerifyCorrectAppiumVersion_DecimalKeepsItsTrailingZero()
+    {
+      // The 1.20 ambiguity is a binary-floating-point artefact. `decimal` preserves the trailing
+      // zero, so it is exact and must be judged rather than lumped in with double.
+      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities().getValue<Dictionary<string, object>>("bstack:options")).Returns(
+        new Dictionary<string, object> { { "appiumVersion", 1.20m } }
+      );
+      var stdout = new StringWriter();
+      var originalOut = Console.Out;
+      Console.SetOut(stdout);
+      try
+      {
+        Assert.True(new AppAutomate(_androidPercyAppiumDriver.Object).VerifyCorrectAppiumVersion());
+        Assert.DoesNotContain("Could not use Appium version capability", stdout.ToString());
       }
       finally
       {
@@ -752,7 +838,7 @@ namespace Percy.Tests
     public void TestVerifyCorrectAppiumVersion_UndeterminedValueAlwaysStatesTheConsequence()
     {
       // An above-gate value on one protocol must not suppress the reassurance for an
-      // undetermined value on the other, leaving a bare "Ignoring non-string..." with no
+      // undetermined value on the other, leaving a bare "Could not use..." with no
       // stated outcome.
       _androidPercyAppiumDriver.Setup(x => x.GetCapabilities().getValue<object>("browserstack.appium_version")).Returns("2.0");
       _androidPercyAppiumDriver.Setup(x => x.GetCapabilities().getValue<Dictionary<string, object>>("bstack:options")).Returns(
@@ -765,7 +851,9 @@ namespace Percy.Tests
       {
         Assert.True(new AppAutomate(_androidPercyAppiumDriver.Object).VerifyCorrectAppiumVersion());
         var output = stdout.ToString();
-        Assert.Contains("Ignoring non-string Appium version capability '1.2'", output);
+        // 1.20 is the one shape that cannot be recovered: the double renders "1.2", and minor 2
+        // versus minor 20 straddles the gate, so it must stay undetermined rather than downgrade.
+        Assert.Contains("Could not use Appium version capability '1.2'", output);
         Assert.Contains("Attempting Fullpage Screenshot anyway", output);
       }
       finally
@@ -837,11 +925,24 @@ namespace Percy.Tests
           {"appiumVersion", "2"},
         }
       );
-      // Act
-      var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
-      var actual = appAutomate.VerifyCorrectAppiumVersion();
-      // Assert
-      Assert.True(actual);
+      var stdout = new StringWriter();
+      var originalOut = Console.Out;
+      Console.SetOut(stdout);
+      try
+      {
+        // Act
+        var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
+        var actual = appAutomate.VerifyCorrectAppiumVersion();
+        // Assert
+        Assert.True(actual);
+        // "2" is above the gate, so `true` is also what an IndexOutOfRange caught by the
+        // catch-all produces. Only the absence of its message distinguishes them.
+        Assert.DoesNotContain("Unable to verify Appium version", stdout.ToString());
+      }
+      finally
+      {
+        Console.SetOut(originalOut);
+      }
     }
 
     [Fact]
@@ -890,8 +991,22 @@ namespace Percy.Tests
       var options = new ScreenshotOptions();
       options.FullPage = true;
       options.ScreenLengths = 4;
-      // Act
-      var result = appAutomate.ExecutePercyScreenshot(options);
+      var stdout = new StringWriter();
+      var originalOut = Console.Out;
+      Console.SetOut(stdout);
+      string result;
+      try
+      {
+        // Act
+        result = appAutomate.ExecutePercyScreenshot(options);
+        // The catch-all also yields a fullpage request, so without this the assertions below
+        // pass just as happily when KeyNotFoundException is thrown and swallowed.
+        Assert.DoesNotContain("Unable to verify Appium version", stdout.ToString());
+      }
+      finally
+      {
+        Console.SetOut(originalOut);
+      }
       // Assert — the executor is actually reached, and asked for a fullpage capture
       Assert.NotNull(result);
       Assert.Contains("abcd-1234", result);
