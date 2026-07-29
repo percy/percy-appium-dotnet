@@ -537,6 +537,9 @@ namespace Percy.Tests
         Assert.True(appAutomate.VerifyCorrectAppiumVersion());
         var output = stdout.ToString();
         Assert.Contains("Could not parse Appium version 'banana'", output);
+        // The reassurance is the whole point of not downgrading here, so assert it positively —
+        // without this, deleting the post-loop message leaves the suite green.
+        Assert.Contains("Attempting Fullpage Screenshot anyway", output);
         Assert.DoesNotContain("should be >= 1.19", output);
       }
       finally
@@ -584,6 +587,7 @@ namespace Percy.Tests
         Assert.True(appAutomate.VerifyCorrectAppiumVersion());
         var output = stdout.ToString();
         Assert.Contains("Ignoring non-string Appium version capability '1.2'", output);
+        Assert.Contains("Attempting Fullpage Screenshot anyway", output);
         Assert.DoesNotContain("should be >= 1.19", output);
       }
       finally
@@ -606,7 +610,13 @@ namespace Percy.Tests
           new Dictionary<string, object> { { "appiumVersion", 2L } }
         );
         Assert.True(new AppAutomate(_androidPercyAppiumDriver.Object).VerifyCorrectAppiumVersion());
-        Assert.Equal("", stdout.ToString());
+        // Name the strings that must not appear rather than demanding total silence, matching
+        // the sibling quiet-assertions so an unrelated future log cannot fail this for the
+        // wrong reason.
+        var output = stdout.ToString();
+        Assert.DoesNotContain("Ignoring non-string", output);
+        Assert.DoesNotContain("Attempting Fullpage Screenshot anyway", output);
+        Assert.DoesNotContain("should be >= 1.19", output);
       }
       finally
       {
@@ -618,10 +628,49 @@ namespace Percy.Tests
     public void TestVerifyCorrectAppiumVersion_WhenValueIsUnquotedIntegerBelowGate()
     {
       // ...and rejecting it would also stop the gate being enforced for `appiumVersion: 1`.
+      var stdout = new StringWriter();
+      var originalOut = Console.Out;
+      Console.SetOut(stdout);
+      try
+      {
+        _androidPercyAppiumDriver.Setup(x => x.GetCapabilities().getValue<Dictionary<string, object>>("bstack:options")).Returns(
+          new Dictionary<string, object> { { "appiumVersion", 1L } }
+        );
+        Assert.False(new AppAutomate(_androidPercyAppiumDriver.Object).VerifyCorrectAppiumVersion());
+        // The integral path is the one this change started trusting, so assert it produces the
+        // downgrade message and not the "cannot determine" one.
+        var output = stdout.ToString();
+        Assert.Contains("should be >= 1.19", output);
+        Assert.DoesNotContain("Ignoring non-string", output);
+      }
+      finally
+      {
+        Console.SetOut(originalOut);
+      }
+    }
+
+    [Fact]
+    public void TestVerifyCorrectAppiumVersion_AboveGateJwpDoesNotShadowBelowGateW3CValue()
+    {
+      // The mirror of JwpUnparseableDoesNotShadowW3CValue: returning early on the first usable
+      // value would let JWP 2.0 hide a W3C 1.16 the hub actually honours, and request a
+      // fullpage capture against it with no warning at all.
+      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities().getValue<String>("browserstack.appium_version")).Returns("2.0");
       _androidPercyAppiumDriver.Setup(x => x.GetCapabilities().getValue<Dictionary<string, object>>("bstack:options")).Returns(
-        new Dictionary<string, object> { { "appiumVersion", 1L } }
+        new Dictionary<string, object> { { "appiumVersion", "1.16" } }
       );
-      Assert.False(new AppAutomate(_androidPercyAppiumDriver.Object).VerifyCorrectAppiumVersion());
+      var stdout = new StringWriter();
+      var originalOut = Console.Out;
+      Console.SetOut(stdout);
+      try
+      {
+        Assert.False(new AppAutomate(_androidPercyAppiumDriver.Object).VerifyCorrectAppiumVersion());
+        Assert.Contains("Falling back to single page", stdout.ToString());
+      }
+      finally
+      {
+        Console.SetOut(originalOut);
+      }
     }
 
     [Fact]

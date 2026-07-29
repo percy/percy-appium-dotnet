@@ -257,8 +257,11 @@ namespace PercyIO.Appium
         // only the first non-null would let an unparseable JWP value hide a usable W3C one.
         // Track whether anything was seen but could not be judged, so the reassurance is emitted
         // once after the loop rather than promised per-iteration and then contradicted by a
-        // later downgrade.
+        // later downgrade. `trusted` is tracked separately rather than breaking out on the first
+        // usable value: breaking would let an above-gate JWP value hide a below-gate W3C one,
+        // which is the same shadowing bug in the other direction.
         bool undetermined = false;
+        bool trusted = false;
 
         foreach (var raw in new object?[] { appiumVersionJsonProtocol, bstackAppiumVersion })
         {
@@ -296,12 +299,12 @@ namespace PercyIO.Appium
             Utils.Log("Appium version should be >= 1.19 for Fullpage Screenshot, Falling back to single page screenshot.", "warn");
             return false;
           }
-          // A usable version settles it; nothing undetermined needs reporting.
-          undetermined = false;
-          break;
+          // A usable version settles the reassurance, but keep consulting the other protocol so
+          // a below-gate value there still downgrades.
+          trusted = true;
         }
 
-        if (undetermined)
+        if (undetermined && !trusted)
         {
           Utils.Log("Attempting Fullpage Screenshot anyway.", "warn");
         }

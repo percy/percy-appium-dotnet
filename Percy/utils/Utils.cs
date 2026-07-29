@@ -31,8 +31,13 @@ namespace PercyIO.Appium
     // userinfo to characters legal in a URL means the bracket in an XPath predicate ends the
     // match before any `@`. Element-not-found is the most common Appium failure text that
     // passes through here, so over-redaction costs as much as under-redaction.
+    // The class is the full RFC 3986 userinfo set (unreserved + sub-delims + `:`), because a
+    // character outside it makes the match fail outright and leak the whole URL rather than
+    // degrade — a self-hosted grid using basic auth with a symbol-bearing password would
+    // otherwise print username and secret. `[` and `/` stay excluded, which is what preserves
+    // the XPath property: an XPath can only reach an `@` through one of them.
     private static readonly Regex UrlUserInfo =
-      new Regex(@"://[A-Za-z0-9._~%+\-:]+@", RegexOptions.Compiled);
+      new Regex(@"://[A-Za-z0-9._~%+\-:!$&'()*,;=]{1,512}@", RegexOptions.Compiled);
     private static readonly Regex CredentialQuery =
       new Regex(@"([?&](?:access[_-]?key|auth[_-]?token|token|password|secret)=)[^&\s""']+",
         RegexOptions.Compiled | RegexOptions.IgnoreCase);

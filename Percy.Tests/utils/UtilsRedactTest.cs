@@ -67,6 +67,25 @@ namespace Percy.Tests
       Assert.Equal("//example.com/a@b", Utils.RedactCredentials("//example.com/a@b"));
       Assert.Equal("?csrf_token_name=safe", Utils.RedactCredentials("?csrf_token_name=safe"));
       Assert.Equal("?tokens=3", Utils.RedactCredentials("?tokens=3"));
+      // Sub-delims are in the userinfo class, so confirm an XPath carrying them is still safe:
+      // the predicate bracket has to be crossed to reach the `@`, and `[` is excluded.
+      Assert.Equal("xpath://a[@id='x,y' and @n=\"1\"]",
+        Utils.RedactCredentials("xpath://a[@id='x,y' and @n=\"1\"]"));
+      Assert.Equal("//android.widget.EditText/@text",
+        Utils.RedactCredentials("//android.widget.EditText/@text"));
+    }
+
+    [Fact]
+    public void RedactsCredentialsContainingSubDelimiters()
+    {
+      // A userinfo character outside the class makes the match fail outright rather than
+      // degrade, leaking the whole URL — so a self-hosted grid on basic auth with a
+      // symbol-bearing password is the case that must not regress.
+      var url = "https://my.user!:pa$$w&rd@hub.example.com/wd/hub";
+      var redacted = Utils.RedactCredentials(url);
+      Assert.Equal("https://***@hub.example.com/wd/hub", redacted);
+      Assert.DoesNotContain("pa$$w&rd", redacted);
+      Assert.DoesNotContain("my.user!", redacted);
     }
 
     [Fact]
