@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using Newtonsoft.Json.Linq;
 
 namespace PercyIO.Appium
@@ -58,9 +59,10 @@ namespace PercyIO.Appium
           return result;
         }
       }
-      catch (Exception)
+      catch (Exception e)
       {
-        Utils.Log("BrowserStack executer failed");
+        Utils.Log("BrowserStack executor failed at percyScreenshot begin");
+        Utils.Log(e.ToString(), "debug");
       }
       return null;
     }
@@ -97,9 +99,12 @@ namespace PercyIO.Appium
           return result;
         }
       }
-      catch (Exception)
+      catch (Exception e)
       {
-        Utils.Log("BrowserStack executer failed", "debug");
+        // End is what reports failure status back to the hub, and that statusMessage is often
+        // the last surviving record of a failed screenshot — so do not lose why End itself failed.
+        Utils.Log("BrowserStack executor failed at percyScreenshot end");
+        Utils.Log(e.ToString(), "debug");
       }
       return null;
     }
@@ -124,8 +129,11 @@ namespace PercyIO.Appium
       }
       catch (Exception e)
       {
-        error = e.Message;
-        throw e;
+        // `throw;` not `throw e;` — the latter resets the stack trace to this line and hides
+        // where the failure actually came from.
+        // statusMessage is persisted into the hub session log, so redact there too.
+        error = Utils.RedactCredentials(e.Message);
+        throw;
       }
       finally
       {
@@ -155,8 +163,9 @@ namespace PercyIO.Appium
       }
       catch (Exception e)
       {
-        var error = e.Message;
-        throw new Exception("Error", e);
+        // "Error" told a reader nothing about which stage failed; say what could not be parsed.
+        throw new Exception(
+          $"Could not parse tile data returned by the percyScreenshot executor: {e.Message}", e);
       }
       List<Tile> tiles = new List<Tile>();
       foreach (JObject jsonobject in jsonarray)
@@ -209,7 +218,28 @@ namespace PercyIO.Appium
       var resultString = percyAppiumDriver.ExecuteScript(
         string.Format("browserstack_executor: {0}", reqObject.ToString())).ToString();
       JObject result = JObject.Parse(resultString);
-      return result.GetValue("result").ToString();
+
+      // The hub reports a refusal as {"success": false, "message": ...} with no "result" key.
+      // Indexing it blindly turned that into a bare NullReferenceException and threw away the
+      // hub's explanation — the same undiagnosable failure this change exists to remove. It
+      // matters more now than it did: fullpage is attempted whenever the version cannot be
+      // determined, and on a real session the version is never present in the response
+      // capabilities, so this is the path essentially every fullpage request takes.
+      JToken? payload = result.GetValue("result");
+      if (payload == null)
+      {
+        // Distinguish an actual refusal from a malformed success. Reporting "refused by
+        // BrowserStack" for a `success: true` response missing `result` would send users looking
+        // for a permission problem they do not have — the same misdirection as the old
+        // "should be >= 1.19" message this branch exists to avoid.
+        String? message = result.GetValue("message")?.ToString();
+        bool refused = result.GetValue("success")?.Type == JTokenType.Boolean
+          && result.GetValue("success")!.Value<bool>() == false;
+        throw new Exception(refused
+          ? $"percyScreenshot {screenshotType} was refused by BrowserStack: {message ?? resultString}"
+          : $"percyScreenshot {screenshotType} returned no result: {message ?? resultString}");
+      }
+      return payload.ToString();
     }
 
     internal String? DeviceName(String deviceName, JObject result)
@@ -224,29 +254,142 @@ namespace PercyIO.Appium
       return new List<string>(result.GetValue("osVersion")?.ToString().Split(new string[] { "\\." }, StringSplitOptions.None))[0];
     }
 
+    // One policy: downgrade only when the version is known to be below the gate. Every
+    // "could not determine" case attempts fullpage, as the no-capabilities branch always has.
     internal Boolean VerifyCorrectAppiumVersion()
     {
-      var bstackOptions = percyAppiumDriver.GetCapabilities().getValue<Dictionary<string, object>>("bstack:options");
-      var appiumVersionJsonProtocol = percyAppiumDriver.GetCapabilities().getValue<String>("browserstack.appium_version");
-      if (bstackOptions == null && appiumVersionJsonProtocol == null)
+      try
       {
-        Utils.Log("Unable to fetch Appium version, Appium version should be >= 1.19 for Fullpage Screenshot", "warn");
+        var bstackOptions = percyAppiumDriver.GetCapabilities().getValue<Dictionary<string, object>>("bstack:options");
+        // Fetched as object: getValue<T> returns default(T) on a type mismatch, so an unquoted
+        // `browserstack.appium_version: 1.16` read as "not present" and skipped the gate.
+        object? appiumVersionJsonProtocol = percyAppiumDriver.GetCapabilities().getValue<object>("browserstack.appium_version");
+
+        // `bstack:options` is on every W3C session but `appiumVersion` only when pinned, so the
+        // key must be probed. Indexing it threw KeyNotFoundException out of this fullpage-only
+        // branch, surfacing as Screenshot() returning null with no snapshot posted.
+        object? bstackAppiumVersion =
+          (bstackOptions != null && bstackOptions.ContainsKey("appiumVersion"))
+            ? bstackOptions["appiumVersion"]
+            : null;
+
+        // Both protocols are consulted and the loop never exits early: either one known to be
+        // below the gate downgrades, so stopping at the first usable value would let one hide the
+        // other. `undetermined` defers the reassurance until no downgrade can contradict it.
+        bool undetermined = false;
+
+        foreach (var raw in new object?[] { appiumVersionJsonProtocol, bstackAppiumVersion })
+        {
+          if (raw == null) continue;
+
+          String? declaredVersion = raw as string ?? RebuildVersion(raw);
+          if (declaredVersion == null)
+          {
+            // Reached only when the value cannot be turned back into what was written. Not
+            // "non-string": numbers are judged now, so naming the type would misdirect.
+            Utils.Log($"Could not use Appium version capability '{Convert.ToString(raw, CultureInfo.InvariantCulture)}'" +
+              " — quote appiumVersion in browserstack.yml.", "warn");
+            undetermined = true;
+            continue;
+          }
+
+          Boolean? meetsGate = AppiumVersionCheck(declaredVersion);
+          if (meetsGate == null)
+          {
+            // Name the parse failure — "should be >= 1.19" sent users after the wrong problem.
+            Utils.Log($"Could not parse Appium version '{declaredVersion}'.", "warn");
+            undetermined = true;
+            continue;
+          }
+          if (meetsGate == false)
+          {
+            Utils.Log("Appium version should be >= 1.19 for Fullpage Screenshot, Falling back to single page screenshot.", "warn");
+            return false;
+          }
+          // Above the gate — keep consulting the other protocol, which may still downgrade.
+        }
+
+        // Unguarded by design: no downgrade happened, so this cannot be contradicted, and a lone
+        // "Could not..." line with no stated consequence is worse than one extra line.
+        if (undetermined)
+        {
+          Utils.Log("Attempting Fullpage Screenshot anyway.", "warn");
+        }
+
+        // Only when the session exposes no capabilities at all. Not pinning a version is the
+        // common case; warning on it would fire on every snapshot to say nothing is wrong.
+        if (bstackOptions == null && appiumVersionJsonProtocol == null)
+        {
+          Utils.Log("Unable to fetch Appium version, attempting Fullpage Screenshot anyway.", "warn");
+        }
+        return true;
       }
-      else if ((appiumVersionJsonProtocol != null && !AppiumVersionCheck(appiumVersionJsonProtocol)) || (bstackOptions != null && !AppiumVersionCheck(bstackOptions["appiumVersion"].ToString())))
+      catch (Exception e)
       {
-        Utils.Log("Appium version should be >= 1.19 for Fullpage Screenshot, Falling back to single page screenshot.", "warn");
-        return false;
+        // Never take the screenshot down with version detection. Attempt fullpage rather than
+        // downgrade: a null capability map (Appium 8.x) would become a silent permanent fallback.
+        Utils.Log("Unable to verify Appium version, attempting Fullpage Screenshot anyway.", "warn");
+        Utils.Log(e.ToString(), "debug");
+        return true;
       }
-      return true;
     }
 
-    internal Boolean AppiumVersionCheck(String version)
+    private static Boolean IsIntegral(object value)
     {
-      string[] versionArr = version.Split('.');
-      int majorVersion = int.Parse(versionArr[0]);
-      int minorVersion = int.Parse(versionArr[1]);
+      return value is sbyte || value is byte || value is short || value is ushort
+          || value is int || value is uint || value is long || value is ulong;
+    }
 
-      if (majorVersion == 2 || (majorVersion == 1 && minorVersion > 18))
+    // Rebuild a numeric capability into a comparable version string, or null when it cannot be.
+    // An unquoted `appiumVersion:` deserializes to a number, so refusing numbers outright would
+    // leave the gate unenforced — `main` compared .ToString() and did downgrade a 1.18.
+    // Only a dropped trailing zero is lossy: `1.20` arrives as the double 1.2, where minor 2 vs
+    // minor 20 straddles the gate. `decimal` keeps trailing zeros, so it is never ambiguous.
+    private static String? RebuildVersion(object value)
+    {
+      if (IsIntegral(value) || value is decimal)
+      {
+        return Convert.ToString(value, CultureInfo.InvariantCulture);
+      }
+      if (value is float || value is double)
+      {
+        String rendered = Convert.ToString(value, CultureInfo.InvariantCulture) ?? "";
+        int dot = rendered.IndexOf('.');
+        // One digit after the point is the ambiguous case; none or two-plus is exact.
+        return (dot >= 0 && rendered.Length - dot == 2) ? null : rendered;
+      }
+      return null;
+    }
+
+    // null when the version cannot be determined, otherwise whether it meets the >= 1.19 gate.
+    internal Boolean? AppiumVersionCheck(String version)
+    {
+      if (String.IsNullOrWhiteSpace(version))
+      {
+        return null;
+      }
+
+      // A pinned version can legitimately be major-only ("2"), so treat a missing minor as 0
+      // instead of indexing past the end of the array.
+      string[] versionArr = version.Split('.');
+      if (!int.TryParse(versionArr[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out int majorVersion))
+      {
+        return null;
+      }
+      int minorVersion = 0;
+      if (versionArr.Length > 1
+          && !int.TryParse(versionArr[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out minorVersion))
+      {
+        // A present-but-unparseable minor ("1.19-beta", "1.x") means the version cannot be
+        // determined — the same as an unparseable major — not that it is below the gate.
+        return null;
+      }
+
+      // The gate is "Appium >= 1.19". This was written as `== 2` when 2.x was the newest major,
+      // so Appium 3.x — which BrowserStack now offers and defaults to on newer devices — failed a
+      // check it comfortably satisfies, silently downgrading every fullpage request to single
+      // page. Compare as >= 2 so future majors don't regress the same way.
+      if (majorVersion >= 2 || (majorVersion == 1 && minorVersion > 18))
       {
         return true;
       }

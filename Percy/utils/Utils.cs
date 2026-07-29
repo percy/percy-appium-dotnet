@@ -1,4 +1,5 @@
 using System;
+using System.Text.RegularExpressions;
 
 namespace PercyIO.Appium
 {
@@ -19,6 +20,27 @@ namespace PercyIO.Appium
       }
 
       return false;
+    }
+
+    // Appium/Selenium exception text embeds the command-executor URI, commonly supplied as
+    // https://user:accesskey@hub-cloud.browserstack.com/wd/hub. Applied inside LogMessage so
+    // every call site is covered.
+    // Keyed on the scheme because GenericProvider logs locators ("xpath://a[@id='x']", "id:...")
+    // that carry `://` and `@` but never an http/ws scheme. Matching on userinfo content instead
+    // failed open twice — a {1,512} bound (a ~680-char JWT matched nothing) and an RFC 3986
+    // allow-list (one unlisted char, e.g. the `[` of a generated password, leaked the whole URL);
+    // a non-match prints the credential in full. Excluding `/` keeps a match out of the path.
+    private static readonly Regex UrlUserInfo =
+      new Regex(@"\b(https?|wss?)://[^\s@/]+@", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+    private static readonly Regex CredentialQuery =
+      new Regex(@"([?&](?:access[_-]?key|auth[_-]?token|token|password|secret)=)[^&\s""']+",
+        RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+    public static String RedactCredentials(String message)
+    {
+      if (String.IsNullOrEmpty(message)) return message;
+      message = UrlUserInfo.Replace(message, "$1://***@");
+      return CredentialQuery.Replace(message, "$1***");
     }
 
     public static void Log(String message, String logLevel = "info")
@@ -42,7 +64,7 @@ namespace PercyIO.Appium
 
     private static void LogMessage(String message, String label, String color = "39m")
     {
-      Console.WriteLine($"[\u001b[35m{label}\u001b[{color}] {message}");
+      Console.WriteLine($"[\u001b[35m{label}\u001b[{color}] {RedactCredentials(message)}");
     }
   }
 }
