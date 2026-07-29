@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using Newtonsoft.Json.Linq;
 using Moq;
 using Xunit;
@@ -503,17 +504,65 @@ namespace Percy.Tests
       // Act
       var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
       var actual = appAutomate.VerifyCorrectAppiumVersion();
-      // Assert — falls back to single page instead of propagating
-      Assert.False(actual);
+      // Assert — does not propagate, and attempts fullpage rather than silently downgrading
+      Assert.True(actual);
     }
 
     [Fact]
     public void TestAppiumVersionCheck_WhenVersionIsEmpty()
     {
       var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
-      Assert.False(appAutomate.AppiumVersionCheck(null));
-      Assert.False(appAutomate.AppiumVersionCheck(""));
-      Assert.False(appAutomate.AppiumVersionCheck("   "));
+      // null means "cannot determine", which is distinct from "below the gate"
+      Assert.Null(appAutomate.AppiumVersionCheck(null));
+      Assert.Null(appAutomate.AppiumVersionCheck(""));
+      Assert.Null(appAutomate.AppiumVersionCheck("   "));
+    }
+
+    [Fact]
+    public void TestVerifyCorrectAppiumVersion_WarnTextNamesTheUnparsedValue()
+    {
+      // The fallback warnings are the only signal a user gets, so assert the text, not just
+      // the boolean: reporting a parse failure as "should be >= 1.19" sends them hunting for
+      // a version problem they do not have.
+      var stdout = new StringWriter();
+      var original = Console.Out;
+      Console.SetOut(stdout);
+      try
+      {
+        _androidPercyAppiumDriver.Setup(x => x.GetCapabilities().getValue<Dictionary<string, object>>("bstack:options")).Returns(
+          new Dictionary<string, object> { { "appiumVersion", "banana" } }
+        );
+        var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
+        Assert.True(appAutomate.VerifyCorrectAppiumVersion());
+        var output = stdout.ToString();
+        Assert.Contains("Could not parse Appium version 'banana'", output);
+        Assert.DoesNotContain("should be >= 1.19", output);
+      }
+      finally
+      {
+        Console.SetOut(original);
+      }
+    }
+
+    [Fact]
+    public void TestVerifyCorrectAppiumVersion_WarnTextWhenBelowGate()
+    {
+      var stdout = new StringWriter();
+      var original = Console.Out;
+      Console.SetOut(stdout);
+      try
+      {
+        _androidPercyAppiumDriver.Setup(x => x.GetCapabilities().getValue<Dictionary<string, object>>("bstack:options")).Returns(
+          new Dictionary<string, object> { { "appiumVersion", "1.18.0" } }
+        );
+        var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
+        Assert.False(appAutomate.VerifyCorrectAppiumVersion());
+        Assert.Contains("should be >= 1.19", stdout.ToString());
+      }
+      finally
+      {
+        Console.SetOut(original);
+      }
     }
 
     [Fact]
@@ -522,6 +571,9 @@ namespace Percy.Tests
       var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
       // Below the 1.19 floor
       Assert.False(appAutomate.AppiumVersionCheck("1.18.0"));
+      Assert.Null(appAutomate.AppiumVersionCheck("not-a-version"));
+      // Locale safety: a de-DE agent must not see "1,19" fail to parse
+      Assert.True(appAutomate.AppiumVersionCheck("1.19"));
       // The floor and everything above it, including majors that did not exist when
       // the check was written
       Assert.True(appAutomate.AppiumVersionCheck("1.19.0"));
@@ -553,8 +605,9 @@ namespace Percy.Tests
       // Act
       var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
       var actual = appAutomate.VerifyCorrectAppiumVersion();
-      // Assert — falls back to single page rather than throwing
-      Assert.False(actual);
+      // Assert — unknown version attempts fullpage, and the warning names the parse failure
+      // rather than claiming the version is below the gate
+      Assert.True(actual);
     }
 
     [Fact]

@@ -1,4 +1,5 @@
 using System;
+using System.Text.RegularExpressions;
 
 namespace PercyIO.Appium
 {
@@ -19,6 +20,18 @@ namespace PercyIO.Appium
       }
 
       return false;
+    }
+
+    // Appium/Selenium exception text routinely embeds the command-executor URI, and App Automate
+    // users commonly supply that as https://user:accesskey@hub-cloud.browserstack.com/wd/hub. Strip
+    // the userinfo before anything derived from an exception reaches an always-on log line.
+    private static readonly Regex UrlUserInfo =
+      new Regex(@"//[^/@\s:]+:[^/@\s]+@", RegexOptions.Compiled);
+
+    public static String RedactCredentials(String message)
+    {
+      if (String.IsNullOrEmpty(message)) return message;
+      return UrlUserInfo.Replace(message, "//***:***@");
     }
 
     public static void Log(String message, String logLevel = "info")
