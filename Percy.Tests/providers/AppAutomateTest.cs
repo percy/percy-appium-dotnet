@@ -468,9 +468,8 @@ namespace Percy.Tests
         var actual = appAutomate.VerifyCorrectAppiumVersion();
         // Assert — unknown version must not block fullpage, and must not throw
         Assert.True(actual);
-        // `true` alone cannot tell "the key was probed" from "indexing it threw and the catch-all
-        // returned true", which is the bug this test is named for. That message is reachable only
-        // from the catch-all, so its absence is what proves the intended path ran.
+        // `true` alone cannot tell a probed key from one that threw and hit the catch-all.
+        // That message is reachable only from the catch-all, so its absence proves the path.
         Assert.DoesNotContain("Unable to verify Appium version", stdout.ToString());
       }
       finally
@@ -749,8 +748,8 @@ namespace Percy.Tests
       Console.SetOut(stdout);
       try
       {
-        // "1.16" round-trips exactly, so it is judged rather than waved through — refusing to
-        // read numbers at all would mean the gate is not enforced for the unquoted form.
+        // "1.16" round-trips exactly, so it is judged — refusing numbers outright would leave
+        // the gate unenforced for the unquoted form.
         Assert.False(new AppAutomate(_androidPercyAppiumDriver.Object).VerifyCorrectAppiumVersion());
         var output = stdout.ToString();
         Assert.Contains("Falling back to single page", output);
@@ -767,9 +766,7 @@ namespace Percy.Tests
     [InlineData(1.17d)]
     public void TestVerifyCorrectAppiumVersion_BelowGateFloatingPointStillDowngrades(double pinned)
     {
-      // Regression guard against `main`, which compared bstackOptions["appiumVersion"].ToString()
-      // and did downgrade these. Treating all floating point as undetermined would have quietly
-      // attempted fullpage on a version the hub cannot serve it for.
+      // Regression guard against `main`, which compared .ToString() and did downgrade these.
       _androidPercyAppiumDriver.Setup(x => x.GetCapabilities().getValue<Dictionary<string, object>>("bstack:options")).Returns(
         new Dictionary<string, object> { { "appiumVersion", pinned } }
       );
@@ -790,8 +787,7 @@ namespace Percy.Tests
     [Fact]
     public void TestVerifyCorrectAppiumVersion_AboveGateFloatingPointIsSilent()
     {
-      // VerifyCorrectAppiumVersion runs once per fullpage snapshot, so an above-gate value that
-      // the code can read exactly must not emit the undetermined pair on every one of them.
+      // Runs once per fullpage snapshot, so a value read exactly must not warn every time.
       _androidPercyAppiumDriver.Setup(x => x.GetCapabilities().getValue<Dictionary<string, object>>("bstack:options")).Returns(
         new Dictionary<string, object> { { "appiumVersion", 1.22d } }
       );
@@ -815,8 +811,7 @@ namespace Percy.Tests
     [Fact]
     public void TestVerifyCorrectAppiumVersion_DecimalKeepsItsTrailingZero()
     {
-      // The 1.20 ambiguity is a binary-floating-point artefact. `decimal` preserves the trailing
-      // zero, so it is exact and must be judged rather than lumped in with double.
+      // The 1.20 ambiguity is a binary-float artefact; `decimal` keeps the trailing zero.
       _androidPercyAppiumDriver.Setup(x => x.GetCapabilities().getValue<Dictionary<string, object>>("bstack:options")).Returns(
         new Dictionary<string, object> { { "appiumVersion", 1.20m } }
       );
@@ -851,8 +846,7 @@ namespace Percy.Tests
       {
         Assert.True(new AppAutomate(_androidPercyAppiumDriver.Object).VerifyCorrectAppiumVersion());
         var output = stdout.ToString();
-        // 1.20 is the one shape that cannot be recovered: the double renders "1.2", and minor 2
-        // versus minor 20 straddles the gate, so it must stay undetermined rather than downgrade.
+        // The one unrecoverable shape: 1.20 renders "1.2", and minor 2 vs 20 straddles the gate.
         Assert.Contains("Could not use Appium version capability '1.2'", output);
         Assert.Contains("Attempting Fullpage Screenshot anyway", output);
       }
@@ -935,8 +929,7 @@ namespace Percy.Tests
         var actual = appAutomate.VerifyCorrectAppiumVersion();
         // Assert
         Assert.True(actual);
-        // "2" is above the gate, so `true` is also what an IndexOutOfRange caught by the
-        // catch-all produces. Only the absence of its message distinguishes them.
+        // "2" is above the gate, so a caught IndexOutOfRange also yields `true`.
         Assert.DoesNotContain("Unable to verify Appium version", stdout.ToString());
       }
       finally
@@ -999,8 +992,7 @@ namespace Percy.Tests
       {
         // Act
         result = appAutomate.ExecutePercyScreenshot(options);
-        // The catch-all also yields a fullpage request, so without this the assertions below
-        // pass just as happily when KeyNotFoundException is thrown and swallowed.
+        // The catch-all also requests fullpage, so the assertions below pass either way.
         Assert.DoesNotContain("Unable to verify Appium version", stdout.ToString());
       }
       finally

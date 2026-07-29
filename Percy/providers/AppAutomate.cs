@@ -254,37 +254,28 @@ namespace PercyIO.Appium
       return new List<string>(result.GetValue("osVersion")?.ToString().Split(new string[] { "\\." }, StringSplitOptions.None))[0];
     }
 
-    // One policy throughout: downgrade to single page only when the version is known to be
-    // below the gate. Every "we could not determine it" case attempts fullpage, which is what
-    // the no-capabilities branch has always done and what percy-appium-java does.
+    // One policy: downgrade only when the version is known to be below the gate. Every
+    // "could not determine" case attempts fullpage, as the no-capabilities branch always has.
     internal Boolean VerifyCorrectAppiumVersion()
     {
       try
       {
         var bstackOptions = percyAppiumDriver.GetCapabilities().getValue<Dictionary<string, object>>("bstack:options");
-        // Fetched as object, not String: getValue<T> returns default(T) when the stored value is
-        // not a T, so an unquoted `browserstack.appium_version: 1.16` came back null and read as
-        // "not present" — silently skipping the gate for a version below it. The loop below
-        // applies the same string/integral/floating-point handling to both protocols.
+        // Fetched as object: getValue<T> returns default(T) on a type mismatch, so an unquoted
+        // `browserstack.appium_version: 1.16` read as "not present" and skipped the gate.
         object? appiumVersionJsonProtocol = percyAppiumDriver.GetCapabilities().getValue<object>("browserstack.appium_version");
 
-        // `bstack:options` is present on every W3C session — the BrowserStack SDK always injects
-        // it — but `appiumVersion` is only inside it when the user pins one, so the key has to be
-        // probed rather than indexed. Indexing a missing key threw KeyNotFoundException out of
-        // this fullpage-only branch and surfaced to users as Screenshot() returning null with no
-        // snapshot ever posted.
+        // `bstack:options` is on every W3C session but `appiumVersion` only when pinned, so the
+        // key must be probed. Indexing it threw KeyNotFoundException out of this fullpage-only
+        // branch, surfacing as Screenshot() returning null with no snapshot posted.
         object? bstackAppiumVersion =
           (bstackOptions != null && bstackOptions.ContainsKey("appiumVersion"))
             ? bstackOptions["appiumVersion"]
             : null;
 
-        // Both protocols are consulted: either one known to be below the gate downgrades. Taking
-        // only the first non-null would let an unparseable JWP value hide a usable W3C one.
-        // Track whether anything was seen but could not be judged, so the reassurance is emitted
-        // once after the loop rather than promised per-iteration and then contradicted by a
-        // later downgrade. The loop never exits early: breaking on the first usable value would
-        // let an above-gate JWP value hide a below-gate W3C one, the same shadowing bug in the
-        // other direction.
+        // Both protocols are consulted and the loop never exits early: either one known to be
+        // below the gate downgrades, so stopping at the first usable value would let one hide the
+        // other. `undetermined` defers the reassurance until no downgrade can contradict it.
         bool undetermined = false;
 
         foreach (var raw in new object?[] { appiumVersionJsonProtocol, bstackAppiumVersion })
@@ -294,9 +285,8 @@ namespace PercyIO.Appium
           String? declaredVersion = raw as string ?? RebuildVersion(raw);
           if (declaredVersion == null)
           {
-            // Not "ignoring a non-string": most numbers are judged now, so naming the type would
-            // send users looking for the wrong thing. This is reached only when the value cannot
-            // be turned back into the version that was written — quoting it is the actual fix.
+            // Reached only when the value cannot be turned back into what was written. Not
+            // "non-string": numbers are judged now, so naming the type would misdirect.
             Utils.Log($"Could not use Appium version capability '{Convert.ToString(raw, CultureInfo.InvariantCulture)}'" +
               " — quote appiumVersion in browserstack.yml.", "warn");
             undetermined = true;
@@ -306,8 +296,7 @@ namespace PercyIO.Appium
           Boolean? meetsGate = AppiumVersionCheck(declaredVersion);
           if (meetsGate == null)
           {
-            // Say what could not be parsed. Reporting this as "should be >= 1.19" sent users
-            // looking for a version problem they did not have.
+            // Name the parse failure — "should be >= 1.19" sent users after the wrong problem.
             Utils.Log($"Could not parse Appium version '{declaredVersion}'.", "warn");
             undetermined = true;
             continue;
@@ -317,22 +306,18 @@ namespace PercyIO.Appium
             Utils.Log("Appium version should be >= 1.19 for Fullpage Screenshot, Falling back to single page screenshot.", "warn");
             return false;
           }
-          // Above the gate. Keep consulting the other protocol so a below-gate value there still
-          // downgrades.
+          // Above the gate — keep consulting the other protocol, which may still downgrade.
         }
 
-        // Not guarded on whether some other value parsed: the downgrade above is the only one and
-        // here means fullpage will be attempted and the reassurance cannot be contradicted.
-        // Suppressing it when another protocol happened to parse would leave a lone "Ignoring
-        // non-string..." or "Could not parse..." line with no stated consequence.
+        // Unguarded by design: no downgrade happened, so this cannot be contradicted, and a lone
+        // "Could not..." line with no stated consequence is worse than one extra line.
         if (undetermined)
         {
           Utils.Log("Attempting Fullpage Screenshot anyway.", "warn");
         }
 
-        // Only when the session exposes no capabilities at all. Not pinning `appiumVersion` is
-        // the common case, and warning on it would fire on every fullpage snapshot of every
-        // build to say that nothing is wrong.
+        // Only when the session exposes no capabilities at all. Not pinning a version is the
+        // common case; warning on it would fire on every snapshot to say nothing is wrong.
         if (bstackOptions == null && appiumVersionJsonProtocol == null)
         {
           Utils.Log("Unable to fetch Appium version, attempting Fullpage Screenshot anyway.", "warn");
@@ -341,10 +326,8 @@ namespace PercyIO.Appium
       }
       catch (Exception e)
       {
-        // Version detection must never take the screenshot down with it. Attempt fullpage rather
-        // than downgrade: reflection handing back a null capability map (Appium 8.x) would
-        // otherwise turn into a permanent silent single-page fallback, which diffs against
-        // fullpage baselines and looks like a passing build.
+        // Never take the screenshot down with version detection. Attempt fullpage rather than
+        // downgrade: a null capability map (Appium 8.x) would become a silent permanent fallback.
         Utils.Log("Unable to verify Appium version, attempting Fullpage Screenshot anyway.", "warn");
         Utils.Log(e.ToString(), "debug");
         return true;
@@ -357,18 +340,11 @@ namespace PercyIO.Appium
           || value is int || value is uint || value is long || value is ulong;
     }
 
-    // Rebuild a non-string capability into a comparable version string, or null when it cannot be
-    // trusted. An unquoted `appiumVersion:` in browserstack.yml is deserialized as a number, so
-    // refusing to judge numbers means not enforcing the gate at all: `main` compared
-    // `bstackOptions["appiumVersion"].ToString()` and did downgrade a below-gate 1.18, so the
-    // exclusion has to stay narrow or it is a regression on the very gate this fixes.
-    //
-    // Integral types are exact. Floating point is lossy in exactly one detectable shape: a
-    // dropped trailing zero. `1.20` arrives as the double 1.2 and renders "1.2", which is
-    // indistinguishable from a genuine 1.2 — and minor 2 versus minor 20 straddles the gate, so
-    // that shape alone stays undetermined. Every other rendering ("1.18", "1.22", "2") round-trips
-    // unambiguously and is judged. `decimal` keeps its trailing zeros ("1.20" stays "1.20"), so
-    // the ambiguity cannot arise there.
+    // Rebuild a numeric capability into a comparable version string, or null when it cannot be.
+    // An unquoted `appiumVersion:` deserializes to a number, so refusing numbers outright would
+    // leave the gate unenforced — `main` compared .ToString() and did downgrade a 1.18.
+    // Only a dropped trailing zero is lossy: `1.20` arrives as the double 1.2, where minor 2 vs
+    // minor 20 straddles the gate. `decimal` keeps trailing zeros, so it is never ambiguous.
     private static String? RebuildVersion(object value)
     {
       if (IsIntegral(value) || value is decimal)

@@ -104,10 +104,8 @@ namespace Percy.Tests
     [Fact]
     public void RedactsPasswordsOutsideTheUrlCharacterSet()
     {
-      // The failure mode of an allow-list is that it fails open: the whole userinfo run has to
-      // match, so one unlisted character prints username and password in full. Brackets are the
-      // reachable case — `Uri` rejects `#` and `\` and percent-encodes space and quotes, but
-      // preserves brackets verbatim — and they are common in generated strong passwords.
+      // An allow-list fails open: the whole run must match, so one unlisted character prints
+      // the credential in full. `Uri` preserves brackets verbatim, and passwords often carry them.
       var bracketed = Utils.RedactCredentials("https://user:p[a]ss@grid.corp.local:4444/wd/hub");
       Assert.Equal("https://***@grid.corp.local:4444/wd/hub", bracketed);
       Assert.DoesNotContain("p[a]ss", bracketed);
@@ -120,8 +118,7 @@ namespace Percy.Tests
     [Fact]
     public void RedactsRegardlessOfSchemeCasingAndCount()
     {
-      // The scheme is what the pattern keys on, so casing must not decide whether a credential
-      // is redacted, and one URL in a message must not consume the rest of the line.
+      // Casing must not decide redaction, and one URL must not consume the rest of the line.
       Assert.Equal("HTTPS://***@hub.example.com/wd/hub",
         Utils.RedactCredentials("HTTPS://user:secret@hub.example.com/wd/hub"));
 
