@@ -218,7 +218,21 @@ namespace PercyIO.Appium
       var resultString = percyAppiumDriver.ExecuteScript(
         string.Format("browserstack_executor: {0}", reqObject.ToString())).ToString();
       JObject result = JObject.Parse(resultString);
-      return result.GetValue("result").ToString();
+
+      // The hub reports a refusal as {"success": false, "message": ...} with no "result" key.
+      // Indexing it blindly turned that into a bare NullReferenceException and threw away the
+      // hub's explanation — the same undiagnosable failure this change exists to remove. It
+      // matters more now than it did: fullpage is attempted whenever the version cannot be
+      // determined, and on a real session the version is never present in the response
+      // capabilities, so this is the path essentially every fullpage request takes.
+      JToken? payload = result.GetValue("result");
+      if (payload == null)
+      {
+        String? message = result.GetValue("message")?.ToString();
+        throw new Exception(
+          $"percyScreenshot {screenshotType} was refused by BrowserStack: {message ?? resultString}");
+      }
+      return payload.ToString();
     }
 
     internal String? DeviceName(String deviceName, JObject result)

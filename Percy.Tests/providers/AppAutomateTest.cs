@@ -775,6 +775,24 @@ namespace Percy.Tests
     }
 
     [Fact]
+    public void TestExecutePercyScreenshot_SurfacesHubRefusalMessage()
+    {
+      // A hub that will not service the request replies {"success": false, "message": ...} with
+      // no "result" key. That has to reach the user as the hub's own words — indexing "result"
+      // blindly produced a bare NullReferenceException and discarded them.
+      _androidPercyAppiumDriver.Setup(x => x.ExecuteScript(It.IsAny<string>()))
+        .Returns("{\"success\": false, \"message\": \"fullpage not supported on this device\"}");
+
+      var options = new ScreenshotOptions { FullPage = true, ScreenLengths = 4 };
+      var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
+      appAutomate.metadata = new AndroidMetadata(_androidPercyAppiumDriver.Object, "Samsung Galaxy s22", 100, 200, null, null);
+
+      var ex = Assert.Throws<Exception>(() => appAutomate.ExecutePercyScreenshot(options));
+      Assert.Contains("fullpage not supported on this device", ex.Message);
+      Assert.IsNotType<NullReferenceException>(ex);
+    }
+
+    [Fact]
     public void TestAppiumVersionCheck_AcrossMajors()
     {
       var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
