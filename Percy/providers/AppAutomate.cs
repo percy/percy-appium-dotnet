@@ -61,7 +61,7 @@ namespace PercyIO.Appium
       }
       catch (Exception e)
       {
-        Utils.Log("BrowserStack executer failed");
+        Utils.Log("BrowserStack executer failed at percyScreenshot begin");
         Utils.Log(e.ToString(), "debug");
       }
       return null;
@@ -103,7 +103,7 @@ namespace PercyIO.Appium
       {
         // End is what reports failure status back to the hub, and that statusMessage is often
         // the last surviving record of a failed screenshot — so do not lose why End itself failed.
-        Utils.Log("BrowserStack executer failed");
+        Utils.Log("BrowserStack executer failed at percyScreenshot end");
         Utils.Log(e.ToString(), "debug");
       }
       return null;
@@ -131,7 +131,8 @@ namespace PercyIO.Appium
       {
         // `throw;` not `throw e;` — the latter resets the stack trace to this line and hides
         // where the failure actually came from.
-        error = e.Message;
+        // statusMessage is persisted into the hub session log, so redact there too.
+        error = Utils.RedactCredentials(e.Message);
         throw;
       }
       finally
@@ -247,36 +248,48 @@ namespace PercyIO.Appium
         // probed rather than indexed. Indexing a missing key threw KeyNotFoundException out of
         // this fullpage-only branch and surfaced to users as Screenshot() returning null with no
         // snapshot ever posted.
-        String? declaredVersion = appiumVersionJsonProtocol;
-        if (declaredVersion == null
-            && bstackOptions != null
-            && bstackOptions.ContainsKey("appiumVersion")
-            && bstackOptions["appiumVersion"] != null)
+        object? bstackAppiumVersion =
+          (bstackOptions != null && bstackOptions.ContainsKey("appiumVersion"))
+            ? bstackOptions["appiumVersion"]
+            : null;
+
+        // Both protocols are consulted: either one known to be below the gate downgrades. Taking
+        // only the first non-null would let an unparseable JWP value hide a usable W3C one.
+        foreach (var raw in new object?[] { appiumVersionJsonProtocol, bstackAppiumVersion })
         {
-          // Invariant culture: an unquoted `appiumVersion: 1.19` in the yml deserializes to a
-          // double, and CurrentCulture would render it "1,19" on a de-DE/fr-FR agent, so the
-          // version would fail to parse on those CI agents only.
-          declaredVersion = Convert.ToString(bstackOptions["appiumVersion"], CultureInfo.InvariantCulture);
+          if (raw == null) continue;
+
+          // Only a string is trustworthy here. An unquoted `appiumVersion: 1.20` deserializes to
+          // the double 1.2, and rebuilding "1.2" would compare minor 2 against the gate and
+          // wrongly downgrade a version that is above it.
+          if (!(raw is string declaredVersion))
+          {
+            Utils.Log($"Ignoring non-string Appium version capability '{Convert.ToString(raw, CultureInfo.InvariantCulture)}'" +
+              " — quote appiumVersion in browserstack.yml. Attempting Fullpage Screenshot anyway.", "warn");
+            continue;
+          }
+
+          Boolean? meetsGate = AppiumVersionCheck(declaredVersion);
+          if (meetsGate == null)
+          {
+            // Say what could not be parsed. Reporting this as "should be >= 1.19" sent users
+            // looking for a version problem they did not have.
+            Utils.Log($"Could not parse Appium version '{declaredVersion}', attempting Fullpage Screenshot anyway.", "warn");
+            continue;
+          }
+          if (meetsGate == false)
+          {
+            Utils.Log("Appium version should be >= 1.19 for Fullpage Screenshot, Falling back to single page screenshot.", "warn");
+            return false;
+          }
         }
 
-        if (declaredVersion == null)
+        // Only when the session exposes no capabilities at all. Not pinning `appiumVersion` is
+        // the common case, and warning on it would fire on every fullpage snapshot of every
+        // build to say that nothing is wrong.
+        if (bstackOptions == null && appiumVersionJsonProtocol == null)
         {
-          Utils.Log("Unable to fetch Appium version, Appium version should be >= 1.19 for Fullpage Screenshot", "warn");
-          return true;
-        }
-
-        Boolean? meetsGate = AppiumVersionCheck(declaredVersion);
-        if (meetsGate == null)
-        {
-          // Say what could not be parsed. Reporting this as "should be >= 1.19" sent users
-          // looking for a version problem they did not have.
-          Utils.Log($"Could not parse Appium version '{declaredVersion}', attempting Fullpage Screenshot anyway.", "warn");
-          return true;
-        }
-        if (meetsGate == false)
-        {
-          Utils.Log("Appium version should be >= 1.19 for Fullpage Screenshot, Falling back to single page screenshot.", "warn");
-          return false;
+          Utils.Log("Unable to fetch Appium version, attempting Fullpage Screenshot anyway.", "warn");
         }
         return true;
       }
@@ -308,10 +321,12 @@ namespace PercyIO.Appium
         return null;
       }
       int minorVersion = 0;
-      if (versionArr.Length > 1)
+      if (versionArr.Length > 1
+          && !int.TryParse(versionArr[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out minorVersion))
       {
-        // An unparseable minor is deliberately treated as 0, so "1.x" fails the >= 1.19 gate.
-        _ = int.TryParse(versionArr[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out minorVersion);
+        // A present-but-unparseable minor ("1.19-beta", "1.x") means the version cannot be
+        // determined — the same as an unparseable major — not that it is below the gate.
+        return null;
       }
 
       // The gate is "Appium >= 1.19". This was written as `== 2` when 2.x was the newest major,

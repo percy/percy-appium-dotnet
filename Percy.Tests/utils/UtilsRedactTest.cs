@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using Xunit;
 using PercyIO.Appium;
 
@@ -14,7 +16,42 @@ namespace Percy.Tests
       var actual = Utils.RedactCredentials(msg);
       Assert.DoesNotContain("s3cr3tkey", actual);
       Assert.DoesNotContain("myuser", actual);
-      Assert.Contains("//***:***@hub-cloud.browserstack.com/wd/hub", actual);
+      Assert.Contains("//***@hub-cloud.browserstack.com/wd/hub", actual);
+    }
+
+    [Fact]
+    public void StripsUserInfoWithoutAColon()
+    {
+      var actual = Utils.RedactCredentials("connect to https://sometoken@hub.browserstack.com/wd/hub failed");
+      Assert.DoesNotContain("sometoken", actual);
+      Assert.Contains("//***@hub.browserstack.com", actual);
+    }
+
+    [Fact]
+    public void StripsCredentialQueryParameters()
+    {
+      var actual = Utils.RedactCredentials("GET /session?accessKey=abc123&other=keep");
+      Assert.DoesNotContain("abc123", actual);
+      Assert.Contains("accessKey=***", actual);
+      Assert.Contains("other=keep", actual);
+    }
+
+    [Fact]
+    public void RedactsAtTheLogChokePoint()
+    {
+      // Applied inside LogMessage, so every call site is covered without per-site wrapping
+      var stdout = new StringWriter();
+      var original = Console.Out;
+      Console.SetOut(stdout);
+      try
+      {
+        Utils.Log("failed against https://me:supersecret@hub-cloud.browserstack.com/wd/hub");
+        Assert.DoesNotContain("supersecret", stdout.ToString());
+      }
+      finally
+      {
+        Console.SetOut(original);
+      }
     }
 
     [Fact]

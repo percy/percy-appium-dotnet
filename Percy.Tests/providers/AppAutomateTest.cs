@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.IO;
 using Newtonsoft.Json.Linq;
 using Moq;
@@ -566,14 +567,80 @@ namespace Percy.Tests
     }
 
     [Fact]
+    public void TestVerifyCorrectAppiumVersion_WhenValueIsNumericUnderCommaDecimalCulture()
+    {
+      // An unquoted `appiumVersion: 1.20` in browserstack.yml arrives as a double. Rebuilding a
+      // string from it is lossy (1.2), so the value is not trusted at all — and the outcome must
+      // not depend on the agent's locale.
+      var previous = CultureInfo.CurrentCulture;
+      var stdout = new StringWriter();
+      var originalOut = Console.Out;
+      Console.SetOut(stdout);
+      try
+      {
+        CultureInfo.CurrentCulture = new CultureInfo("de-DE");
+        _androidPercyAppiumDriver.Setup(x => x.GetCapabilities().getValue<Dictionary<string, object>>("bstack:options")).Returns(
+          new Dictionary<string, object> { { "appiumVersion", 1.20d } }
+        );
+        var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
+        // Must attempt fullpage, never a silent downgrade off a lossily-formatted number
+        Assert.True(appAutomate.VerifyCorrectAppiumVersion());
+        Assert.Contains("Ignoring non-string Appium version capability", stdout.ToString());
+        Assert.DoesNotContain("should be >= 1.19", stdout.ToString());
+      }
+      finally
+      {
+        CultureInfo.CurrentCulture = previous;
+        Console.SetOut(originalOut);
+      }
+    }
+
+    [Fact]
+    public void TestVerifyCorrectAppiumVersion_StaysQuietWhenVersionSimplyNotPinned()
+    {
+      // The common case: bstack:options injected, no appiumVersion pinned. VerifyCorrectAppiumVersion
+      // runs once per fullpage snapshot, so warning here would fire on every snapshot of every build.
+      var stdout = new StringWriter();
+      var originalOut = Console.Out;
+      Console.SetOut(stdout);
+      try
+      {
+        _androidPercyAppiumDriver.Setup(x => x.GetCapabilities().getValue<Dictionary<string, object>>("bstack:options")).Returns(
+          new Dictionary<string, object> { { "userName", "someuser" } }
+        );
+        var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
+        Assert.True(appAutomate.VerifyCorrectAppiumVersion());
+        Assert.Equal("", stdout.ToString());
+      }
+      finally
+      {
+        Console.SetOut(originalOut);
+      }
+    }
+
+    [Fact]
+    public void TestVerifyCorrectAppiumVersion_JwpUnparseableDoesNotShadowW3CValue()
+    {
+      // Both protocols are consulted; an unparseable JWP value must not hide a usable W3C one
+      // that is genuinely below the gate.
+      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities().getValue<String>("browserstack.appium_version")).Returns("garbage");
+      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities().getValue<Dictionary<string, object>>("bstack:options")).Returns(
+        new Dictionary<string, object> { { "appiumVersion", "1.16" } }
+      );
+      var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
+      Assert.False(appAutomate.VerifyCorrectAppiumVersion());
+    }
+
+    [Fact]
     public void TestAppiumVersionCheck_AcrossMajors()
     {
       var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
       // Below the 1.19 floor
       Assert.False(appAutomate.AppiumVersionCheck("1.18.0"));
       Assert.Null(appAutomate.AppiumVersionCheck("not-a-version"));
-      // Locale safety: a de-DE agent must not see "1,19" fail to parse
-      Assert.True(appAutomate.AppiumVersionCheck("1.19"));
+      // A present-but-unparseable minor is "cannot determine", not "below the gate"
+      Assert.Null(appAutomate.AppiumVersionCheck("1.19-beta"));
+      Assert.Null(appAutomate.AppiumVersionCheck("1.x"));
       // The floor and everything above it, including majors that did not exist when
       // the check was written
       Assert.True(appAutomate.AppiumVersionCheck("1.19.0"));

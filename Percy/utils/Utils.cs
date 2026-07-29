@@ -23,15 +23,19 @@ namespace PercyIO.Appium
     }
 
     // Appium/Selenium exception text routinely embeds the command-executor URI, and App Automate
-    // users commonly supply that as https://user:accesskey@hub-cloud.browserstack.com/wd/hub. Strip
-    // the userinfo before anything derived from an exception reaches an always-on log line.
+    // users commonly supply that as https://user:accesskey@hub-cloud.browserstack.com/wd/hub.
+    // Applied inside LogMessage so every call site — present and future — is covered.
     private static readonly Regex UrlUserInfo =
-      new Regex(@"//[^/@\s:]+:[^/@\s]+@", RegexOptions.Compiled);
+      new Regex(@"//[^/@\s]+@", RegexOptions.Compiled);
+    private static readonly Regex CredentialQuery =
+      new Regex(@"([?&](?:access[_-]?key|accesskey|auth[_-]?token|token|password|secret)=)[^&\s""']+",
+        RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
     public static String RedactCredentials(String message)
     {
       if (String.IsNullOrEmpty(message)) return message;
-      return UrlUserInfo.Replace(message, "//***:***@");
+      message = UrlUserInfo.Replace(message, "//***@");
+      return CredentialQuery.Replace(message, "$1***");
     }
 
     public static void Log(String message, String logLevel = "info")
@@ -55,7 +59,7 @@ namespace PercyIO.Appium
 
     private static void LogMessage(String message, String label, String color = "39m")
     {
-      Console.WriteLine($"[\u001b[35m{label}\u001b[{color}] {message}");
+      Console.WriteLine($"[\u001b[35m{label}\u001b[{color}] {RedactCredentials(message)}");
     }
   }
 }
