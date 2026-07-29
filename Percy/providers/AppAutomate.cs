@@ -228,9 +228,16 @@ namespace PercyIO.Appium
       JToken? payload = result.GetValue("result");
       if (payload == null)
       {
+        // Distinguish an actual refusal from a malformed success. Reporting "refused by
+        // BrowserStack" for a `success: true` response missing `result` would send users looking
+        // for a permission problem they do not have — the same misdirection as the old
+        // "should be >= 1.19" message this branch exists to avoid.
         String? message = result.GetValue("message")?.ToString();
-        throw new Exception(
-          $"percyScreenshot {screenshotType} was refused by BrowserStack: {message ?? resultString}");
+        bool refused = result.GetValue("success")?.Type == JTokenType.Boolean
+          && result.GetValue("success")!.Value<bool>() == false;
+        throw new Exception(refused
+          ? $"percyScreenshot {screenshotType} was refused by BrowserStack: {message ?? resultString}"
+          : $"percyScreenshot {screenshotType} returned no result: {message ?? resultString}");
       }
       return payload.ToString();
     }

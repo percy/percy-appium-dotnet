@@ -789,7 +789,25 @@ namespace Percy.Tests
 
       var ex = Assert.Throws<Exception>(() => appAutomate.ExecutePercyScreenshot(options));
       Assert.Contains("fullpage not supported on this device", ex.Message);
+      Assert.Contains("was refused by BrowserStack", ex.Message);
       Assert.IsNotType<NullReferenceException>(ex);
+    }
+
+    [Fact]
+    public void TestExecutePercyScreenshot_DoesNotClaimRefusalWhenSuccessIsTrue()
+    {
+      // A malformed success — success:true with no "result" — is a hub-side bug, not a refusal.
+      // Calling it a refusal would send users hunting a permission problem they do not have.
+      _androidPercyAppiumDriver.Setup(x => x.ExecuteScript(It.IsAny<string>()))
+        .Returns("{\"success\": true}");
+
+      var options = new ScreenshotOptions { FullPage = true, ScreenLengths = 4 };
+      var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
+      appAutomate.metadata = new AndroidMetadata(_androidPercyAppiumDriver.Object, "Samsung Galaxy s22", 100, 200, null, null);
+
+      var ex = Assert.Throws<Exception>(() => appAutomate.ExecutePercyScreenshot(options));
+      Assert.Contains("returned no result", ex.Message);
+      Assert.DoesNotContain("refused by BrowserStack", ex.Message);
     }
 
     [Fact]
