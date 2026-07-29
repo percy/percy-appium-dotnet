@@ -241,7 +241,11 @@ namespace PercyIO.Appium
       try
       {
         var bstackOptions = percyAppiumDriver.GetCapabilities().getValue<Dictionary<string, object>>("bstack:options");
-        var appiumVersionJsonProtocol = percyAppiumDriver.GetCapabilities().getValue<String>("browserstack.appium_version");
+        // Fetched as object, not String: getValue<T> returns default(T) when the stored value is
+        // not a T, so an unquoted `browserstack.appium_version: 1.16` came back null and read as
+        // "not present" — silently skipping the gate for a version below it. The loop below
+        // applies the same string/integral/floating-point handling to both protocols.
+        object? appiumVersionJsonProtocol = percyAppiumDriver.GetCapabilities().getValue<object>("browserstack.appium_version");
 
         // `bstack:options` is present on every W3C session — the BrowserStack SDK always injects
         // it — but `appiumVersion` is only inside it when the user pins one, so the key has to be
@@ -257,11 +261,10 @@ namespace PercyIO.Appium
         // only the first non-null would let an unparseable JWP value hide a usable W3C one.
         // Track whether anything was seen but could not be judged, so the reassurance is emitted
         // once after the loop rather than promised per-iteration and then contradicted by a
-        // later downgrade. `trusted` is tracked separately rather than breaking out on the first
-        // usable value: breaking would let an above-gate JWP value hide a below-gate W3C one,
-        // which is the same shadowing bug in the other direction.
+        // later downgrade. The loop never exits early: breaking on the first usable value would
+        // let an above-gate JWP value hide a below-gate W3C one, the same shadowing bug in the
+        // other direction.
         bool undetermined = false;
-        bool trusted = false;
 
         foreach (var raw in new object?[] { appiumVersionJsonProtocol, bstackAppiumVersion })
         {
@@ -299,12 +302,15 @@ namespace PercyIO.Appium
             Utils.Log("Appium version should be >= 1.19 for Fullpage Screenshot, Falling back to single page screenshot.", "warn");
             return false;
           }
-          // A usable version settles the reassurance, but keep consulting the other protocol so
-          // a below-gate value there still downgrades.
-          trusted = true;
+          // Above the gate. Keep consulting the other protocol so a below-gate value there still
+          // downgrades.
         }
 
-        if (undetermined && !trusted)
+        // Not guarded on whether some other value parsed: the downgrade above is the only one and
+        // here means fullpage will be attempted and the reassurance cannot be contradicted.
+        // Suppressing it when another protocol happened to parse would leave a lone "Ignoring
+        // non-string..." or "Could not parse..." line with no stated consequence.
+        if (undetermined)
         {
           Utils.Log("Attempting Fullpage Screenshot anyway.", "warn");
         }

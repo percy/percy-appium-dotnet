@@ -36,8 +36,13 @@ namespace PercyIO.Appium
     // degrade — a self-hosted grid using basic auth with a symbol-bearing password would
     // otherwise print username and secret. `[` and `/` stay excluded, which is what preserves
     // the XPath property: an XPath can only reach an `@` through one of them.
+    // Deliberately unbounded: a `{1,512}` cap was tried and fails open — a longer userinfo (a JWT
+    // in the basic-auth password position reaches ~680 chars) matches nothing and the entire URL
+    // prints verbatim. No bound is needed for ReDoS either, since there is no nested quantifier
+    // or alternation and `/` is excluded, so candidate runs are delimited by the `//` and cannot
+    // overlap.
     private static readonly Regex UrlUserInfo =
-      new Regex(@"://[A-Za-z0-9._~%+\-:!$&'()*,;=]{1,512}@", RegexOptions.Compiled);
+      new Regex(@"://[A-Za-z0-9._~%+\-:!$&'()*,;=]+@", RegexOptions.Compiled);
     private static readonly Regex CredentialQuery =
       new Regex(@"([?&](?:access[_-]?key|auth[_-]?token|token|password|secret)=)[^&\s""']+",
         RegexOptions.Compiled | RegexOptions.IgnoreCase);

@@ -76,6 +76,17 @@ namespace Percy.Tests
     }
 
     [Fact]
+    public void RedactsLongUserinfoRatherThanFailingOpen()
+    {
+      // A length cap on the userinfo quantifier fails open: past the cap nothing matches and the
+      // whole URL prints. A JWT in the basic-auth password position is the realistic case.
+      var jwt = new string('A', 680);
+      var redacted = Utils.RedactCredentials($"https://svc:{jwt}@hub.example.com/wd/hub");
+      Assert.Equal("https://***@hub.example.com/wd/hub", redacted);
+      Assert.DoesNotContain(jwt, redacted);
+    }
+
+    [Fact]
     public void RedactsCredentialsContainingSubDelimiters()
     {
       // A userinfo character outside the class makes the match fail outright rather than

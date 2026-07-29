@@ -393,7 +393,7 @@ namespace Percy.Tests
     public void TestVerifyCorrectAppiumVersion_WhenJSONFalse()
     {
       var expected = false;
-      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities().getValue<String>("browserstack.appium_version")).Returns("1.16.0");
+      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities().getValue<object>("browserstack.appium_version")).Returns("1.16.0");
       // Act
       var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
       var actual = appAutomate.VerifyCorrectAppiumVersion();
@@ -405,7 +405,7 @@ namespace Percy.Tests
     public void TestVerifyCorrectAppiumVersion_WhenJSONTrue()
     {
       var expected = true;
-      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities().getValue<String>("browserstack.appium_version")).Returns("1.20.0");
+      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities().getValue<object>("browserstack.appium_version")).Returns("1.20.0");
       // Act
       var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
       var actual = appAutomate.VerifyCorrectAppiumVersion();
@@ -655,7 +655,7 @@ namespace Percy.Tests
       // The mirror of JwpUnparseableDoesNotShadowW3CValue: returning early on the first usable
       // value would let JWP 2.0 hide a W3C 1.16 the hub actually honours, and request a
       // fullpage capture against it with no warning at all.
-      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities().getValue<String>("browserstack.appium_version")).Returns("2.0");
+      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities().getValue<object>("browserstack.appium_version")).Returns("2.0");
       _androidPercyAppiumDriver.Setup(x => x.GetCapabilities().getValue<Dictionary<string, object>>("bstack:options")).Returns(
         new Dictionary<string, object> { { "appiumVersion", "1.16" } }
       );
@@ -704,7 +704,7 @@ namespace Percy.Tests
     {
       // Both protocols are consulted; an unparseable JWP value must not hide a usable W3C one
       // that is genuinely below the gate.
-      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities().getValue<String>("browserstack.appium_version")).Returns("garbage");
+      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities().getValue<object>("browserstack.appium_version")).Returns("garbage");
       _androidPercyAppiumDriver.Setup(x => x.GetCapabilities().getValue<Dictionary<string, object>>("bstack:options")).Returns(
         new Dictionary<string, object> { { "appiumVersion", "1.16" } }
       );
@@ -717,6 +717,56 @@ namespace Percy.Tests
         // Must not promise a fullpage attempt and then downgrade two lines later
         Assert.DoesNotContain("Attempting Fullpage Screenshot anyway", stdout.ToString());
         Assert.Contains("Falling back to single page", stdout.ToString());
+      }
+      finally
+      {
+        Console.SetOut(originalOut);
+      }
+    }
+
+    [Fact]
+    public void TestVerifyCorrectAppiumVersion_NonStringJwpValueStillEnforcesGate()
+    {
+      // getValue<String> returns null for a non-string, so an unquoted legacy
+      // `browserstack.appium_version: 1.16` used to read as "not present" and skip the gate.
+      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities().getValue<object>("browserstack.appium_version")).Returns(1.16d);
+      var stdout = new StringWriter();
+      var originalOut = Console.Out;
+      Console.SetOut(stdout);
+      try
+      {
+        // Lossy as a double, so it cannot be range-compared — but it must be reported as
+        // undetermined, not silently ignored.
+        Assert.True(new AppAutomate(_androidPercyAppiumDriver.Object).VerifyCorrectAppiumVersion());
+        var output = stdout.ToString();
+        Assert.Contains("Ignoring non-string Appium version capability", output);
+        Assert.Contains("Attempting Fullpage Screenshot anyway", output);
+      }
+      finally
+      {
+        Console.SetOut(originalOut);
+      }
+    }
+
+    [Fact]
+    public void TestVerifyCorrectAppiumVersion_UndeterminedValueAlwaysStatesTheConsequence()
+    {
+      // An above-gate value on one protocol must not suppress the reassurance for an
+      // undetermined value on the other, leaving a bare "Ignoring non-string..." with no
+      // stated outcome.
+      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities().getValue<object>("browserstack.appium_version")).Returns("2.0");
+      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities().getValue<Dictionary<string, object>>("bstack:options")).Returns(
+        new Dictionary<string, object> { { "appiumVersion", 1.20d } }
+      );
+      var stdout = new StringWriter();
+      var originalOut = Console.Out;
+      Console.SetOut(stdout);
+      try
+      {
+        Assert.True(new AppAutomate(_androidPercyAppiumDriver.Object).VerifyCorrectAppiumVersion());
+        var output = stdout.ToString();
+        Assert.Contains("Ignoring non-string Appium version capability '1.2'", output);
+        Assert.Contains("Attempting Fullpage Screenshot anyway", output);
       }
       finally
       {
@@ -761,7 +811,7 @@ namespace Percy.Tests
     [Fact]
     public void TestVerifyCorrectAppiumVersion_WhenVersionIsUnparseable()
     {
-      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities().getValue<String>("browserstack.appium_version")).Returns("not-a-version");
+      _androidPercyAppiumDriver.Setup(x => x.GetCapabilities().getValue<object>("browserstack.appium_version")).Returns("not-a-version");
       // Act
       var appAutomate = new AppAutomate(_androidPercyAppiumDriver.Object);
       var actual = appAutomate.VerifyCorrectAppiumVersion();
